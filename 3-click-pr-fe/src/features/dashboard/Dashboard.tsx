@@ -137,7 +137,7 @@ export default function Dashboard() {
 
       {/* Quick actions */}
       <section className={styles.quickActions}>
-        <Action label="Add Worker" icon={<IconPlus />} onClick={() => alert("Add Worker")} />
+        <Action label="Add Worker" icon={<IconPlus />} onClick={() => navigate("/admin/workers/new")} />
         <Action label="Import Timesheets" icon={<IconImport />} onClick={() => alert("Import")} />
         <Action label="Generate Pay Slips" icon={<IconReceipt />} onClick={() => alert("Payslips")} />
         <Action label="Tax Remittance" icon={<IconTax />} onClick={() => alert("CRA Remittance")} />
