@@ -5,7 +5,7 @@
   --border: #24273a;
   --text: #e8eaf2;
   --muted: #9aa3b2;
-  --brand: #3b82f6; /* feel free to tweak */
+  --brand: #3b82f6;
   --brand-2: #22c55e;
 }
 
@@ -27,7 +27,11 @@
   font-size: clamp(20px, 2.4vw, 28px);
   margin: 0 0 4px;
 }
-.muted { color: var(--muted); }
+
+/* only used for the header’s descriptive line */
+.headerDesc { color: var(--muted); }
+
+.muted { color: var(--muted); } /* kept for general use */
 
 .headerRight { display: flex; gap: 8px; }
 
@@ -39,7 +43,7 @@
   cursor: pointer;
 }
 
-/* NEW: secondary button for Logout */
+/* Secondary button for Logout */
 .secondaryBtn {
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--panel-2);
@@ -52,6 +56,32 @@
 }
 .secondaryBtn:hover { filter: brightness(1.05); }
 .secondaryBtn:active { transform: translateY(1px); }
+
+/* Hide on small screens (e.g., admin first name next to Logout) */
+.hideOnMobile { display: inline; }
+
+/* ---------- Responsive tweaks ---------- */
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .headerRight {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+  .primaryBtn, .secondaryBtn {
+    justify-content: center;
+    width: 100%;
+  }
+  /* remove the descriptive sentence on mobile */
+  .headerDesc { display: none; }
+  /* hide the admin name next to Logout on mobile */
+  .hideOnMobile { display: none; }
+}
 
 .kpiGrid {
   display: grid;

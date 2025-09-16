@@ -1,4 +1,3 @@
-// src/features/dashboard/Dashboard.tsx
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import styles from "./Dashboard.module.css";
@@ -17,12 +16,12 @@ type TimesheetSummary = {
   agent: { processed: number; total: number };
 };
 type Compliance = {
-  nextRemittanceDue?: string; // e.g., "2025-09-15"
+  nextRemittanceDue?: string;
   t4Status?: "not_started" | "in_progress" | "ready";
 };
 type ActivityItem = { id: string; when: string; text: string };
 
-/** ---- Inline SVG icons (no external libs) ---- */
+/** ---- Inline SVG icons ---- */
 const IconPlay = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
     <path d="M8 5v14l11-7-11-7z" fill="currentColor" />
@@ -48,7 +47,6 @@ const IconTax = () => (
     <path d="M3 5h18v2H3V5zm0 12h18v2H3v-2zM7 9h2v6H7V9zm4 0h2v6h-2V9zm4 0h2v6h-2V9z" fill="currentColor"/>
   </svg>
 );
-/** Logout icon */
 const IconLogout = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
     <path d="M16 13v-2H8V8l-5 4 5 4v-3h8zM20 3h-8v2h8v14h-8v2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" fill="currentColor"/>
@@ -60,7 +58,6 @@ export default function Dashboard() {
   const { signOut, user } = useAuth();
   const { navigate } = useHashLocation();
 
-  // In real app, fetch these from your API (native fetch).
   const [workers] = useState<WorkerCounts>({
     directEmployees: 12,
     contactWorkers: 8,
@@ -85,8 +82,7 @@ export default function Dashboard() {
   ]);
 
   useEffect(() => {
-    // const api = import.meta.env.VITE_API_BASE_URL;
-    // fetch(`${api}/dashboard/summary`).then(r => r.json()).then(setData);
+    // fetch dashboard summary here if needed
   }, []);
 
   const pendingTimesheets = useMemo(() => {
@@ -105,21 +101,27 @@ export default function Dashboard() {
     navigate("/auth/sign-in", { replace: true });
   }
 
+  const firstName = user?.name?.split(" ")[0] ?? "";
+
   return (
     <div className={styles.wrap}>
       <header className={styles.header}>
         <div>
           <h1>3-Click Payroll — Dashboard</h1>
-          <p className={styles.muted}>
+          {/* Hidden on mobile by CSS (headerDesc) */}
+          <p className={styles.headerDesc}>
             Quick view of workers, timesheets, payroll, and compliance.
           </p>
         </div>
+
         <div className={styles.headerRight}>
           <button className={styles.primaryBtn} onClick={() => alert("Run Payroll flow")}>
             <IconPlay /> Run Payroll
           </button>
           <button className={styles.secondaryBtn} onClick={onLogout} aria-label="Sign out">
-            <IconLogout /> Logout{user?.name ? ` (${user.name.split(" ")[0]})` : ""}
+            <IconLogout /> Logout
+            {/* Name shown only on desktop/tablet */}
+            {firstName && <span className={styles.hideOnMobile}> ({firstName})</span>}
           </button>
         </div>
       </header>
@@ -133,7 +135,7 @@ export default function Dashboard() {
         <Kpi title="Next Payroll" value={nextPayrollDate} hint="scheduled" />
       </section>
 
-      {/* Quick actions (no extra libraries) */}
+      {/* Quick actions */}
       <section className={styles.quickActions}>
         <Action label="Add Worker" icon={<IconPlus />} onClick={() => alert("Add Worker")} />
         <Action label="Import Timesheets" icon={<IconImport />} onClick={() => alert("Import")} />
@@ -142,7 +144,6 @@ export default function Dashboard() {
       </section>
 
       <div className={styles.mainGrid}>
-        {/* Timesheet automation & status by worker category */}
         <section className={styles.card}>
           <h2>Timesheets by Category</h2>
           <p className={styles.muted}>
@@ -153,7 +154,6 @@ export default function Dashboard() {
           <ProgressRow label="Agent Workers" data={timesheets.agent} />
         </section>
 
-        {/* Compliance / year-end */}
         <section className={styles.card}>
           <h2>Compliance</h2>
           <ul className={styles.list}>
@@ -174,7 +174,6 @@ export default function Dashboard() {
           </ul>
         </section>
 
-        {/* Recent activity */}
         <section className={styles.card}>
           <h2>Recent Activity</h2>
           <ul className={styles.activity}>
