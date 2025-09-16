@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 type User = { id: string; email: string; name?: string; role?: "admin" | "user" };
 type AuthState = { user: User | null; token: string | null };
@@ -17,16 +17,12 @@ const TOKEN_KEY = "authToken";
 const USER_KEY = "authUser";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-
-  // Load session
-  useEffect(() => {
-    const t = localStorage.getItem(TOKEN_KEY);
-    const u = localStorage.getItem(USER_KEY);
-    if (t) setToken(t);
-    if (u) setUser(JSON.parse(u));
-  }, []);
+  // Read once during first render (prevents redirect flicker on refresh)
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
+  const [user, setUser] = useState<User | null>(() => {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  });
 
   const API = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -37,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
     if (!res.ok) throw new Error(`Login failed (${res.status})`);
-    const data = await res.json(); // expected: { token: string, user: User }
+    const data = await res.json(); // { token, user }
     setToken(data.token);
     setUser(data.user);
     localStorage.setItem(TOKEN_KEY, data.token);

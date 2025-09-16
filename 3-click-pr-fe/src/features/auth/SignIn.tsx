@@ -1,4 +1,3 @@
-// src/features/auth/SignIn.tsx
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useAuth } from "../../state/AuthContext";
@@ -23,7 +22,7 @@ export default function SignIn() {
     setBusy(true);
     try {
       await signIn({ email: email.trim(), password });
-      navigate("/admin");
+      navigate("/admin", { replace: true }); // prevent back button returning to sign-in
     } catch (err) {
       setMsg({ type: "error", text: err instanceof Error ? err.message : "Login failed" });
     } finally {

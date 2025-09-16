@@ -12,12 +12,22 @@ export default function App() {
   const { user } = useAuth();
 
   useEffect(() => {
+    // Default landing
     if (path === "/") {
-      navigate(user ? "/admin" : "/auth/sign-in");
+      navigate(user ? "/admin" : "/auth/sign-in", { replace: true });
       return;
     }
+
+    // Block /admin when signed out
     if (path.startsWith("/admin") && !user) {
-      navigate("/auth/sign-in");
+      navigate("/auth/sign-in", { replace: true });
+      return;
+    }
+
+    // Block /auth/* when already signed in
+    if (path.startsWith("/auth") && user) {
+      navigate("/admin", { replace: true });
+      return;
     }
   }, [path, user, navigate]);
 
