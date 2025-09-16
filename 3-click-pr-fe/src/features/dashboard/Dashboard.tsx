@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import styles from "./Dashboard.module.css";
+import { useAuth } from "../../state/AuthContext";
+import { useHashLocation } from "../../lib/useHashLocation";
 
 /** ---- Types ---- */
 type WorkerCounts = {
@@ -46,9 +48,18 @@ const IconTax = () => (
     <path d="M3 5h18v2H3V5zm0 12h18v2H3v-2zM7 9h2v6H7V9zm4 0h2v6h-2V9zm4 0h2v6h-2V9z" fill="currentColor"/>
   </svg>
 );
+/** Logout icon */
+const IconLogout = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+    <path d="M16 13v-2H8V8l-5 4 5 4v-3h8zM20 3h-8v2h8v14h-8v2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" fill="currentColor"/>
+  </svg>
+);
 
 /** ---- Dashboard ---- */
 export default function Dashboard() {
+  const { signOut, user } = useAuth();
+  const { navigate } = useHashLocation();
+
   // In real app, fetch these from your API (native fetch).
   const [workers] = useState<WorkerCounts>({
     directEmployees: 12,
@@ -89,6 +100,11 @@ export default function Dashboard() {
     return d.toISOString().slice(0, 10);
   }, []);
 
+  function onLogout() {
+    signOut();
+    navigate("/auth/sign-in", { replace: true });
+  }
+
   return (
     <div className={styles.wrap}>
       <header className={styles.header}>
@@ -101,6 +117,9 @@ export default function Dashboard() {
         <div className={styles.headerRight}>
           <button className={styles.primaryBtn} onClick={() => alert("Run Payroll flow")}>
             <IconPlay /> Run Payroll
+          </button>
+          <button className={styles.secondaryBtn} onClick={onLogout} aria-label="Sign out">
+            <IconLogout /> Logout{user?.name ? ` (${user.name.split(" ")[0]})` : ""}
           </button>
         </div>
       </header>
