@@ -6,25 +6,21 @@ const Dashboard = lazy(() => import("./features/dashboard/Dashboard"));
 const SignIn = lazy(() => import("./features/auth/SignIn"));
 const ForgotPassword = lazy(() => import("./features/auth/ForgotPassword"));
 const CreateAdmin = lazy(() => import("./features/auth/CreateAdmin"));
+const AddWorker = lazy(() => import("./features/workers/AddWorker"));
 
 export default function App() {
   const { path, navigate } = useHashLocation();
   const { user } = useAuth();
 
   useEffect(() => {
-    // Default landing
     if (path === "/") {
       navigate(user ? "/admin" : "/auth/sign-in", { replace: true });
       return;
     }
-
-    // Block /admin when signed out
     if (path.startsWith("/admin") && !user) {
       navigate("/auth/sign-in", { replace: true });
       return;
     }
-
-    // Block /auth/* when already signed in
     if (path.startsWith("/auth") && user) {
       navigate("/admin", { replace: true });
       return;
@@ -39,6 +35,8 @@ export default function App() {
         return <ForgotPassword />;
       case "/auth/create-admin":
         return <CreateAdmin />;
+      case "/admin/workers/new":
+        return <AddWorker />;
       case "/admin":
         return <Dashboard />;
       default:
