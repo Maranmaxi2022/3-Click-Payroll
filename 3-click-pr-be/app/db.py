@@ -1,5 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from .config import MONGODB_URI, MONGODB_DB
+from pymongo.errors import OperationFailure
 
 client: AsyncIOMotorClient | None = None
 
@@ -21,9 +22,23 @@ async def init_db():
     # Admins: unique email
     await db.admins.create_index("email", unique=True)
 
-    # Workers: useful lookups (non-unique email; also index by adminId)
+    # Workers:
+    #  - simple lookup by email
     await db.workers.create_index("email")
-    await db.workers.create_index("adminId")
+
+    #  - migrate: drop old unique index (adminId,email) if present
+    try:
+        await db.workers.drop_index("uniq_admin_email")
+    except OperationFailure:
+        pass  # index didn't exist; ignore
+
+    #  - unique per (adminId, email, workerType); sparse allows docs with no email
+    await db.workers.create_index(
+        [("adminId", 1), ("email", 1), ("workerType", 1)],
+        unique=True,
+        sparse=True,
+        name="uniq_admin_email_type",
+    )
 
 
 async def close_db():
