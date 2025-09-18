@@ -1,9 +1,9 @@
 // src/features/workers/AddWorker.tsx
 import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../../state/AuthContext";
 import { useHashLocation } from "../../lib/useHashLocation";
-import form from "../auth/Auth.module.css"; // reuse existing form styles
+import form from "../auth/Auth.module.css";
 
 type WorkerType = "direct" | "contract" | "agent";
 type EmploymentType = "full_time" | "part_time" | "contract";
@@ -14,25 +14,30 @@ export default function AddWorker() {
   const { navigate } = useHashLocation();
   const API = import.meta.env.VITE_API_BASE_URL || "";
 
+  const firstNameRef = useRef<HTMLInputElement | null>(null);
+
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
   const [workerType, setWorkerType] = useState<WorkerType>("direct");
+  const [employmentType, setEmpType] = useState<EmploymentType>("full_time");
+
   const [firstName, setFirst] = useState("");
   const [lastName, setLast] = useState("");
   const [email, setEmail] = useState("");
+  const [emailInUse, setEmailInUse] = useState<boolean | null>(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [sin, setSin] = useState("");
 
   const [jobTitle, setJob] = useState("");
   const [department, setDept] = useState("");
-  const [employmentType, setEmpType] = useState<EmploymentType>("full_time");
-  const [payRate, setPayRate] = useState<string>(""); // store as string, parse on submit
+  const [payRate, setPayRate] = useState<string>("");
   const [payUnit, setPayUnit] = useState<PayUnit>("hourly");
 
-  // type-specific
-  const [companyName, setCompanyName] = useState(""); // for contract/agent
+  const [companyName, setCompanyName] = useState("");
   const [project, setProject] = useState("");
   const [agencyFee, setAgencyFee] = useState<string>("");
 
@@ -40,13 +45,41 @@ export default function AddWorker() {
   const requiredOk = firstName.trim().length > 0 && lastName.trim().length > 0;
   const payOk = payRate === "" || !isNaN(Number(payRate));
   const agencyFeeOk = agencyFee === "" || !isNaN(Number(agencyFee));
-  const canSubmit = requiredOk && emailOk && payOk && agencyFeeOk;
+  const canSubmit = requiredOk && emailOk && payOk && agencyFeeOk && !emailInUse;
 
   const title = useMemo(() => {
     if (workerType === "direct") return "Add Direct Employee";
     if (workerType === "contract") return "Add Contract Worker";
     return "Add Agent Worker";
   }, [workerType]);
+
+  // Debounced email existence check (scoped to admin + workerType)
+  useEffect(() => {
+    setEmailInUse(null);
+    if (!token) return;
+    const norm = email.trim().toLowerCase();
+    if (!norm || !emailOk) return;
+
+    const id = setTimeout(async () => {
+      try {
+        setCheckingEmail(true);
+        const url = `${API}/workers/exists?email=${encodeURIComponent(norm)}&workerType=${encodeURIComponent(workerType)}`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          setEmailInUse(Boolean(data.exists));
+        } else {
+          setEmailInUse(null);
+        }
+      } catch {
+        setEmailInUse(null);
+      } finally {
+        setCheckingEmail(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(id);
+  }, [email, workerType, emailOk, token, API]);
 
   function prune<T extends Record<string, any>>(obj: T) {
     const out: Record<string, any> = {};
@@ -55,6 +88,26 @@ export default function AddWorker() {
       out[k] = v;
     });
     return out;
+  }
+
+  // Clear all inputs but keep workerType & employmentType; focus first name
+  function clearForm() {
+    setFirst("");
+    setLast("");
+    setEmail("");
+    setEmailInUse(null);
+    setPhone("");
+    setAddress("");
+    setSin("");
+    setJob("");
+    setDept("");
+    setPayRate("");
+    setPayUnit("hourly");
+    setCompanyName("");
+    setProject("");
+    setAgencyFee("");
+    // put cursor ready for the next entry
+    requestAnimationFrame(() => firstNameRef.current?.focus());
   }
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -90,10 +143,21 @@ export default function AddWorker() {
         },
         body: JSON.stringify(body),
       });
+
+      if (res.status === 409) {
+        setEmailInUse(true);
+        throw new Error("This email already exists for this worker type.");
+      }
       if (!res.ok) throw new Error(`Create worker failed (${res.status})`);
+
+      // success: show message, clear the form, refocus first field
       setMsg({ type: "success", text: "Worker created." });
-      // back to dashboard
-      navigate("/admin", { replace: true });
+      clearForm();
+
+      // hide message later (and optionally navigate if you want)
+      setTimeout(() => setMsg(null), 2000);
+      // If you prefer to go back to dashboard after save, uncomment:
+      // navigate("/admin", { replace: true });
     } catch (err) {
       setMsg({
         type: "error",
@@ -111,7 +175,6 @@ export default function AddWorker() {
         <p className={form.muted}>Fill the details below.</p>
 
         <form className={form.form} onSubmit={onSubmit} noValidate>
-          {/* Worker type */}
           <div className={form.row}>
             <div style={{ flex: 1 }}>
               <label className={form.label}>Worker Type</label>
@@ -131,11 +194,16 @@ export default function AddWorker() {
             </div>
           </div>
 
-          {/* Personal */}
           <div className={form.row}>
             <div style={{ flex: 1 }}>
               <label className={form.label}>First name*</label>
-              <input className={form.input} value={firstName} onChange={(e) => setFirst(e.target.value)} required />
+              <input
+                ref={firstNameRef}
+                className={form.input}
+                value={firstName}
+                onChange={(e) => setFirst(e.target.value)}
+                required
+              />
             </div>
             <div style={{ flex: 1 }}>
               <label className={form.label}>Last name*</label>
@@ -148,6 +216,8 @@ export default function AddWorker() {
               <label className={form.label}>Email</label>
               <input className={form.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               {!emailOk && <div className={form.muted}>Enter a valid email.</div>}
+              {checkingEmail && emailOk && email && <div className={form.muted}>Checking…</div>}
+              {emailInUse && <div className={form.error}>This email already exists for this worker type.</div>}
             </div>
             <div style={{ flex: 1 }}>
               <label className={form.label}>Phone</label>
@@ -165,7 +235,6 @@ export default function AddWorker() {
             <input className={form.input} value={sin} onChange={(e) => setSin(e.target.value)} />
           </div>
 
-          {/* Employment */}
           <div className={form.row}>
             <div style={{ flex: 1 }}>
               <label className={form.label}>Job title</label>
@@ -193,7 +262,6 @@ export default function AddWorker() {
             </div>
           </div>
 
-          {/* Type-specific */}
           {(workerType === "contract" || workerType === "agent") && (
             <div>
               <label className={form.label}>{workerType === "agent" ? "Agency / Company name" : "Company (optional)"}</label>
@@ -226,7 +294,11 @@ export default function AddWorker() {
             <button className={form.btn} type="submit" disabled={!token || busy || !canSubmit}>
               {busy ? "Saving…" : "Save Worker"}
             </button>
-            <button className={`${form.btn} ${form.secondary}`} type="button" onClick={() => navigate("/admin", { replace: true })}>
+            <button
+              className={`${form.btn} ${form.secondary}`}
+              type="button"
+              onClick={() => navigate("/admin", { replace: true })}
+            >
               Cancel
             </button>
           </div>
