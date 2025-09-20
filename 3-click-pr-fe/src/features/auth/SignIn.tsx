@@ -1,12 +1,10 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useAuth } from "../../state/AuthContext";
-import { useHashLocation } from "../../lib/useHashLocation";
 import styles from "./Auth.module.css";
 
 export default function SignIn() {
   const { signIn } = useAuth();
-  const { navigate } = useHashLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +20,6 @@ export default function SignIn() {
     setBusy(true);
     try {
       await signIn({ email: email.trim(), password });
-      navigate("/admin", { replace: true }); // prevent back button returning to sign-in
     } catch (err) {
       setMsg({ type: "error", text: err instanceof Error ? err.message : "Login failed" });
     } finally {
