@@ -1,29 +1,31 @@
 // src/features/workers/AddWorker.tsx
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../../state/AuthContext";
 import { useHashLocation } from "../../lib/useHashLocation";
-import form from "../auth/Auth.module.css";
+import form from "../auth/Auth.module.css"; // reuse existing form styles
 
 type WorkerType = "direct" | "contract" | "agent";
 type EmploymentType = "full_time" | "part_time" | "contract";
 type PayUnit = "hourly" | "salary" | "flat";
 
-export default function AddWorker() {
+type AddWorkerProps = {
+  /** When true, render a wide, full-width card suitable for the dashboard area */
+  embedded?: boolean;
+};
+
+export default function AddWorker({ embedded = false }: AddWorkerProps) {
   const { token } = useAuth();
   const { navigate } = useHashLocation();
   const API = import.meta.env.VITE_API_BASE_URL || "";
-
-  const firstNameRef = useRef<HTMLInputElement | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
   const [workerType, setWorkerType] = useState<WorkerType>("direct");
-  const [employmentType, setEmpType] = useState<EmploymentType>("full_time");
-
   const [firstName, setFirst] = useState("");
   const [lastName, setLast] = useState("");
+
   const [email, setEmail] = useState("");
   const [emailInUse, setEmailInUse] = useState<boolean | null>(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
@@ -34,6 +36,7 @@ export default function AddWorker() {
 
   const [jobTitle, setJob] = useState("");
   const [department, setDept] = useState("");
+  const [employmentType, setEmpType] = useState<EmploymentType>("full_time");
   const [payRate, setPayRate] = useState<string>("");
   const [payUnit, setPayUnit] = useState<PayUnit>("hourly");
 
@@ -53,7 +56,7 @@ export default function AddWorker() {
     return "Add Agent Worker";
   }, [workerType]);
 
-  // Debounced email existence check (scoped to admin + workerType)
+  // Debounced email existence check (scoped to admin)
   useEffect(() => {
     setEmailInUse(null);
     if (!token) return;
@@ -63,8 +66,9 @@ export default function AddWorker() {
     const id = setTimeout(async () => {
       try {
         setCheckingEmail(true);
-        const url = `${API}/workers/exists?email=${encodeURIComponent(norm)}&workerType=${encodeURIComponent(workerType)}`;
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`${API}/workers/exists?email=${encodeURIComponent(norm)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (res.ok) {
           const data = await res.json();
           setEmailInUse(Boolean(data.exists));
@@ -79,7 +83,7 @@ export default function AddWorker() {
     }, 400);
 
     return () => clearTimeout(id);
-  }, [email, workerType, emailOk, token, API]);
+  }, [email, emailOk, token, API]);
 
   function prune<T extends Record<string, any>>(obj: T) {
     const out: Record<string, any> = {};
@@ -88,26 +92,6 @@ export default function AddWorker() {
       out[k] = v;
     });
     return out;
-  }
-
-  // Clear all inputs but keep workerType & employmentType; focus first name
-  function clearForm() {
-    setFirst("");
-    setLast("");
-    setEmail("");
-    setEmailInUse(null);
-    setPhone("");
-    setAddress("");
-    setSin("");
-    setJob("");
-    setDept("");
-    setPayRate("");
-    setPayUnit("hourly");
-    setCompanyName("");
-    setProject("");
-    setAgencyFee("");
-    // put cursor ready for the next entry
-    requestAnimationFrame(() => firstNameRef.current?.focus());
   }
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -137,173 +121,158 @@ export default function AddWorker() {
 
       const res = await fetch(`${API}/workers`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
 
       if (res.status === 409) {
         setEmailInUse(true);
-        throw new Error("This email already exists for this worker type.");
+        throw new Error("A worker with this email already exists.");
       }
       if (!res.ok) throw new Error(`Create worker failed (${res.status})`);
 
-      // success: show message, clear the form, refocus first field
       setMsg({ type: "success", text: "Worker created." });
-      clearForm();
-
-      // hide message later (and optionally navigate if you want)
-      setTimeout(() => setMsg(null), 2000);
-      // If you prefer to go back to dashboard after save, uncomment:
-      // navigate("/admin", { replace: true });
+      navigate("/admin", { replace: true });
     } catch (err) {
-      setMsg({
-        type: "error",
-        text: err instanceof Error ? err.message : "Create worker failed",
-      });
+      setMsg({ type: "error", text: err instanceof Error ? err.message : "Create worker failed" });
     } finally {
       setBusy(false);
     }
   }
 
-  return (
-    <div className={form.page}>
-      <div className={form.card}>
-        <h1 className={form.title}>{title}</h1>
-        <p className={form.muted}>Fill the details below.</p>
-
-        <form className={form.form} onSubmit={onSubmit} noValidate>
-          <div className={form.row}>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Worker Type</label>
-              <select className={form.input} value={workerType} onChange={(e) => setWorkerType(e.target.value as WorkerType)}>
-                <option value="direct">Direct employee</option>
-                <option value="contract">Contract worker</option>
-                <option value="agent">Agent worker</option>
-              </select>
-            </div>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Employment Type</label>
-              <select className={form.input} value={employmentType} onChange={(e) => setEmpType(e.target.value as EmploymentType)}>
-                <option value="full_time">Full-time</option>
-                <option value="part_time">Part-time</option>
-                <option value="contract">Contract</option>
-              </select>
-            </div>
-          </div>
-
-          <div className={form.row}>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>First name*</label>
-              <input
-                ref={firstNameRef}
-                className={form.input}
-                value={firstName}
-                onChange={(e) => setFirst(e.target.value)}
-                required
-              />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Last name*</label>
-              <input className={form.input} value={lastName} onChange={(e) => setLast(e.target.value)} required />
-            </div>
-          </div>
-
-          <div className={form.row}>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Email</label>
-              <input className={form.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              {!emailOk && <div className={form.muted}>Enter a valid email.</div>}
-              {checkingEmail && emailOk && email && <div className={form.muted}>Checking…</div>}
-              {emailInUse && <div className={form.error}>This email already exists for this worker type.</div>}
-            </div>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Phone</label>
-              <input className={form.input} value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-          </div>
-
-          <div>
-            <label className={form.label}>Address</label>
-            <input className={form.input} value={address} onChange={(e) => setAddress(e.target.value)} />
-          </div>
-
-          <div>
-            <label className={form.label}>SIN (optional)</label>
-            <input className={form.input} value={sin} onChange={(e) => setSin(e.target.value)} />
-          </div>
-
-          <div className={form.row}>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Job title</label>
-              <input className={form.input} value={jobTitle} onChange={(e) => setJob(e.target.value)} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Department</label>
-              <input className={form.input} value={department} onChange={(e) => setDept(e.target.value)} />
-            </div>
-          </div>
-
-          <div className={form.row}>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Pay rate (CAD)</label>
-              <input className={form.input} value={payRate} onChange={(e) => setPayRate(e.target.value)} inputMode="decimal" />
-              {!payOk && <div className={form.muted}>Enter a number</div>}
-            </div>
-            <div style={{ flex: 1 }}>
-              <label className={form.label}>Pay unit</label>
-              <select className={form.input} value={payUnit} onChange={(e) => setPayUnit(e.target.value as PayUnit)}>
-                <option value="hourly">Hourly</option>
-                <option value="salary">Salary</option>
-                <option value="flat">Flat</option>
-              </select>
-            </div>
-          </div>
-
-          {(workerType === "contract" || workerType === "agent") && (
-            <div>
-              <label className={form.label}>{workerType === "agent" ? "Agency / Company name" : "Company (optional)"}</label>
-              <input className={form.input} value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
-            </div>
-          )}
-
-          {workerType !== "direct" && (
-            <div>
-              <label className={form.label}>Project (optional)</label>
-              <input className={form.input} value={project} onChange={(e) => setProject(e.target.value)} />
-            </div>
-          )}
-
-          {workerType === "agent" && (
-            <div>
-              <label className={form.label}>Agency fee % (optional)</label>
-              <input className={form.input} value={agencyFee} onChange={(e) => setAgencyFee(e.target.value)} inputMode="decimal" />
-              {!agencyFeeOk && <div className={form.muted}>Enter a number</div>}
-            </div>
-          )}
-
-          {msg && (
-            <div role="alert" className={msg.type === "error" ? form.error : form.success}>
-              {msg.text}
-            </div>
-          )}
-
-          <div className={form.actions}>
-            <button className={form.btn} type="submit" disabled={!token || busy || !canSubmit}>
-              {busy ? "Saving…" : "Save Worker"}
-            </button>
-            <button
-              className={`${form.btn} ${form.secondary}`}
-              type="button"
-              onClick={() => navigate("/admin", { replace: true })}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+  // ---- layout wrappers: narrow (auth page) vs wide (dashboard embed) ----
+  const CardWrap: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+    embedded ? (
+      // Full-width card when embedded in dashboard
+      <div className={form.card} style={{ maxWidth: "100%", width: "100%" }}>
+        {children}
       </div>
-    </div>
+    ) : (
+      <div className={form.page}>
+        <div className={form.card}>{children}</div>
+      </div>
+    );
+
+  return (
+    <CardWrap>
+      <h1 className={form.title}>{title}</h1>
+      <p className={form.muted}>Fill the details below.</p>
+
+      <form className={form.form} onSubmit={onSubmit} noValidate>
+        <div className={form.row}>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Worker Type</label>
+            <select className={form.input} value={workerType} onChange={(e) => setWorkerType(e.target.value as WorkerType)}>
+              <option value="direct">Direct employee</option>
+              <option value="contract">Contract worker</option>
+              <option value="agent">Agent worker</option>
+            </select>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Employment Type</label>
+            <select className={form.input} value={employmentType} onChange={(e) => setEmpType(e.target.value as EmploymentType)}>
+              <option value="full_time">Full-time</option>
+              <option value="part_time">Part-time</option>
+              <option value="contract">Contract</option>
+            </select>
+          </div>
+        </div>
+
+        <div className={form.row}>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>First name*</label>
+            <input className={form.input} value={firstName} onChange={(e) => setFirst(e.target.value)} required />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Last name*</label>
+            <input className={form.input} value={lastName} onChange={(e) => setLast(e.target.value)} required />
+          </div>
+        </div>
+
+        <div className={form.row}>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Email</label>
+            <input className={form.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            {!emailOk && <div className={form.muted}>Enter a valid email.</div>}
+            {checkingEmail && emailOk && email && <div className={form.muted}>Checking…</div>}
+            {emailInUse && <div className={form.error}>A worker with this email already exists.</div>}
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Phone</label>
+            <input className={form.input} value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+        </div>
+
+        <div>
+          <label className={form.label}>Address</label>
+          <input className={form.input} value={address} onChange={(e) => setAddress(e.target.value)} />
+        </div>
+
+        <div>
+          <label className={form.label}>SIN (optional)</label>
+          <input className={form.input} value={sin} onChange={(e) => setSin(e.target.value)} />
+        </div>
+
+        <div className={form.row}>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Job title</label>
+            <input className={form.input} value={jobTitle} onChange={(e) => setJob(e.target.value)} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Department</label>
+            <input className={form.input} value={department} onChange={(e) => setDept(e.target.value)} />
+          </div>
+        </div>
+
+        <div className={form.row}>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Pay rate (CAD)</label>
+            <input className={form.input} value={payRate} onChange={(e) => setPayRate(e.target.value)} inputMode="decimal" />
+            {!payOk && <div className={form.muted}>Enter a number</div>}
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className={form.label}>Pay unit</label>
+            <select className={form.input} value={payUnit} onChange={(e) => setPayUnit(e.target.value as PayUnit)}>
+              <option value="hourly">Hourly</option>
+              <option value="salary">Salary</option>
+              <option value="flat">Flat</option>
+            </select>
+          </div>
+        </div>
+
+        {workerType !== "direct" && (
+          <div>
+            <label className={form.label}>{workerType === "agent" ? "Agency / Company name" : "Company (optional)"}</label>
+            <input className={form.input} value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+          </div>
+        )}
+
+        {workerType !== "direct" && (
+          <div>
+            <label className={form.label}>Project (optional)</label>
+            <input className={form.input} value={project} onChange={(e) => setProject(e.target.value)} />
+          </div>
+        )}
+
+        {workerType === "agent" && (
+          <div>
+            <label className={form.label}>Agency fee % (optional)</label>
+            <input className={form.input} value={agencyFee} onChange={(e) => setAgencyFee(e.target.value)} inputMode="decimal" />
+            {!agencyFeeOk && <div className={form.muted}>Enter a number</div>}
+          </div>
+        )}
+
+        {msg && <div role="alert" className={msg.type === "error" ? form.error : form.success}>{msg.text}</div>}
+
+        <div className={form.actions}>
+          <button className={form.btn} type="submit" disabled={!token || busy || !canSubmit}>
+            {busy ? "Saving…" : "Save Worker"}
+          </button>
+          <button className={`${form.btn} ${form.secondary}`} type="button" onClick={() => navigate("/admin", { replace: true })}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </CardWrap>
   );
 }
