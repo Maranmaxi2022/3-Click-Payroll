@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* App globals */
+html, body, #root { height: 100%; }
+body { overflow-x: hidden; }
+
+/* Component-level utilities */
+@layer components {
+  .input {
+    @apply h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm
+           placeholder:text-slate-400 focus:border-blue-500 focus:outline-none
+           focus:ring-2 focus:ring-blue-200;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 h-10 text-[14px] font-medium
+           transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60;
+  }
+
+  /* Note: do NOT @apply .btn here (Tailwind can't apply custom classes). */
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg px-4 h-10 text-[14px] font-medium
+           transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
+           bg-blue-600 text-white shadow-sm hover:bg-blue-700 active:translate-y-px;
+  }
+
+  .btn-secondary {
+    /* used for Back */
+    @apply inline-flex items-center justify-center rounded-lg px-4 h-10 text-[14px] font-medium
+           transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
+           border border-slate-200 bg-white text-slate-900 hover:bg-slate-50;
+  }
+
+  .btn-ghost {
+    /* outline/white Cancel */
+    @apply inline-flex items-center justify-center rounded-lg px-4 h-10 text-[14px] font-medium
+           transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
+           border border-slate-300 bg-white text-slate-900 hover:bg-slate-50;
+  }
+
+  .btn-primary:disabled,
+  .btn-secondary:disabled,
+  .btn-ghost:disabled {
+    @apply opacity-60 pointer-events-none;
+  }
+}
