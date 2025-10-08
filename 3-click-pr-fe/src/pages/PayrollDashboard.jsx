@@ -1,9 +1,16 @@
 // /src/pages/PayrollDashboard.jsx
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Home, Users, Wallet, Settings, Clock } from "lucide-react";
 
 import HeaderBar from "../components/HeaderBar";
 import SidebarLink from "../components/SidebarLink";
+import {
+  BRANDING_DEFAULT,
+  BRANDING_STORAGE_KEY,
+  getAccentPreset,
+  loadBrandingPreferences,
+  persistBrandingPreferences,
+} from "../utils/branding";
 
 import DashboardHome from "./DashboardHome";
 import EmployeesView from "./EmployeesView";
@@ -35,6 +42,10 @@ export default function PayrollDashboard() {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("dashboard"); // 'dashboard' | 'employees' | 'timeoff' | 'payruns' | 'settings'
   const [subroute, setSubroute] = useState(""); // e.g., 'employees/new'
+  const [branding, setBranding] = useState(() => {
+    if (typeof window === "undefined") return { ...BRANDING_DEFAULT };
+    return loadBrandingPreferences();
+  });
 
   const TABS = ["dashboard", "employees", "timeoff", "payruns", "settings"];
 
@@ -51,6 +62,52 @@ export default function PayrollDashboard() {
     return () => window.removeEventListener("hashchange", syncFromHash);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const handleUpdate = (event) => {
+      if (!event?.detail) return;
+      setBranding((prev) => {
+        const detail = event.detail;
+        if (
+          prev.appearance === detail.appearance &&
+          prev.accent === detail.accent
+        ) {
+          return prev;
+        }
+        return detail;
+      });
+    };
+
+    window.addEventListener("branding:update", handleUpdate);
+    return () => window.removeEventListener("branding:update", handleUpdate);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const handleStorage = (event) => {
+      if (event.key === BRANDING_STORAGE_KEY && event.newValue) {
+        try {
+          const parsed = JSON.parse(event.newValue);
+          setBranding((prev) => {
+            const next = { ...BRANDING_DEFAULT, ...parsed };
+            if (
+              prev.appearance === next.appearance &&
+              prev.accent === next.accent
+            ) {
+              return prev;
+            }
+            return next;
+          });
+        } catch (err) {
+          console.warn("Failed to parse stored branding", err);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
   // Keep hash in sync when tab changes (if a subroute isn't already set)
   useEffect(() => {
     if (!subroute || !subroute.startsWith(tab)) {
@@ -60,6 +117,13 @@ export default function PayrollDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
+  const applyBranding = useCallback(
+    (partial) => {
+      setBranding((prev) => persistBrandingPreferences(partial, prev));
+    },
+    [persistBrandingPreferences]
+  );
+
   const go = (t) => () => setTab(t);
   const goMobile = (t) => () => {
     setTab(t);
@@ -67,23 +131,92 @@ export default function PayrollDashboard() {
   };
 
   const completed = stepData.filter((s) => s.state === "completed").length;
+  const isLightPane = branding.appearance === "light";
+  const accentPreset = getAccentPreset(branding.accent);
+  const dividerClass = isLightPane ? "bg-slate-200" : "bg-white/10";
+  const desktopSidebarClass = cls(
+    "hidden md:block fixed left-0 top-16 bottom-0 w-[240px]",
+    isLightPane
+      ? "bg-[#F5F7FF] text-slate-800 border-r border-slate-200 shadow-[inset_-1px_0_0_rgba(15,23,42,0.08)]"
+      : "bg-slate-900 text-slate-200"
+  );
+  const desktopNavClass = cls(
+    "h-full overflow-y-auto p-4 text-sm",
+    isLightPane ? "bg-transparent text-slate-700" : "bg-slate-900 text-slate-200"
+  );
+  const mobileAsideClass = cls(
+    "absolute inset-0 p-3 shadow-xl overflow-y-auto",
+    isLightPane ? "bg-white text-slate-800" : "bg-slate-900 text-slate-200"
+  );
+  const mobileBrandHeading = cls(
+    "flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold",
+    isLightPane ? "bg-white text-slate-800" : "bg-slate-800 text-white"
+  );
+  const supportLinkHover = isLightPane ? "hover:bg-slate-100" : "hover:bg-white/5";
+  const gettingStartedCard = isLightPane
+    ? "mb-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 p-3 text-white shadow-lg ring-1 ring-blue-300/60"
+    : "mb-3 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-3 ring-1 ring-white/10";
+  const progressTrack = isLightPane ? "bg-white/40" : "bg-white/10";
+  const progressFill = isLightPane ? accentPreset.activeClass : "bg-amber-400";
 
   return (
     // pt-16 makes room for the fixed header (h-16)
     <div className="min-h-screen bg-slate-50 text-slate-900 pt-16">
-      <HeaderBar brand={BRAND} q={q} setQ={setQ} onOpenSidebar={() => setSidebarOpen(true)} />
+      <HeaderBar
+        brand={BRAND}
+        q={q}
+        setQ={setQ}
+        onOpenSidebar={() => setSidebarOpen(true)}
+        appearance={branding.appearance}
+        accent={branding.accent}
+      />
 
       {/* Sidebar (desktop) fixed on the left, below the header */}
-      <aside className="hidden md:block fixed left-0 top-16 bottom-0 w-[240px] bg-slate-900">
-        <nav className="h-full overflow-y-auto bg-slate-900 p-3 text-sm text-slate-200">
+      <aside className={desktopSidebarClass}>
+        <nav className={desktopNavClass}>
           <div className="space-y-1">
-            <SidebarLink icon={Home} label="Dashboard"  active={tab === "dashboard"} onClick={go("dashboard")} />
-            <SidebarLink icon={Users} label="Employees"  active={tab === "employees"} onClick={go("employees")} />
-            <SidebarLink icon={Clock} label="Time Off"   active={tab === "timeoff"}    onClick={go("timeoff")} />
-            <div className="my-1 h-px bg-white/10" />
-            <SidebarLink icon={Wallet} label="Pay Runs"  active={tab === "payruns"}    onClick={go("payruns")} />
-            <div className="my-1 h-px bg-white/10" />
-            <SidebarLink icon={Settings} label="Settings" active={tab === "settings"} onClick={go("settings")} />
+            <SidebarLink
+              icon={Home}
+              label="Dashboard"
+              active={tab === "dashboard"}
+              onClick={go("dashboard")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
+            <SidebarLink
+              icon={Users}
+              label="Employees"
+              active={tab === "employees"}
+              onClick={go("employees")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
+            <SidebarLink
+              icon={Clock}
+              label="Time Off"
+              active={tab === "timeoff"}
+              onClick={go("timeoff")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
+            <div className={cls("my-1 h-px", dividerClass)} />
+            <SidebarLink
+              icon={Wallet}
+              label="Pay Runs"
+              active={tab === "payruns"}
+              onClick={go("payruns")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
+            <div className={cls("my-1 h-px", dividerClass)} />
+            <SidebarLink
+              icon={Settings}
+              label="Settings"
+              active={tab === "settings"}
+              onClick={go("settings")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
           </div>
         </nav>
       </aside>
@@ -106,20 +239,32 @@ export default function PayrollDashboard() {
 
           {tab === "timeoff" && <TimeOffView />}
           {tab === "payruns" && <PayRunsView />}
-          {tab === "settings" && <SettingsView />}
+          {tab === "settings" && (
+            <SettingsView
+              branding={branding}
+              onUpdateBranding={applyBranding}
+            />
+          )}
         </div>
       </main>
 
       {/* Mobile full-screen sidebar (over the header) */}
       <div className={cls("fixed inset-0 z-[60] md:hidden", sidebarOpen ? "block" : "hidden")}>
         <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
-        <aside className="absolute inset-0 bg-slate-900 text-slate-200 p-3 shadow-xl overflow-y-auto" role="dialog" aria-modal="true">
+        <aside className={mobileAsideClass} role="dialog" aria-modal="true">
           <div className="mb-2 mt-1 flex items-center justify-between">
-            <div className="flex items-center gap-2 rounded-xl bg-slate-800 px-2 py-1 text-white">
-              <img src={BRAND.logo} alt="Logo" className="h-4 w-4" />
-              <span className="text-sm font-semibold">{BRAND.name}</span>
+            <div className={mobileBrandHeading}>
+              <img src={BRAND.logo} alt="Logo" className="h-5 w-5" />
+              <span>{BRAND.name}</span>
             </div>
-            <button className="rounded-lg p-2 hover:bg-white/10" aria-label="Close menu" onClick={() => setSidebarOpen(false)}>
+            <button
+              className={cls(
+                "rounded-lg p-2",
+                isLightPane ? "hover:bg-slate-100 text-slate-500" : "hover:bg-white/10"
+              )}
+              aria-label="Close menu"
+              onClick={() => setSidebarOpen(false)}
+            >
               <svg width="20" height="20" viewBox="0 0 24 24">
                 <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
@@ -128,32 +273,84 @@ export default function PayrollDashboard() {
 
           <nav className="mt-2 space-y-1">
             {/* quick “Getting Started” card */}
-            <div className="mb-3 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-3 ring-1 ring-white/10">
+            <div className={gettingStartedCard}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <svg viewBox="0 0 24 24" className="h-5 w-5 text-amber-300" fill="currentColor">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className={cls(
+                      "h-5 w-5",
+                      isLightPane ? "text-white" : "text-amber-300"
+                    )}
+                    fill="currentColor"
+                  >
                     <path d="M12 2a1 1 0 01.894.553l2.382 4.764 5.257.764a1 1 0 01.554 1.705l-3.8 3.704.897 5.228a1 1 0 01-1.451 1.054L12 18.347l-4.683 2.465a1 1 0 01-1.451-1.054l.897-5.228-3.8-3.704a1 1 0 01.554-1.705l5.257-.764L11.106 2.553A1 1 0 0112 2z" />
                   </svg>
-                  <span className="font-semibold text-white">Getting Started</span>
+                  <span className="font-semibold">Getting Started</span>
                 </div>
-                <svg viewBox="0 0 24 24" className="h-4 w-4 text-slate-400"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-white/80"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </div>
-              <div className="mt-3 h-1.5 w-full rounded-full bg-white/10">
-                <div className="h-1.5 rounded-full bg-amber-400" style={{ width: "60%" }} />
+              <div className={cls("mt-3 h-1.5 w-full rounded-full", progressTrack)}>
+                <div className={cls("h-1.5 rounded-full", progressFill)} style={{ width: "60%" }} />
               </div>
             </div>
 
             {/* nav items */}
-            <SidebarLink icon={Home}  label="Dashboard" active={tab==="dashboard"} onClick={goMobile("dashboard")} />
-            <SidebarLink icon={Users} label="Employees" active={tab==="employees"} onClick={goMobile("employees")} />
-            <SidebarLink icon={Clock} label="Time Off"  active={tab==="timeoff"}   onClick={goMobile("timeoff")} />
-            <div className="my-1 h-px bg-white/10" />
-            <SidebarLink icon={Wallet} label="Pay Runs" active={tab==="payruns"} onClick={goMobile("payruns")} />
-            <div className="my-1 h-px bg-white/10" />
-            <SidebarLink icon={Settings} label="Settings" active={tab==="settings"} onClick={goMobile("settings")} />
+            <SidebarLink
+              icon={Home}
+              label="Dashboard"
+              active={tab === "dashboard"}
+              onClick={goMobile("dashboard")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
+            <SidebarLink
+              icon={Users}
+              label="Employees"
+              active={tab === "employees"}
+              onClick={goMobile("employees")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
+            <SidebarLink
+              icon={Clock}
+              label="Time Off"
+              active={tab === "timeoff"}
+              onClick={goMobile("timeoff")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
+            <div className={cls("my-1 h-px", dividerClass)} />
+            <SidebarLink
+              icon={Wallet}
+              label="Pay Runs"
+              active={tab === "payruns"}
+              onClick={goMobile("payruns")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
+            <div className={cls("my-1 h-px", dividerClass)} />
+            <SidebarLink
+              icon={Settings}
+              label="Settings"
+              active={tab === "settings"}
+              onClick={goMobile("settings")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
 
-            <div className="mt-4 border-t border-white/10 pt-3 text-xs text-slate-300">
-              <a href="#" className="rounded-md px-2 py-1 hover:bg-white/5">Contact Support</a>
+            <div
+              className={cls(
+                "mt-4 border-t pt-3 text-xs",
+                isLightPane ? "border-slate-200 text-slate-500" : "border-white/10 text-slate-300"
+              )}
+            >
+              <a
+                href="#"
+                className={cls("rounded-md px-2 py-1", supportLinkHover)}
+              >
+                Contact Support
+              </a>
             </div>
           </nav>
         </aside>
