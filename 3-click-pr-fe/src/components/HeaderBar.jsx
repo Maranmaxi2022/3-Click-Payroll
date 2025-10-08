@@ -1,7 +1,26 @@
 import React from "react";
 import { Bell, Settings } from "lucide-react";
 
-export default function HeaderBar({ brand, q, setQ, onOpenSidebar }) {
+import { BRANDING_DEFAULT, getAccentPreset } from "../utils/branding";
+
+const cls = (...parts) => parts.filter(Boolean).join(" ");
+
+export default function HeaderBar({
+  brand,
+  q,
+  setQ,
+  onOpenSidebar,
+  appearance = BRANDING_DEFAULT.appearance,
+  accent = BRANDING_DEFAULT.accent,
+}) {
+  const isLightSidebar = appearance === "light";
+  const accentPreset = getAccentPreset(accent);
+  const brandPaneClass = "hidden md:flex h-16 w-[240px] shrink-0 items-center gap-3 bg-[#141D33] text-white px-3";
+  const brandIconClass = "grid h-9 w-9 place-items-center rounded-xl bg-[#1B2644] text-white";
+  const brandDotClass = cls("h-2.5 w-2.5 rounded-full", accentPreset.activeClass);
+  const brandNameClass = "text-[13px] font-semibold tracking-[-0.01em]";
+  const brandSubClass = "text-[11px] font-medium text-slate-300";
+
   return (
     // Fixed to the viewport (no movement on vertical or horizontal scroll)
     <header className="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur">
@@ -18,9 +37,17 @@ export default function HeaderBar({ brand, q, setQ, onOpenSidebar }) {
         </button>
 
         {/* Brand block (matches sidebar width on desktop) */}
-        <div className="hidden md:flex h-16 w-[240px] shrink-0 items-center bg-[#181C2E] text-white pl-3 pr-4">
-          <img src={brand.logo} alt="Logo" className="mr-2 h-5 w-5" />
-          <span className="text-[14px] font-semibold leading-[20px] tracking-[-0.01em]">Payroll</span>
+        <div className={brandPaneClass}>
+          <div className={brandIconClass}>
+            <img src={brand.logo} alt="Logo" className="h-5 w-5" />
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className={brandDotClass} />
+              <span className={brandNameClass}>Payroll</span>
+            </div>
+            <span className={brandSubClass}>Organisation Settings</span>
+          </div>
         </div>
 
         {/* Search */}
