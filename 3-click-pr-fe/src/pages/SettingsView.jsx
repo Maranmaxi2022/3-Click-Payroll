@@ -1,6 +1,13 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
 
+import {
+  ACCENT_LIST,
+  BRANDING_DEFAULT,
+  getAccentPreset,
+  persistBrandingPreferences,
+} from "../utils/branding";
+
 const cx = (...xs) => xs.filter(Boolean).join(" ");
 
 function Chevron({ open }) {
@@ -40,7 +47,10 @@ function LeftItem({ id, label, active, onClick }) {
 }
 
 /* ---------- MAIN VIEW ---------- */
-export default function SettingsView() {
+export default function SettingsView({
+  branding = BRANDING_DEFAULT,
+  onUpdateBranding,
+}) {
   // Active leaf item
   const [active, setActive] = useState("org.profile");
 
@@ -169,8 +179,23 @@ export default function SettingsView() {
   );
 
   /* ---- RIGHT CONTENT (sample) ---- */
+  const handleBrandingChange = (partial) => {
+    if (typeof onUpdateBranding === "function") {
+      onUpdateBranding(partial);
+      return;
+    }
+    persistBrandingPreferences(partial);
+  };
+
   const Right = () => {
     if (active === "org.profile") return <OrgProfile />;
+    if (active === "org.branding")
+      return (
+        <OrgBranding
+          branding={branding}
+          onUpdateBranding={handleBrandingChange}
+        />
+      );
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
         This is a placeholder for <span className="font-medium">{active}</span>.
@@ -240,6 +265,140 @@ function Header() {
         >
           Close Settings ✕
         </button>
+      </div>
+    </div>
+  );
+}
+
+function OrgBranding({ branding, onUpdateBranding }) {
+  const appearance = branding?.appearance ?? BRANDING_DEFAULT.appearance;
+  const accent = branding?.accent ?? BRANDING_DEFAULT.accent;
+  const activeAccent = getAccentPreset(accent);
+
+  const handleAppearance = (id) => {
+    if (id === appearance) return;
+    onUpdateBranding?.({ appearance: id });
+  };
+
+  const handleAccent = (id) => {
+    if (id === accent) return;
+    onUpdateBranding?.({ accent: id });
+  };
+
+  const appearanceOptions = [
+    {
+      id: "dark",
+      title: "Dark Pane",
+      description: "Sidebar stays dark with your accent on highlights.",
+    },
+    {
+      id: "light",
+      title: "Light Pane",
+      description: "Sidebar switches to a light theme with accents.",
+    },
+  ];
+
+  const preview = (variant) => {
+    const navBg = variant === "dark" ? "bg-slate-900" : "bg-white";
+    const navBorder = variant === "dark" ? "border-white/10" : "border-slate-200";
+    const lineMuted = variant === "dark" ? "bg-white/20" : "bg-slate-300";
+    const lineSoft = variant === "dark" ? "bg-white/10" : "bg-slate-200";
+    const mainBg = variant === "dark" ? "bg-slate-800/60" : "bg-white";
+
+    return (
+      <div
+        className={cx(
+          "flex h-[88px] w-[148px] items-stretch gap-2 rounded-2xl border p-2 shadow-sm",
+          variant === "dark"
+            ? "border-slate-700/60 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800"
+            : "border-slate-200 bg-slate-50"
+        )}
+      >
+        <div className={cx("flex w-[46%] flex-col gap-1 rounded-xl border p-2", navBg, navBorder)}>
+          <div className={cx("h-2 rounded-full", activeAccent.activeClass)} />
+          <div className={cx("h-1.5 rounded-full", lineMuted)} />
+          <div className={cx("h-1.5 rounded-full", lineSoft)} />
+          <div className={cx("h-1.5 rounded-full", lineSoft)} />
+        </div>
+        <div className={cx("flex flex-1 flex-col gap-2 rounded-xl border", mainBg, navBorder)}>
+          <div className="mt-2 mx-3 h-2 rounded-full bg-slate-300/60" />
+          <div className="mx-3 h-2 rounded-full bg-slate-300/40" />
+          <div className="mx-3 mb-2 h-2 rounded-full bg-slate-300/20" />
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-lg font-semibold text-slate-900">Branding</h2>
+
+      <div className="space-y-8 rounded-xl border border-slate-200 bg-white p-6">
+        <section>
+          <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">Appearance</div>
+          <div className="mt-4 flex flex-wrap gap-4">
+            {appearanceOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => handleAppearance(option.id)}
+                className={cx(
+                  "flex w-full max-w-[320px] items-center gap-4 rounded-2xl border px-4 py-4 text-left transition-all",
+                  appearance === option.id
+                    ? cx(
+                        "shadow-[0_12px_24px_-18px_rgba(15,23,42,0.4)] ring-2",
+                        activeAccent.borderClass,
+                        activeAccent.softClass,
+                        activeAccent.textClass,
+                        activeAccent.ringClass
+                      )
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                )}
+              >
+                {preview(option.id)}
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    {option.title}
+                  </div>
+                  <div className="mt-1 text-sm text-slate-600">{option.description}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">Accent Color</div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            {ACCENT_LIST.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleAccent(preset.id)}
+                className={cx(
+                  "flex min-w-[72px] flex-col items-center gap-2 rounded-xl border px-3 py-3 text-xs font-medium transition",
+                  accent === preset.id
+                    ? cx(
+                        "ring-2",
+                        preset.borderClass,
+                        preset.softClass,
+                        preset.textClass,
+                        preset.ringClass
+                      )
+                    : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+                )}
+              >
+                <span
+                  className={cx("h-8 w-12 rounded-md", preset.swatchClass)}
+                />
+                <span>{preset.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Note: These preferences will be applied across Zoho Finance apps.
+          </p>
+        </section>
       </div>
     </div>
   );
