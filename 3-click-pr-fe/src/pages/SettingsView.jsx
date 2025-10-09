@@ -1,6 +1,6 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
-import { MapPin, MoreHorizontal, Pencil, Users } from "lucide-react";
+import { MapPin, MoreHorizontal, Pencil, Plus, Upload, Users } from "lucide-react";
 
 import {
   ACCENT_LIST,
@@ -198,6 +198,7 @@ export default function SettingsView({
         />
       );
     if (active === "org.locations") return <WorkLocationsView />;
+    if (active === "org.departments") return <DepartmentsView />;
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
         This is a placeholder for <span className="font-medium">{active}</span>.
@@ -676,6 +677,83 @@ function WorkLocationDialog({ onClose }) {
           </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+function DepartmentsView() {
+  const departments = [
+    {
+      id: "dept-eng",
+      name: "Engineering",
+      code: "001",
+      description: "-",
+      employees: 2,
+      link: "#",
+    },
+  ];
+
+  return (
+    <div className="space-y-6 pb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold text-slate-900">Departments</h2>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
+            <Plus className="h-4 w-4" />
+            New Department
+          </button>
+          <button
+            type="button"
+            aria-label="Export departments"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+          >
+            <Upload className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
+          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="px-6 py-3 text-left">Department Name</th>
+              <th className="px-6 py-3 text-left">Department Code</th>
+              <th className="px-6 py-3 text-left">Description</th>
+              <th className="px-6 py-3 text-right">Total Employees</th>
+              <th className="px-4 py-3" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200 text-slate-700">
+            {departments.map((dept) => (
+              <tr key={dept.id} className="hover:bg-slate-50/80">
+                <td className="px-6 py-4 text-sm font-medium">
+                  <a href={dept.link} className="text-blue-600 hover:underline">
+                    {dept.name}
+                  </a>
+                </td>
+                <td className="px-6 py-4 text-sm">{dept.code}</td>
+                <td className="px-6 py-4 text-sm text-slate-500">{dept.description}</td>
+                <td className="px-6 py-4 text-right text-sm font-semibold text-slate-800">
+                  {dept.employees}
+                </td>
+                <td className="px-4 py-4 text-right">
+                  <button
+                    type="button"
+                    aria-label="Department actions"
+                    className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
