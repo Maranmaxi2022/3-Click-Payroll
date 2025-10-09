@@ -1,5 +1,6 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
+import { MapPin, MoreHorizontal, Pencil, Users } from "lucide-react";
 
 import {
   ACCENT_LIST,
@@ -196,6 +197,7 @@ export default function SettingsView({
           onUpdateBranding={handleBrandingChange}
         />
       );
+    if (active === "org.locations") return <WorkLocationsView />;
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
         This is a placeholder for <span className="font-medium">{active}</span>.
@@ -493,6 +495,100 @@ function OrgProfile() {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkLocationsView() {
+  const locations = [
+    {
+      id: "head-office",
+      name: "Head Office",
+      addressLines: [
+        "No. 15, 2nd Cross Street, Raja Annamalaipuram (RA Puram)",
+        "Chennai, Tamil Nadu 600028",
+      ],
+      employees: 2,
+      tag: "Filing Address",
+    },
+  ];
+
+  return (
+    <div className="space-y-6 pb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Work Locations</h2>
+          <p className="text-sm text-slate-500">
+            Maintain addresses that appear on filings and employee documents.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
+            Add Work Location
+          </button>
+          <button
+            type="button"
+            aria-label="Pin on map"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+          >
+            <MapPin className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5">
+        {locations.map((location) => (
+          <article
+            key={location.id}
+            className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+          >
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div className="space-y-3">
+                <header>
+                  <h3 className="text-base font-semibold text-slate-900">
+                    {location.name}
+                  </h3>
+                </header>
+                <div className="space-y-1 text-sm text-slate-600">
+                  {location.addressLines.map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
+                  <Users className="h-4 w-4" />
+                  <span>{location.employees} Employees</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start">
+                <button
+                  type="button"
+                  className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                  aria-label="Edit work location"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                  aria-label="More actions"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {location.tag && (
+              <span className="absolute bottom-0 right-0 rounded-tl-lg bg-emerald-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                {location.tag}
+              </span>
+            )}
+          </article>
+        ))}
       </div>
     </div>
   );
