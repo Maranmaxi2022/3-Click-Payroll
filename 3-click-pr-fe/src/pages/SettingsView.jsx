@@ -682,6 +682,7 @@ function WorkLocationDialog({ onClose }) {
 }
 
 function DepartmentsView() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const departments = [
     {
       id: "dept-eng",
@@ -694,14 +695,16 @@ function DepartmentsView() {
   ];
 
   return (
-    <div className="space-y-6 pb-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-slate-900">Departments</h2>
+    <>
+      <div className="space-y-6 pb-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">Departments</h2>
 
-        <div className="flex items-center gap-2">
-          <button
+          <div className="flex items-center gap-2">
+            <button
             type="button"
             className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+            onClick={() => setIsFormOpen(true)}
           >
             <Plus className="h-4 w-4" />
             New Department
@@ -754,6 +757,96 @@ function DepartmentsView() {
           </tbody>
         </table>
       </div>
+      </div>
+
+      {isFormOpen && <DepartmentDialog onClose={() => setIsFormOpen(false)} />}
+    </>
+  );
+}
+
+function DepartmentDialog({ onClose }) {
+  const handleOverlayClick = (event) => {
+    if (event.target === event.currentTarget) onClose();
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onClose();
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={handleOverlayClick}
+      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 px-4 py-10 sm:px-6"
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-[540px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
+        <div className="flex items-start justify-between border-b border-slate-200 px-6 pb-4 pt-5">
+          <h2 className="text-xl font-semibold text-slate-900">New Department</h2>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="text-blue-600 transition-colors hover:text-blue-700"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="space-y-6 px-6 py-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.5fr_1fr]">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">
+                Department Name<span className="text-red-500">*</span>
+              </label>
+              <input className="input" placeholder="e.g., Engineering" autoFocus />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">
+                Department Code
+              </label>
+              <input className="input" placeholder="Optional" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700">
+              Description
+            </label>
+            <textarea
+              className="input h-24 resize-none"
+              placeholder="Max 250 characters"
+            />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 px-6 py-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+            </div>
+            <span className="text-xs font-medium text-red-500">
+              * indicates mandatory fields
+            </span>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }
