@@ -501,6 +501,7 @@ function OrgProfile() {
 }
 
 function WorkLocationsView() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const locations = [
     {
       id: "head-office",
@@ -515,18 +516,20 @@ function WorkLocationsView() {
   ];
 
   return (
-    <div className="space-y-6 pb-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Work Locations</h2>
-          <p className="text-sm text-slate-500">
-            Maintain addresses that appear on filings and employee documents.
+    <>
+      <div className="space-y-6 pb-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Work Locations</h2>
+            <p className="text-sm text-slate-500">
+              Maintain addresses that appear on filings and employee documents.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+            onClick={() => setIsFormOpen(true)}
           >
             Add Work Location
           </button>
@@ -590,6 +593,89 @@ function WorkLocationsView() {
           </article>
         ))}
       </div>
+      </div>
+
+      {isFormOpen && (
+        <WorkLocationDialog onClose={() => setIsFormOpen(false)} />
+      )}
+    </>
+  );
+}
+
+function WorkLocationDialog({ onClose }) {
+  const handleOverlayClick = (event) => {
+    if (event.target === event.currentTarget) onClose();
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onClose();
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 px-4 py-10 sm:px-6"
+      onClick={handleOverlayClick}
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-[560px] rounded-2xl bg-white shadow-2xl"
+      >
+        <div className="border-b border-slate-200 px-6 pb-4 pt-5">
+          <h2 className="text-xl font-semibold text-slate-900">New Work Location</h2>
+        </div>
+
+        <div className="space-y-6 px-6 py-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700">
+              Work Location Name<span className="text-red-500">*</span>
+            </label>
+            <input className="input" placeholder="e.g., Head Office" autoFocus />
+          </div>
+
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-slate-700">
+              Address<span className="text-red-500">*</span>
+            </label>
+            <input className="input" placeholder="Address Line 1" />
+            <input className="input" placeholder="Address Line 2" />
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.2fr_1fr_1fr]">
+              <select className="input">
+                <option>Select a state</option>
+                <option>Tamil Nadu</option>
+                <option>Karnataka</option>
+              </select>
+              <input className="input" placeholder="City" />
+              <input className="input" placeholder="PIN Code" />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 px-6 py-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+            </div>
+            <span className="text-xs font-medium text-red-500">
+              * indicates mandatory fields
+            </span>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }
