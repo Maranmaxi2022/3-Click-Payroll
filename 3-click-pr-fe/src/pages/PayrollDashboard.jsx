@@ -137,7 +137,7 @@ export default function PayrollDashboard() {
   const desktopSidebarClass = cls(
     "hidden md:block fixed left-0 top-16 bottom-0 w-[240px]",
     isLightPane
-      ? "bg-[#F5F7FF] text-slate-800 border-r border-slate-200 shadow-[inset_-1px_0_0_rgba(15,23,42,0.08)]"
+      ? "bg-[#F5F7FF] text-slate-800 shadow-[inset_-0.5px_0_0_rgba(15,23,42,0.16)]"
       : "bg-slate-900 text-slate-200"
   );
   const desktopNavClass = cls(
