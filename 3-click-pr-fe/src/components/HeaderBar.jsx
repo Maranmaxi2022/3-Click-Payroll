@@ -11,10 +11,30 @@ export default function HeaderBar({
   appearance: _appearance = BRANDING_DEFAULT.appearance,
   accent: _accent = BRANDING_DEFAULT.accent,
 }) {
-  const brandPaneClass = "hidden md:flex h-16 w-[240px] shrink-0 items-center bg-[#141D33] text-white pl-7 pr-3";
-  const brandLogoContainerClass = "logo-container flex items-center gap-3";
-  const brandLogoClass = "logo h-9 w-9";
-  const brandNameClass = "product-name text-[13px] font-semibold tracking-[-0.01em]";
+  const brandPaneClass = "hidden md:flex h-16 w-[240px] shrink-0 items-center bg-[#21263C] text-white pl-3 pr-3";
+  const brandLogoContainerClass = "logo-container flex items-center rounded-lg";
+  const brandLogoClass = "logo block";
+  const brandNameClass = "product-name";
+  const brandLogoContainerStyle = {
+    backgroundColor: "#21263C",
+    color: "#FFFFFF",
+    fontFamily:
+      '"ZohoPuvi", Inter, -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif',
+    padding: "0 16px 0 0",
+  };
+  const brandLogoStyle = {
+    width: "24px",
+    height: "24px",
+    margin: "12px 0 12px 16px",
+  };
+  const brandNameStyle = {
+    fontSize: "18px",
+    fontWeight: 400,
+    lineHeight: "28.8px",
+    marginLeft: "8px",
+    marginRight: "8px",
+    color: "#FFFFFF",
+  };
 
   return (
     // Fixed to the viewport (no movement on vertical or horizontal scroll)
@@ -33,14 +53,17 @@ export default function HeaderBar({
 
         {/* Brand block (matches sidebar width on desktop) */}
         <div className={brandPaneClass}>
-          <div className={brandLogoContainerClass}>
+          <div className={brandLogoContainerClass} style={brandLogoContainerStyle}>
             <img
               name="logo"
               src={brand.logo}
               alt={brand?.name ?? "Payroll"}
               className={brandLogoClass}
+              style={brandLogoStyle}
             />
-            <div className={brandNameClass}>Payroll</div>
+            <div className={brandNameClass} style={brandNameStyle}>
+              Payroll
+            </div>
           </div>
         </div>
 
