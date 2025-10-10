@@ -1,6 +1,13 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
-import { MapPin, MoreHorizontal, Pencil, Plus, Upload, Users } from "lucide-react";
+import {
+  MapPin,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Upload,
+  Users,
+} from "lucide-react";
 
 import {
   ACCENT_LIST,
@@ -24,10 +31,12 @@ function GroupHeader({ title, open, toggle }) {
     <button
       type="button"
       onClick={toggle}
-      className="flex w-full items-center gap-2 rounded-xl bg-slate-100 px-3 py-2 text-left text-[15px] font-semibold text-slate-900"
+      className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[13px] font-semibold text-slate-500 transition-colors hover:bg-white/60"
     >
-      <Chevron open={open} />
-      {title}
+      <span className="flex items-center gap-2">
+        <Chevron open={open} />
+        {title}
+      </span>
     </button>
   );
 }
@@ -38,8 +47,10 @@ function LeftItem({ id, label, active, onClick }) {
       type="button"
       onClick={() => onClick(id)}
       className={cx(
-        "w-full rounded-xl px-5 py-2 text-left text-[16px]",
-        active ? "bg-blue-600 text-white shadow-[0_1px_0_rgba(0,0,0,0.04)]" : "text-slate-900 hover:bg-slate-100"
+        "w-full rounded-lg px-4 py-2 text-left text-[14px] font-medium",
+        active
+          ? "bg-blue-600 text-white shadow-[0_12px_24px_-18px_rgba(15,23,42,0.4)]"
+          : "text-slate-700 hover:bg-white"
       )}
     >
       {label}
@@ -51,9 +62,13 @@ function LeftItem({ id, label, active, onClick }) {
 export default function SettingsView({
   branding = BRANDING_DEFAULT,
   onUpdateBranding,
+  active: controlledActive,
+  onSelect,
 }) {
-  // Active leaf item
-  const [active, setActive] = useState("org.profile");
+  // Active leaf item (controlled/uncontrolled)
+  const [uncontrolledActive, setUncontrolledActive] = useState("org.profile");
+  const active = controlledActive ?? uncontrolledActive;
+  const setActive = onSelect ?? setUncontrolledActive;
 
   // Which groups are expanded
   const [open, setOpen] = useState({
@@ -199,6 +214,7 @@ export default function SettingsView({
       );
     if (active === "org.locations") return <WorkLocationsView />;
     if (active === "org.departments") return <DepartmentsView />;
+    if (active === "org.designations") return <DesignationsView />;
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
         This is a placeholder for <span className="font-medium">{active}</span>.
@@ -208,14 +224,13 @@ export default function SettingsView({
 
   return (
     <div className="pb-6">
-      <Header />
 
-      <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-[280px_1fr]">
-        {/* LEFT SIDEBAR */}
-        <aside className="rounded-xl border border-slate-200 bg-white p-3">
+      <div className="mt-2 flex flex-col gap-6 md:flex-row md:gap-10">
+        {/* LEFT SIDEBAR (hidden on desktop because main app sidebar shows it) */}
+        <aside className="block md:hidden md:w-[260px] shrink-0 rounded-2xl border border-[#E2E6F4] bg-[#F6F8FF] px-4 py-6 shadow-[0_24px_48px_-32px_rgba(15,23,42,0.35)]">
           {sections.map((sec) => (
-            <div key={sec.caption} className="mb-5 last:mb-0">
-              <div className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <div key={sec.caption} className="mb-6 last:mb-0">
+              <div className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                 {sec.caption}
               </div>
 
@@ -242,7 +257,7 @@ export default function SettingsView({
         </aside>
 
         {/* RIGHT CONTENT */}
-        <section className="min-h-[60vh]">
+        <section className="min-h-[60vh] flex-1">
           <Right />
         </section>
       </div>
@@ -250,28 +265,7 @@ export default function SettingsView({
   );
 }
 
-/* ---- The same header and Org Profile from earlier (trimmed for brevity) ---- */
-function Header() {
-  return (
-    <div className="sticky top-[calc(64px)] z-10 -mx-4 border-b border-slate-200 bg-white/80 px-4 pb-3 pt-3 backdrop-blur md:-mx-6 md:px-6">
-      <div className="flex items-center justify-between">
-        <div className="text-[15px] font-semibold text-slate-900">All Settings</div>
-        <div className="hidden md:block w-[420px]">
-          <input
-            className="h-9 w-full rounded-full border border-slate-200 bg-white px-4 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            placeholder="Search settings ( / )"
-          />
-        </div>
-        <button
-          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm hover:bg-slate-50"
-          onClick={() => (window.location.hash = "dashboard")}
-        >
-          Close Settings ✕
-        </button>
-      </div>
-    </div>
-  );
-}
+/* ---- Org Profile and other sections ---- */
 
 function OrgBranding({ branding, onUpdateBranding }) {
   const appearance = branding?.appearance ?? BRANDING_DEFAULT.appearance;
@@ -410,92 +404,114 @@ function OrgBranding({ branding, onUpdateBranding }) {
 function OrgProfile() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Section heading (mobile only; desktop title is in the fixed subheader) */}
+      <div className="flex items-center lg:hidden">
         <h2 className="text-lg font-semibold text-slate-900">Organisation Profile</h2>
-        <div className="text-xs text-slate-500">
-          Organisation ID: <span className="font-mono">900478380</span>
-        </div>
       </div>
-
-      <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-6">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr]">
-          <div>
+      {/* No outer card: layout flows directly on the page */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,calc(var(--sidebar-w)*2.8))_minmax(0,calc(var(--sidebar-w)*2.2))]">
+        {/* FORM COLUMN */}
+        <div className="grid grid-cols-1 gap-5">
+          {/* Logo block with upload + description */}
+          <section>
             <div className="text-sm font-medium text-slate-700">Organisation Logo</div>
-            <div className="mt-2 grid h-[120px] w-[180px] place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-500">
-              UPLOAD LOGO
+            <div className="mt-2 grid grid-cols-[180px_1fr] gap-4">
+              <div className="grid h-[120px] w-[180px] place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-500">
+                UPLOAD LOGO
+              </div>
+              <div className="text-[13px] text-slate-600">
+                <p>
+                  This logo will be displayed on documents such as Payslip and TDS Worksheet.
+                </p>
+                <p className="mt-1">
+                  Preferred Image Size: 240 × 240 pixels @ 72 DPI, Maximum size of 1MB. Accepted File Formats: PNG, JPG, and JPEG
+                </p>
+              </div>
             </div>
-            <p className="mt-2 text-xs text-slate-500">
-              Preferred 240×240 @ 72 DPI, Max 1MB. PNG, JPG, JPEG.
-            </p>
+          </section>
+
+          <div>
+            <label className="block text-sm text-slate-700">Organisation Name<span className="text-red-500">*</span></label>
+            <div className="text-[13px] text-slate-500 mt-1">
+              This is your registered business name which will appear in all the forms and payslips.
+            </div>
+            <input className="input mt-2" placeholder="Enter organisation name" />
           </div>
 
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm text-slate-700">Organisation Name *</label>
-              <input className="input mt-1" defaultValue="Qula" />
+              <label className="block text-sm text-slate-700">Business Location<span className="text-red-500">*</span></label>
+              <input className="input mt-1" placeholder="Select business location" />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-700">Industry<span className="text-red-500">*</span></label>
+              <select className="input mt-1" defaultValue="">
+                <option value="" disabled>Select industry</option>
+                <option>Engineering</option>
+                <option>IT Services</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm text-slate-700">Date Format<span className="text-red-500">*</span></label>
+              <select className="input mt-1" defaultValue="">
+                <option value="" disabled>Select date format</option>
+                <option>dd/MM/yyyy [ 28/09/2025 ]</option>
+                <option>MM/dd/yyyy [ 09/28/2025 ]</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-slate-700">Field Separator</label>
+              <select className="input mt-1" defaultValue="">
+                <option value="" disabled>Select separator</option>
+                <option>/</option>
+                <option>-</option>
+                <option>.</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            <label className="block text-sm font-medium text-slate-800">Organisation Address<span className="text-red-500">*</span></label>
+            <div className="text-[13px] text-slate-500">
+              This will be considered as the address of your primary work location.
+            </div>
+            <input className="input" placeholder="Address Line 1" />
+            <input className="input" placeholder="Address Line 2" />
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+              <select className="input" defaultValue="">
+                <option value="" disabled>Select state</option>
+                <option>Tamil Nadu</option>
+              </select>
+              <input className="input" placeholder="City" />
+              <input className="input" placeholder="PIN Code" />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="block text-sm text-slate-700">Industry *</label>
-                <select className="input mt-1">
-                  <option>Engineering</option>
-                  <option>IT Services</option>
-                </select>
+            <div className="mt-2">
+              <div className="text-sm font-semibold text-slate-900">Filing Address</div>
+              <div className="text-[13px] text-slate-500 mt-1">
+                This registered address will be used across all Forms and Payslips.
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">Business Location *</label>
-                <input className="input mt-1" defaultValue="India" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label className="block text-sm text-slate-700">Date Format *</label>
-                <select className="input mt-1" defaultValue="dd/MM/yyyy [ 28/09/2025 ]">
-                  <option>dd/MM/yyyy [ 28/09/2025 ]</option>
-                  <option>MM/dd/yyyy [ 09/28/2025 ]</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-slate-700">Field Separator</label>
-                <select className="input mt-1" defaultValue="/">
-                  <option>/</option>
-                  <option>-</option>
-                  <option>.</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3">
-              <label className="block text-sm font-medium text-slate-800">Organisation Address *</label>
-              <input className="input" defaultValue="No. 15, 2nd Cross Street, Raja Annamalaipuram (RA Puram)" />
-              <input className="input" placeholder="Address Line 2" />
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-                <select className="input">
-                  <option>Tamil Nadu</option>
-                </select>
-                <input className="input" defaultValue="Chennai" />
-                <input className="input" defaultValue="600028" />
-              </div>
-
-              <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="mb-1 flex items-center justify-between text-sm font-semibold text-slate-800">
-                  <span>Head Office</span>
-                  <a href="#" className="text-blue-600 hover:underline">Change</a>
+                  <span className="text-slate-600">No filing address selected</span>
+                  <a href="#" className="text-blue-600 hover:underline">Set</a>
                 </div>
-                <div className="text-sm text-slate-700">
-                  No. 15, 2nd Cross Street, Raja Annamalaipuram (RA Puram), Chennai, Tamil Nadu 600028
-                </div>
+                <div className="text-sm text-slate-500">Select a work location to set filing address.</div>
               </div>
             </div>
+          </div>
 
-            <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
-              <button className="h-9 rounded-md bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700">Save</button>
-              <div className="text-xs font-medium text-red-500">* indicates mandatory fields</div>
-            </div>
+          <div className="mt-2 flex items-center justify-between pt-2">
+            <button className="h-9 rounded-md bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700">Save</button>
+            <div className="text-xs font-medium text-red-500">* indicates mandatory fields</div>
           </div>
         </div>
+
+        {/* Right empty space (desktop only) */}
+        <div className="hidden lg:block" aria-hidden />
       </div>
     </div>
   );
@@ -518,7 +534,7 @@ function WorkLocationsView() {
 
   return (
     <>
-      <div className="space-y-6 pb-8">
+      <div className="space-y-6 pb-8 px-0 lg:px-2 xl:px-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Work Locations</h2>
@@ -825,6 +841,154 @@ function DepartmentDialog({ onClose }) {
         </div>
 
         <div className="border-t border-slate-200 px-6 py-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              >
+                Cancel
+              </button>
+            </div>
+            <span className="text-xs font-medium text-red-500">
+              * indicates mandatory fields
+            </span>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function DesignationsView() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const designations = [
+    { id: "desg-hr", name: "Junior HR", employees: 0, link: "#" },
+    { id: "desg-fed", name: "Front End Developer", employees: 1, link: "#" },
+    {
+      id: "desg-intern",
+      name: "Software Engineer Intern",
+      employees: 1,
+      link: "#",
+    },
+  ];
+
+  return (
+    <>
+      <div className="space-y-6 pb-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900">Designations</h2>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+              onClick={() => setIsFormOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+              New Designation
+            </button>
+            <button
+              type="button"
+              aria-label="Export designations"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+            >
+              <Upload className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-6 py-3 text-left">Designation Name</th>
+                <th className="px-6 py-3 text-right">Total Employees</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 text-slate-700">
+              {designations.map((role) => (
+                <tr key={role.id} className="hover:bg-slate-50/80">
+                  <td className="px-6 py-4 text-sm font-medium">
+                    <a href={role.link} className="text-blue-600 hover:underline">
+                      {role.name}
+                    </a>
+                  </td>
+                  <td className="px-6 py-4 text-right text-sm font-semibold text-slate-800">
+                    {role.employees}
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <button
+                      type="button"
+                      aria-label="Designation actions"
+                      className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {isFormOpen && <DesignationDialog onClose={() => setIsFormOpen(false)} />}
+    </>
+  );
+}
+
+function DesignationDialog({ onClose }) {
+  const handleOverlayClick = (event) => {
+    if (event.target === event.currentTarget) onClose();
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onClose();
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={handleOverlayClick}
+      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 px-4 py-10 sm:px-6"
+    >
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-[440px] overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
+        <div className="flex items-start justify-between border-b border-slate-200 px-6 pb-3 pt-5">
+          <h2 className="text-xl font-semibold text-slate-900">New Designation</h2>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="text-blue-600 transition-colors hover:text-blue-700"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="space-y-6 px-6 py-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-700">
+              Designation Name<span className="text-red-500">*</span>
+            </label>
+            <input className="input" placeholder="e.g., Front End Developer" autoFocus />
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 px-6 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <button
