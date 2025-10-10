@@ -4,6 +4,11 @@
 html, body, #root { height: 100%; }
 body { overflow-x: hidden; }
 
+/* Layout variables */
+:root {
+  --sidebar-w: 240px; /* desktop sidebar width */
+}
+
 /* Component-level utilities */
 @layer components {
   .input {
