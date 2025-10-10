@@ -4,6 +4,7 @@ import { Home, Users, Wallet, Settings, Clock } from "lucide-react";
 
 import HeaderBar from "../components/HeaderBar";
 import SidebarLink from "../components/SidebarLink";
+import SettingsSidebar from "../components/SettingsSidebar";
 import {
   BRANDING_DEFAULT,
   BRANDING_STORAGE_KEY,
@@ -42,6 +43,7 @@ export default function PayrollDashboard() {
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("dashboard"); // 'dashboard' | 'employees' | 'timeoff' | 'payruns' | 'settings'
   const [subroute, setSubroute] = useState(""); // e.g., 'employees/new'
+  const [settingsActive, setSettingsActive] = useState("org.profile");
   const [branding, setBranding] = useState(() => {
     if (typeof window === "undefined") return { ...BRANDING_DEFAULT };
     return loadBrandingPreferences();
@@ -135,7 +137,7 @@ export default function PayrollDashboard() {
   const accentPreset = getAccentPreset(branding.accent);
   const dividerClass = isLightPane ? "bg-slate-200" : "bg-white/10";
   const desktopSidebarClass = cls(
-    "hidden md:block fixed left-0 top-16 bottom-0 w-[240px]",
+    "hidden md:block fixed left-0 top-16 bottom-0",
     isLightPane
       ? "bg-[#F5F7FF] text-slate-800 shadow-[inset_-0.5px_0_0_rgba(15,23,42,0.16)]"
       : "bg-slate-900 text-slate-200"
@@ -169,58 +171,79 @@ export default function PayrollDashboard() {
         onOpenSidebar={() => setSidebarOpen(true)}
         appearance={branding.appearance}
         accent={branding.accent}
+        subHeader={
+          tab === "settings" ? (
+            <div className="flex items-center">
+              <div className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">Organisation Profile</div>
+            </div>
+          ) : null
+        }
+        inSettings={tab === "settings"}
+        onCloseSettings={() => {
+          window.location.hash = "dashboard";
+        }}
       />
 
       {/* Sidebar (desktop) fixed on the left, below the header */}
-      <aside className={desktopSidebarClass}>
+      <aside className={desktopSidebarClass} style={{ width: "var(--sidebar-w)" }}>
         <nav className={desktopNavClass}>
-          <div className="space-y-1">
-            <SidebarLink
-              icon={Home}
-              label="Dashboard"
-              active={tab === "dashboard"}
-              onClick={go("dashboard")}
-              appearance={branding.appearance}
-              accent={branding.accent}
+          {tab !== "settings" ? (
+            <div className="space-y-1">
+              <SidebarLink
+                icon={Home}
+                label="Dashboard"
+                active={tab === "dashboard"}
+                onClick={go("dashboard")}
+                appearance={branding.appearance}
+                accent={branding.accent}
+              />
+              <SidebarLink
+                icon={Users}
+                label="Employees"
+                active={tab === "employees"}
+                onClick={go("employees")}
+                appearance={branding.appearance}
+                accent={branding.accent}
+              />
+              <SidebarLink
+                icon={Clock}
+                label="Time Off"
+                active={tab === "timeoff"}
+                onClick={go("timeoff")}
+                appearance={branding.appearance}
+                accent={branding.accent}
+              />
+              <SidebarLink
+                icon={Wallet}
+                label="Pay Runs"
+                active={tab === "payruns"}
+                onClick={go("payruns")}
+                appearance={branding.appearance}
+                accent={branding.accent}
+              />
+              <SidebarLink
+                icon={Settings}
+                label="Settings"
+                active={tab === "settings"}
+                onClick={go("settings")}
+                appearance={branding.appearance}
+                accent={branding.accent}
+              />
+            </div>
+          ) : (
+            <SettingsSidebar
+              active={settingsActive}
+              onSelect={setSettingsActive}
             />
-            <SidebarLink
-              icon={Users}
-              label="Employees"
-              active={tab === "employees"}
-              onClick={go("employees")}
-              appearance={branding.appearance}
-              accent={branding.accent}
-            />
-            <SidebarLink
-              icon={Clock}
-              label="Time Off"
-              active={tab === "timeoff"}
-              onClick={go("timeoff")}
-              appearance={branding.appearance}
-              accent={branding.accent}
-            />
-            <SidebarLink
-              icon={Wallet}
-              label="Pay Runs"
-              active={tab === "payruns"}
-              onClick={go("payruns")}
-              appearance={branding.appearance}
-              accent={branding.accent}
-            />
-            <SidebarLink
-              icon={Settings}
-              label="Settings"
-              active={tab === "settings"}
-              onClick={go("settings")}
-              appearance={branding.appearance}
-              accent={branding.accent}
-            />
-          </div>
+          )}
         </nav>
       </aside>
 
       {/* Main content gets a left margin equal to the sidebar width on desktop */}
-      <main className="px-4 md:px-8 lg:px-12 xl:px-16 md:ml-[240px]">
+      <main className={cls(
+        "px-4 md:px-8 lg:px-12 xl:px-16 md:ml-[var(--sidebar-w)]",
+        tab === "settings" ? "lg:pt-[84px]" : ""
+      )}>
         <div className="mx-auto max-w-none">
           {tab === "dashboard" && <DashboardHome />}
 
@@ -241,6 +264,8 @@ export default function PayrollDashboard() {
             <SettingsView
               branding={branding}
               onUpdateBranding={applyBranding}
+              active={settingsActive}
+              onSelect={setSettingsActive}
             />
           )}
         </div>
