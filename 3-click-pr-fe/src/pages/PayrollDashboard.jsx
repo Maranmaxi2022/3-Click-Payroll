@@ -199,7 +199,6 @@ export default function PayrollDashboard() {
               appearance={branding.appearance}
               accent={branding.accent}
             />
-            <div className={cls("my-1 h-px", dividerClass)} />
             <SidebarLink
               icon={Wallet}
               label="Pay Runs"
@@ -208,7 +207,6 @@ export default function PayrollDashboard() {
               appearance={branding.appearance}
               accent={branding.accent}
             />
-            <div className={cls("my-1 h-px", dividerClass)} />
             <SidebarLink
               icon={Settings}
               label="Settings"
@@ -222,8 +220,8 @@ export default function PayrollDashboard() {
       </aside>
 
       {/* Main content gets a left margin equal to the sidebar width on desktop */}
-      <main className="px-4 md:px-6 md:ml-[240px]">
-        <div className="mx-auto max-w-[1400px]">
+      <main className="px-4 md:px-8 lg:px-12 xl:px-16 md:ml-[240px]">
+        <div className="mx-auto max-w-none">
           {tab === "dashboard" && <DashboardHome />}
 
           {tab === "employees" && (
