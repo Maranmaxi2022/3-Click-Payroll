@@ -327,8 +327,6 @@ function OrgBranding({ branding, onUpdateBranding }) {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold text-slate-900">Branding</h2>
-
       <div className="space-y-8">
         <section>
           <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">Appearance</div>

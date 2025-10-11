@@ -4,7 +4,7 @@ import { Home, Users, Wallet, Settings, Clock } from "lucide-react";
 
 import HeaderBar from "../components/HeaderBar";
 import SidebarLink from "../components/SidebarLink";
-import SettingsSidebar from "../components/SettingsSidebar";
+import SettingsSidebar, { SETTINGS_SECTIONS } from "../components/SettingsSidebar";
 import {
   BRANDING_DEFAULT,
   BRANDING_STORAGE_KEY,
@@ -161,6 +161,19 @@ export default function PayrollDashboard() {
   const progressTrack = isLightPane ? "bg-white/40" : "bg-white/10";
   const progressFill = isLightPane ? accentPreset.activeClass : "bg-amber-400";
 
+  const settingsTitle = (() => {
+    try {
+      for (const sec of SETTINGS_SECTIONS) {
+        for (const group of sec.groups) {
+          for (const item of group.items) {
+            if (item.id === settingsActive) return item.label;
+          }
+        }
+      }
+    } catch (_) {}
+    return "Settings";
+  })();
+
   return (
     // pt-16 makes room for the fixed header (h-16)
     <div className="min-h-screen bg-slate-50 text-slate-900 pt-16">
@@ -174,7 +187,7 @@ export default function PayrollDashboard() {
         subHeader={
           tab === "settings" ? (
             <div className="flex items-center">
-              <div className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">Organisation Profile</div>
+              <div className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">{settingsTitle}</div>
             </div>
           ) : null
         }
