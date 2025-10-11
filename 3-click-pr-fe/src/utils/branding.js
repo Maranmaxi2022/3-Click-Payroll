@@ -39,16 +39,6 @@ const ACCENT_PRESETS = {
     textClass: "text-rose-600",
     borderClass: "border-rose-500",
   },
-  zoho: {
-    id: "zoho",
-    label: "Zoho",
-    swatchClass: "bg-gradient-to-r from-fuchsia-500 via-amber-400 to-blue-500",
-    activeClass: "bg-gradient-to-r from-fuchsia-500 via-amber-400 to-blue-500",
-    ringClass: "ring-fuchsia-200",
-    softClass: "bg-fuchsia-50",
-    textClass: "text-fuchsia-600",
-    borderClass: "border-fuchsia-400",
-  },
 };
 
 export const BRANDING_STORAGE_KEY = "branding:prefs";
@@ -70,10 +60,15 @@ export function loadBrandingPreferences() {
     const raw = window.localStorage.getItem(BRANDING_STORAGE_KEY);
     if (!raw) return { ...BRANDING_DEFAULT };
     const parsed = JSON.parse(raw);
-    return {
+    const next = {
       ...BRANDING_DEFAULT,
       ...(parsed && typeof parsed === "object" ? parsed : {}),
     };
+    // Sanitize unknown accents (e.g., legacy "zoho") to default
+    if (!ACCENT_PRESETS[next.accent]) {
+      next.accent = BRANDING_DEFAULT.accent;
+    }
+    return next;
   } catch (err) {
     console.warn("Failed to load branding preferences", err);
     return { ...BRANDING_DEFAULT };
