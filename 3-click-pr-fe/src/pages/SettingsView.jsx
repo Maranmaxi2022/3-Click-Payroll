@@ -1,13 +1,6 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
-import {
-  MapPin,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Upload,
-  Users,
-} from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Upload, Users } from "lucide-react";
 
 import {
   ACCENT_LIST,
@@ -64,6 +57,7 @@ export default function SettingsView({
   onUpdateBranding,
   active: controlledActive,
   onSelect,
+  onSetTitle,
 }) {
   // Active leaf item (controlled/uncontrolled)
   const [uncontrolledActive, setUncontrolledActive] = useState("org.profile");
@@ -211,7 +205,14 @@ export default function SettingsView({
           onUpdateBranding={handleBrandingChange}
         />
       );
-    if (active === "org.locations") return <WorkLocationsView />;
+    if (active === "org.locations" || active === "org.locations.new")
+      return (
+        <WorkLocationsView
+          onSetTitle={onSetTitle}
+          navigate={setActive}
+          initialOpen={active === "org.locations.new"}
+        />
+      );
     if (active === "org.departments") return <DepartmentsView />;
     if (active === "org.designations") return <DesignationsView />;
     return (
@@ -512,8 +513,12 @@ function OrgProfile() {
   );
 }
 
-function WorkLocationsView() {
-  const [isFormOpen, setIsFormOpen] = useState(false);
+function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
+  const [isFormOpen, setIsFormOpen] = useState(initialOpen);
+  React.useEffect(() => {
+    // keep state in sync if route-driven open state changes
+    setIsFormOpen(initialOpen);
+  }, [initialOpen]);
   const locations = [
     {
       id: "head-office",
@@ -527,173 +532,144 @@ function WorkLocationsView() {
     },
   ];
 
+  // Update the main header title when the inline form is open
+  React.useEffect(() => {
+    if (typeof onSetTitle === "function") {
+      if (isFormOpen) onSetTitle("New Work Location");
+      else onSetTitle(""); // fall back to default section title
+    }
+    return () => {
+      if (typeof onSetTitle === "function") onSetTitle("");
+    };
+  }, [isFormOpen, onSetTitle]);
+
   return (
     <>
-      <div className="space-y-6 pb-8 px-0 lg:px-2 xl:px-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">Work Locations</h2>
-            <p className="text-sm text-slate-500">
-              Maintain addresses that appear on filings and employee documents.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-            onClick={() => setIsFormOpen(true)}
-          >
-            Add Work Location
-          </button>
-          <button
-            type="button"
-            aria-label="Pin on map"
-            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-          >
-            <MapPin className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+      {/* Header actions moved to the fixed subheader (top-right). */}
 
-      <div className="grid grid-cols-1 gap-5">
-        {locations.map((location) => (
-          <article
-            key={location.id}
-            className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
-          >
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div className="space-y-3">
-                <header>
-                  <h3 className="text-base font-semibold text-slate-900">
-                    {location.name}
-                  </h3>
-                </header>
-                <div className="space-y-1 text-sm text-slate-600">
-                  {location.addressLines.map((line) => (
-                    <p key={line}>{line}</p>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                  <Users className="h-4 w-4" />
-                  <span>{location.employees} Employees</span>
-                </div>
-              </div>
+      {isFormOpen ? (
+        <div>
+          <form className="max-w-[720px] space-y-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-slate-700">
+                Work Location Name<span className="text-red-500">*</span>
+              </label>
+              <input className="input" placeholder="" autoFocus />
+            </div>
 
-              <div className="flex items-center gap-2 self-start">
-                <button
-                  type="button"
-                  className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-                  aria-label="Edit work location"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-                  aria-label="More actions"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-slate-700">
+                Address<span className="text-red-500">*</span>
+              </label>
+              <input className="input" placeholder="Address Line 1" />
+              <input className="input" placeholder="Address Line 2" />
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.2fr_1fr_1fr]">
+                <select className="input" defaultValue="">
+                  <option value="" disabled>
+                    Select a state
+                  </option>
+                  <option>Tamil Nadu</option>
+                  <option>Karnataka</option>
+                </select>
+                <input className="input" placeholder="City" />
+                <input className="input" placeholder="PIN Code" />
               </div>
             </div>
 
-            {location.tag && (
-              <span className="absolute bottom-0 right-0 rounded-tl-lg bg-emerald-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-                {location.tag}
-              </span>
-            )}
-          </article>
-        ))}
-      </div>
-      </div>
+            <div className="border-t border-slate-200 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsFormOpen(false);
+                      if (typeof navigate === "function") navigate("org.locations");
+                    }}
+                    className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <span className="text-xs font-medium text-red-500">
+                  * indicates mandatory fields
+                </span>
+              </div>
+            </div>
+          </form>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {locations.map((location) => (
+            <article
+              key={location.id}
+              className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="space-y-3">
+                  <header>
+                    <h3 className="text-base font-semibold text-slate-900">
+                      {location.name}
+                    </h3>
+                  </header>
+                  <div className="space-y-1 text-sm text-slate-600">
+                    {location.addressLines.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
+                    <Users className="h-4 w-4" />
+                    <span>{location.employees} Employees</span>
+                  </div>
+                </div>
 
-      {isFormOpen && (
-        <WorkLocationDialog onClose={() => setIsFormOpen(false)} />
+                <div className="flex items-center gap-2 self-start">
+                  <button
+                    type="button"
+                    className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                    aria-label="Edit work location"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                    aria-label="More actions"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              {location.tag && (
+                <span className="absolute bottom-0 right-0 rounded-tl-lg bg-emerald-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+                  {location.tag}
+                </span>
+              )}
+            </article>
+          ))}
+        </div>
       )}
     </>
   );
 }
 
-function WorkLocationDialog({ onClose }) {
-  const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget) onClose();
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    onClose();
-  };
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/40 px-4 py-10 sm:px-6"
-      onClick={handleOverlayClick}
-    >
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-[560px] rounded-2xl bg-white shadow-2xl"
-      >
-        <div className="border-b border-slate-200 px-6 pb-4 pt-5">
-          <h2 className="text-xl font-semibold text-slate-900">New Work Location</h2>
-        </div>
-
-        <div className="space-y-6 px-6 py-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">
-              Work Location Name<span className="text-red-500">*</span>
-            </label>
-            <input className="input" placeholder="e.g., Head Office" autoFocus />
-          </div>
-
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              Address<span className="text-red-500">*</span>
-            </label>
-            <input className="input" placeholder="Address Line 1" />
-            <input className="input" placeholder="Address Line 2" />
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.2fr_1fr_1fr]">
-              <select className="input">
-                <option>Select a state</option>
-                <option>Tamil Nadu</option>
-                <option>Karnataka</option>
-              </select>
-              <input className="input" placeholder="City" />
-              <input className="input" placeholder="PIN Code" />
-            </div>
-          </div>
-        </div>
-
-        <div className="border-t border-slate-200 px-6 py-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <button
-                type="submit"
-                className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
-              >
-                Save
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-medium text-slate-600 hover:bg-slate-100"
-              >
-                Cancel
-              </button>
-            </div>
-            <span className="text-xs font-medium text-red-500">
-              * indicates mandatory fields
-            </span>
-          </div>
-        </div>
-      </form>
-    </div>
-  );
-}
+// Removed modal WorkLocationDialog. Form now renders inline in WorkLocationsView.
 
 function DepartmentsView() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Open from header action (subheader button dispatches this event)
+  React.useEffect(() => {
+    const open = () => setIsFormOpen(true);
+    window.addEventListener("department:new", open);
+    return () => window.removeEventListener("department:new", open);
+  }, []);
   const departments = [
     {
       id: "dept-eng",
@@ -707,34 +683,14 @@ function DepartmentsView() {
 
   return (
     <>
-      <div className="space-y-6 pb-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-slate-900">Departments</h2>
+      {/* Title and actions are shown in the fixed subheader; no in-body header here. */}
 
-          <div className="flex items-center gap-2">
-            <button
-            type="button"
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-            onClick={() => setIsFormOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            New Department
-          </button>
-          <button
-            type="button"
-            aria-label="Export departments"
-            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-          >
-            <Upload className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {/* Table aligned to content gutter (no extra negative margins) */}
+      <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
           <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
-              <th className="px-6 py-3 text-left">Department Name</th>
+              <th className="pl-0 pr-6 py-3 text-left">Department Name</th>
               <th className="px-6 py-3 text-left">Department Code</th>
               <th className="px-6 py-3 text-left">Description</th>
               <th className="px-6 py-3 text-right">Total Employees</th>
@@ -744,14 +700,14 @@ function DepartmentsView() {
           <tbody className="divide-y divide-slate-200 text-slate-700">
             {departments.map((dept) => (
               <tr key={dept.id} className="hover:bg-slate-50/80">
-                <td className="px-6 py-4 text-sm font-medium">
+                <td className="pl-0 pr-6 py-3 text-sm font-medium">
                   <a href={dept.link} className="text-blue-600 hover:underline">
                     {dept.name}
                   </a>
                 </td>
-                <td className="px-6 py-4 text-sm">{dept.code}</td>
-                <td className="px-6 py-4 text-sm text-slate-500">{dept.description}</td>
-                <td className="px-6 py-4 text-right text-sm font-semibold text-slate-800">
+                <td className="px-6 py-3 text-sm">{dept.code}</td>
+                <td className="px-6 py-3 text-sm text-slate-500">{dept.description}</td>
+                <td className="px-6 py-3 text-right text-sm font-semibold text-slate-800">
                   {dept.employees}
                 </td>
                 <td className="px-4 py-4 text-right">
@@ -767,7 +723,6 @@ function DepartmentsView() {
             ))}
           </tbody>
         </table>
-      </div>
       </div>
 
       {isFormOpen && <DepartmentDialog onClose={() => setIsFormOpen(false)} />}
