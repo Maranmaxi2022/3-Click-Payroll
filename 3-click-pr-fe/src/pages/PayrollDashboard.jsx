@@ -1,6 +1,6 @@
 // /src/pages/PayrollDashboard.jsx
 import React, { useCallback, useEffect, useState } from "react";
-import { Home, Users, Wallet, Settings, Clock } from "lucide-react";
+import { Home, Users, Wallet, Settings, Clock, Upload, Plus } from "lucide-react";
 
 import HeaderBar from "../components/HeaderBar";
 import SidebarLink from "../components/SidebarLink";
@@ -48,6 +48,7 @@ export default function PayrollDashboard() {
     if (typeof window === "undefined") return { ...BRANDING_DEFAULT };
     return loadBrandingPreferences();
   });
+  const [settingsTitleOverride, setSettingsTitleOverride] = useState("");
 
   const TABS = ["dashboard", "employees", "timeoff", "payruns", "settings"];
 
@@ -161,18 +162,28 @@ export default function PayrollDashboard() {
   const progressTrack = isLightPane ? "bg-white/40" : "bg-white/10";
   const progressFill = isLightPane ? accentPreset.activeClass : "bg-amber-400";
 
+  // Clear any title override when leaving Settings entirely
+  useEffect(() => {
+    if (tab !== "settings") setSettingsTitleOverride("");
+  }, [tab]);
+
   const settingsTitle = (() => {
     try {
       for (const sec of SETTINGS_SECTIONS) {
         for (const group of sec.groups) {
           for (const item of group.items) {
-            if (item.id === settingsActive) return item.label;
+            if (
+              item.id === settingsActive ||
+              (typeof settingsActive === "string" && settingsActive.startsWith(item.id + "."))
+            )
+              return item.label;
           }
         }
       }
     } catch (_) {}
     return "Settings";
   })();
+  const effectiveSettingsTitle = settingsTitleOverride || settingsTitle;
 
   return (
     // pt-16 makes room for the fixed header (h-16)
@@ -186,8 +197,48 @@ export default function PayrollDashboard() {
         accent={branding.accent}
         subHeader={
           tab === "settings" ? (
-            <div className="flex items-center">
-              <div className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">{settingsTitle}</div>
+            <div className="flex items-center justify-between">
+              <div className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">{effectiveSettingsTitle}</div>
+              {settingsActive && settingsActive.startsWith("org.locations") && settingsActive !== "org.locations.new" ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    onClick={() => setSettingsActive("org.locations.new")}
+                  >
+                    Add Work Location
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Export locations"
+                    className="grid h-9 w-9 place-items-center rounded-lg border border-[#DDE3F3] bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                  >
+                    <Upload className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : settingsActive && settingsActive.startsWith("org.departments") ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    onClick={() => {
+                      try {
+                        window.dispatchEvent(new CustomEvent("department:new"));
+                      } catch (_) {}
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Department
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Export departments"
+                    className="grid h-10 w-10 place-items-center rounded-lg border border-[#DDE3F3] bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                  >
+                    <Upload className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : null}
             </div>
           ) : null
         }
@@ -279,6 +330,7 @@ export default function PayrollDashboard() {
               onUpdateBranding={applyBranding}
               active={settingsActive}
               onSelect={setSettingsActive}
+              onSetTitle={setSettingsTitleOverride}
             />
           )}
         </div>
