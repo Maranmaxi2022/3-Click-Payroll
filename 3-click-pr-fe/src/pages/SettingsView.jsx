@@ -329,7 +329,7 @@ function OrgBranding({ branding, onUpdateBranding }) {
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-slate-900">Branding</h2>
 
-      <div className="space-y-8 rounded-xl border border-slate-200 bg-white p-6">
+      <div className="space-y-8">
         <section>
           <div className="text-sm font-semibold uppercase tracking-wide text-slate-500">Appearance</div>
           <div className="mt-4 flex flex-wrap gap-4">
@@ -391,9 +391,7 @@ function OrgBranding({ branding, onUpdateBranding }) {
               </button>
             ))}
           </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Note: These preferences will be applied across Zoho Finance apps.
-          </p>
+          {/* Note removed per request */}
         </section>
       </div>
     </div>
