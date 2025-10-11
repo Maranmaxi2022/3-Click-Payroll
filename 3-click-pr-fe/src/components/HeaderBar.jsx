@@ -42,7 +42,7 @@ export default function HeaderBar({
   return (
     // Fixed to the viewport (no movement on vertical or horizontal scroll)
     <header className="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur">
-      <div className="flex h-16 items-center gap-3 pl-0 pr-4">
+      <div className="flex h-16 items-center gap-0 pl-0 pr-4">
         {/* Mobile menu */}
         <button
           className="md:hidden rounded-lg p-2 hover:bg-slate-100"
@@ -71,7 +71,7 @@ export default function HeaderBar({
         </div>
 
         {/* Search or Close Settings */}
-        <div className={`${inSettings ? "-ml-3" : "ml-3"} w-full md:w-[560px] lg:w-[620px] shrink-0`}>
+        <div className={`${inSettings ? "" : "ml-3"} w-full md:w-[560px] lg:w-[620px] shrink-0`}>
           {inSettings ? (
             <div className="px-4 md:px-8 lg:px-12 xl:px-16">
               <button
@@ -128,7 +128,7 @@ export default function HeaderBar({
             <img
               alt="User"
               className="h-8 w-8 object-cover"
-              src="https://lh3.googleusercontent.com/rd-ogw/AF2bZyhueXZK0M1HrNR2ZPHvUacjW0l9rrVdLRJ6DKLPBOn5KH1mzdK7navrVi9vyX0_XG8KPk4HhFkDfwzxB7tHCxwyHaWamymCBv0fqkVz8nWSn_PKYjr0wyjsVntGgSzlJ3Qmgq701lid2d-57u-QAUYANUbRAcuHC2uVehT08l-cFCXCRJpeiRFhtfv33Fu5OtpryR-i2cyEZiDsxEGsjAfjeNCV1Sarz2pVIYu_h6g42PpUori4AyKEd0Cs1dNyp24E3vVUFEu1PDD445hl4SaOQAobPqK8_Y98Xyg2r0LjmKbpzcUdmlvcYpxnoupiKrJWARvE-7UZXeisQy-m9Rkvj_EOZzuLWnb5WhTIZJeuTKAJOH-Ja34jPaHjzoGf02hWm2iBoSwVzh17PKNrsNJfE6_Q_1PpZUOId0Wsr06RBo2h1RX4VJVu--gTuU4wy9CbsPHKoqwka6nppSOdkNrI1rqyg616cpaHjlzUJwtoKyd43u5yGVrf19q2duD0kgL_YqdHPdsulC1qHr809Hg3Qzpi6G1nl2ELz5LFirAFmBay8mrL8qr-KOUQYnHkDpuZG4WL65cxSW5t0grzv5ChAv7SBmgQdej-GJFMp76zSevC5PbtlE8MTigyjfnkgLDq0NWwrLt2jNDuauQoyBG1ex0KeNANDrzkFU2b1Qp7K-pzZwYM4UxE-4chfUgP81kAkvHllIlDyRRdo-5mUyNZfRT4AQVxM2q6UHSG8J5ql_ULHaxB4qPNVCAZlPycmTBjv7sibbByuZgb4xlcCZg1i8O3IOJDXUDl-XWUWnWFUdXRdLU_ivVtyPaKL5XwqzdoMK6cy2sFjJFC9rbHJRcsYdMRzeFWJc-NIkojZVC1KZnOskcrVmRmesLZ9R28XSg9AIh-RGRgkIEOqlPQGzSQgOYpWpYSo9xA7EaLbTS2Hl3eNwc06aH0ZEvEvEPS3rQsT9SmTnp0GZfiS-In5HXszLt_98r9jpco5fsuP-UbV5yqnQX551rB7eukTCHe_fFrMvb-xXiHFSs60XbgISeyxNWPuYvWqysTcSAJQQ=s64-c"
+              src="https://lh3.googleusercontent.com/rd-ogw/AF2bZygAu6jp-MLkcpEBPTqd_2QxAGYvYInBmuFWZ7OTvc2JH-zl3f9UThGhA-q_blBePY23gHadYqMwqqM5bW8ghYbNArUPYes2EQWC-J5YTslatWVZWtnuqzLCSJKceJ7861yUyrcZO1sOjhs0uGK_2xTLmRS4ttb2WDcQqitdjc1kNP9fFKpleU2G0YCphWwJvvwZCKf94yTTjnXJ_RhaK7PId57TKsjXapi3LNkuGNf-VjZV_ishEuaFrkO7dZouMxX4lq8r3f0uHVUeqw7kD9LN2jHc8jcs0wMKGSUehY4BKJ89vjdsywS2KTnruJu4mycp2UaCm7g2-SJVjtd0JSptjTxKIhAM4OBPOVHF0k1qTyge_F2nHxzZeFRyx8XpxN_oX2Bt1HUiCimKhoBemPVTJzWHD8kUXu0e-wpTE8nuQz5NotxtZTcZj6BvUnxWYUqtgjguuArGVRcSCbjY3qxBnN0uYGiKMV2O50mVgSGE_rF-6B513GgjeuoPl4BlG9jWNUnzEZBS73O1viskOuecWjpZoIPo4FIrUlCaUAABpikHeomdYPTgMNnCzxC4p5O2OJ0fjplc9gnlHkkaqFCwaY7vfohZfc6fHoOys_GrE04C0RhrzCFIVMTDc0zyibv3Gjca64CjdCnvSPFfivYG6s2DpH1bb4OadSxSAULi-e76czfgu0ah01yLvnQwWs9Q56f74i2DAhPD2nityH5nMx8NXNV1WezfaCbzSqWtHPw8trwbKYB9ITUczo_xXjEWOAwejVhZTNAl7t5OOAeHFshwG0qSgBWfDKKW60e_aCLv8cCOlJuLWwnFFPGTaA_-Cgp7-2fL5WCrsTvh7YNJAOf110ZgUbpeDWhfoiEm9vzA20EFL_UBSsc63ZZ479j9of5r-qvgHUIYp8cD5sCtR4QFc_O4YnNlEMvgByGwvp1b2EhaJV6N4_l9-6o_d1pTmqbn5B5gHjbPnqur3w4b3DI26lgfECU_VCG-gqW-dbpyDQRuHDqmr7vM9wNNfg6Z3GdYH_6r7BfU9yZvmDaLCzbkZJRyHvMj--YFjA=s64-c"
             />
           </button>
         </div>
