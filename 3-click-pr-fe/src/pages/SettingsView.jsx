@@ -101,7 +101,6 @@ export default function SettingsView({
               { id: "org.locations", label: "Work Locations" },
               { id: "org.departments", label: "Departments" },
               { id: "org.designations", label: "Designations" },
-              { id: "org.subscriptions", label: "Subscriptions" },
             ],
           },
           {

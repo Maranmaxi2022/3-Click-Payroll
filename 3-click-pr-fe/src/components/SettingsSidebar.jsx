@@ -55,7 +55,6 @@ export const SETTINGS_SECTIONS = [
           { id: "org.locations", label: "Work Locations" },
           { id: "org.departments", label: "Departments" },
           { id: "org.designations", label: "Designations" },
-          { id: "org.subscriptions", label: "Subscriptions" },
         ],
       },
       {
@@ -197,4 +196,3 @@ export default function SettingsSidebar({ active, onSelect }) {
     </div>
   );
 }
-
