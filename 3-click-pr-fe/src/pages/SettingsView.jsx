@@ -67,7 +67,6 @@ export default function SettingsView({
   // Which groups are expanded
   const [open, setOpen] = useState({
     org: true,
-    users: false,
     taxes: false,
     setup: false,
     custom: false,
@@ -97,14 +96,7 @@ export default function SettingsView({
               { id: "org.designations", label: "Designations" },
             ],
           },
-          {
-            id: "users",
-            title: "Users and Roles",
-            items: [
-              { id: "users.users", label: "Users" },
-              { id: "users.roles", label: "Roles" },
-            ],
-          },
+          
           {
             id: "taxes",
             title: "Taxes",

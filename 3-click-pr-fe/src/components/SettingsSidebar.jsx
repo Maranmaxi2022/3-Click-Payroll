@@ -58,14 +58,6 @@ export const SETTINGS_SECTIONS = [
         ],
       },
       {
-        id: "users",
-        title: "Users and Roles",
-        items: [
-          { id: "users.users", label: "Users" },
-          { id: "users.roles", label: "Roles" },
-        ],
-      },
-      {
         id: "taxes",
         title: "Taxes",
         items: [{ id: "taxes.details", label: "Tax Details" }],
@@ -149,7 +141,6 @@ export default function SettingsSidebar({ active, onSelect }) {
   // which groups are open by default
   const [open, setOpen] = useState({
     org: true,
-    users: false,
     taxes: false,
     setup: false,
     custom: false,
