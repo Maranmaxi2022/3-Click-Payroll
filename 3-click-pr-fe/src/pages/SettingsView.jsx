@@ -694,7 +694,7 @@ function DepartmentsView() {
               <th className="px-6 py-3 text-left">Department Code</th>
               <th className="px-6 py-3 text-left">Description</th>
               <th className="px-6 py-3 text-right">Total Employees</th>
-              <th className="px-4 py-3" />
+              <th className="py-3 pr-0 w-[48px]" />
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 text-slate-700">
@@ -710,7 +710,7 @@ function DepartmentsView() {
                 <td className="px-6 py-3 text-right text-sm font-semibold text-slate-800">
                   {dept.employees}
                 </td>
-                <td className="px-4 py-4 text-right">
+                <td className="py-4 pr-0 text-right w-[48px]">
                   <button
                     type="button"
                     aria-label="Department actions"
