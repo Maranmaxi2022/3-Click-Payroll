@@ -1433,16 +1433,16 @@ function StatutoryComponentsView() {
       {/* Commission & Non-periodic Pay */}
       <section>
         <h3 className="text-base font-semibold text-slate-900">Commission & Non-periodic Pay</h3>
-        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
-          <label className="inline-flex items-center gap-2">
+        <div className="mt-3 space-y-4 text-sm">
+          <label className="flex items-center gap-3">
             <input type="checkbox" checked={state.td1x} onChange={setField("td1x")} />
             <span>TD1X present</span>
           </label>
-          <label className="inline-flex items-center gap-2">
+          <label className="flex items-center gap-3">
             <input type="checkbox" checked={state.treatBonusAsNonPeriodic} onChange={setField("treatBonusAsNonPeriodic")} />
             <span>Treat bonuses as non‑periodic</span>
           </label>
-          <label className="inline-flex items-center gap-2">
+          <label className="flex items-center gap-3">
             <input type="checkbox" checked={state.useSupplemental} onChange={setField("useSupplemental")} />
             <span>Use supplemental method for retro/bonus</span>
           </label>
