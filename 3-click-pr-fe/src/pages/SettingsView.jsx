@@ -1,6 +1,6 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
-import { MoreHorizontal, Pencil, Plus, Users, Info } from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
 
 import {
   ACCENT_LIST,
@@ -956,18 +956,123 @@ if (typeof document !== "undefined" && !document.getElementById("settings-css"))
 
 /* ---- Taxes > Tax Details ---- */
 function TaxDetailsView() {
-  const SelectBox = ({ className = "", children, ...props }) => (
-    <div className={"relative " + className}>
-      <select className="input appearance-none pr-9" {...props}>
-        {children}
-      </select>
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-        <svg viewBox="0 0 512 512" className="h-4 w-4" aria-hidden>
-          <path fill="#999" d="M103.5 165.6c8.8-8.8 22.8-9.9 32.9-2.4l2.8 2.4L256 282.4l116.8-116.8c8.8-8.8 22.8-9.9 32.9-2.4l2.8 2.4c8.8 8.8 9.9 22.8 2.4 32.9l-2.5 2.8L256 353.8 103.5 201.3c-4.7-4.7-7.4-11.2-7.4-17.9 0-6.6 2.7-13.1 7.4-17.8z"/>
-        </svg>
-      </span>
-    </div>
-  );
+  // Searchable dropdown / combobox used across this form
+  const SearchSelect = ({
+    options = [],
+    value,
+    onChange,
+    placeholder = "Select...",
+    className = "",
+  }) => {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState("");
+    const [highlight, setHighlight] = useState(0);
+    const ref = React.useRef(null);
+
+    const selected = options.find((o) => o.value === value) || null;
+
+    React.useEffect(() => {
+      const close = (e) => {
+        if (!ref.current) return;
+        if (!ref.current.contains(e.target)) setOpen(false);
+      };
+      document.addEventListener("mousedown", close);
+      return () => document.removeEventListener("mousedown", close);
+    }, []);
+
+    React.useEffect(() => {
+      if (!open) setQuery("");
+      else setHighlight(0);
+    }, [open]);
+
+    const normalized = (s) => (s || "").toString().toLowerCase();
+    const filtered = options.filter((o) =>
+      normalized(o.label).includes(normalized(query))
+    );
+
+    const commit = (opt) => {
+      onChange?.(opt.value);
+      setOpen(false);
+    };
+
+    const handleKey = (e) => {
+      if (!open && (e.key === "ArrowDown" || e.key === "Enter")) {
+        setOpen(true);
+        e.preventDefault();
+        return;
+      }
+      if (!open) return;
+      if (e.key === "ArrowDown") {
+        setHighlight((h) => Math.min(h + 1, Math.max(filtered.length - 1, 0)));
+        e.preventDefault();
+      } else if (e.key === "ArrowUp") {
+        setHighlight((h) => Math.max(h - 1, 0));
+        e.preventDefault();
+      } else if (e.key === "Enter") {
+        const opt = filtered[highlight];
+        if (opt) commit(opt);
+        e.preventDefault();
+      } else if (e.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    return (
+      <div ref={ref} className={"relative " + className}>
+        <div className="relative">
+          <input
+            className="input pr-9"
+            placeholder={placeholder}
+            value={open ? query : (selected?.label || "")}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setOpen(true)}
+            onKeyDown={handleKey}
+          />
+          <span
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+            aria-hidden
+          >
+            <svg viewBox="0 0 512 512" className="h-4 w-4">
+              <path
+                fill="#999"
+                d="M103.5 165.6c8.8-8.8 22.8-9.9 32.9-2.4l2.8 2.4L256 282.4l116.8-116.8c8.8-8.8 22.8-9.9 32.9-2.4l2.8 2.4c8.8 8.8 9.9 22.8 2.4 32.9l-2.5 2.8L256 353.8 103.5 201.3c-4.7-4.7-7.4-11.2-7.4-17.9 0-6.6 2.7-13.1 7.4-17.8z"
+              />
+            </svg>
+          </span>
+        </div>
+
+        {open && (
+          <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+            <div className="max-h-64 overflow-auto p-1">
+              {filtered.length === 0 ? (
+                <div className="px-3 py-2 text-sm text-slate-500">No results</div>
+              ) : (
+                filtered.map((opt, idx) => {
+                  const active = idx === highlight;
+                  const isSelected = selected && selected.value === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      onMouseEnter={() => setHighlight(idx)}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => commit(opt)}
+                      className={
+                        "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm " +
+                        (active ? "bg-indigo-50" : "hover:bg-slate-50")
+                      }
+                    >
+                      <span className="truncate">{opt.label}</span>
+                      {isSelected && <Check className="h-4 w-4 text-emerald-600" />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
   // Employer-level state
   const [employer, setEmployer] = useState({
     bn: "",
@@ -1052,32 +1157,35 @@ function TaxDetailsView() {
 
             <div>
               <label className="block text-sm text-slate-700">Province/territory of employment (default)</label>
-              <SelectBox className="mt-1" value={employer.province} onChange={setEmployerField("province")}>
-                <option value="" disabled>Select province</option>
-                {PROVINCES.map((p) => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </SelectBox>
+              <SearchSelect
+                className="mt-1"
+                value={employer.province}
+                onChange={setEmployerField("province")}
+                placeholder="Select province"
+                options={PROVINCES.map((p) => ({ value: p, label: p }))}
+              />
             </div>
             <div>
               <label className="block text-sm text-slate-700">Pay period frequency</label>
-              <SelectBox className="mt-1" value={employer.payFreq} onChange={setEmployerField("payFreq")}>
-                <option value="" disabled>Select frequency</option>
-                {PAY_FREQS.map((f) => (
-                  <option key={f} value={f}>{f}</option>
-                ))}
-              </SelectBox>
+              <SearchSelect
+                className="mt-1"
+                value={employer.payFreq}
+                onChange={setEmployerField("payFreq")}
+                placeholder="Select frequency"
+                options={PAY_FREQS.map((f) => ({ value: f, label: f }))}
+              />
               <div className="mt-1 text-[12px] text-slate-500">Used as factor P in CRA formulas.</div>
             </div>
 
             <div>
               <label className="block text-sm text-slate-700">Remitter cadence</label>
-              <SelectBox className="mt-1" value={employer.remitter} onChange={setEmployerField("remitter")}>
-                <option value="" disabled>Select cadence</option>
-                {REMITTERS.map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </SelectBox>
+              <SearchSelect
+                className="mt-1"
+                value={employer.remitter}
+                onChange={setEmployerField("remitter")}
+                placeholder="Select cadence"
+                options={REMITTERS.map((r) => ({ value: r, label: r }))}
+              />
               <div className="mt-1 text-[12px] text-slate-500">For your workflow; CRA remittance thresholds handled outside.</div>
             </div>
             <div>
@@ -1128,12 +1236,13 @@ function TaxDetailsView() {
             <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="block text-sm text-slate-700">Province/territory for this employee</label>
-                <SelectBox className="mt-1" value={emp.province} onChange={setEmpField("province")}>
-                  <option value="" disabled>Select province</option>
-                  {PROVINCES.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </SelectBox>
+                <SearchSelect
+                  className="mt-1"
+                  value={emp.province}
+                  onChange={setEmpField("province")}
+                  placeholder="Select province"
+                  options={PROVINCES.map((p) => ({ value: p, label: p }))}
+                />
                 <div className="mt-1 text-[12px] text-slate-500">Quebec income tax uses Revenu Québec tables; CRA T4127 covers non‑Quebec.</div>
               </div>
             </div>
@@ -1178,12 +1287,13 @@ function TaxDetailsView() {
               <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-slate-700">Claim code</label>
-                  <SelectBox className="mt-1" value={emp.claimCode} onChange={setEmpField("claimCode")}>
-                    <option value="" disabled>Select code (0–10)</option>
-                    {Array.from({ length: 11 }, (_, i) => String(i)).map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </SelectBox>
+                  <SearchSelect
+                    className="mt-1"
+                    value={emp.claimCode}
+                    onChange={setEmpField("claimCode")}
+                    placeholder="Select code (0–10)"
+                    options={Array.from({ length: 11 }, (_, i) => ({ value: String(i), label: String(i) }))}
+                  />
               </div>
             </div>
             )}
