@@ -1,6 +1,6 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
-import { MoreHorizontal, Pencil, Plus, Users } from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Users, Info } from "lucide-react";
 
 import {
   ACCENT_LIST,
@@ -207,6 +207,7 @@ export default function SettingsView({
       );
     if (active === "org.departments") return <DepartmentsView />;
     if (active === "org.designations") return <DesignationsView />;
+    if (active === "taxes.details") return <TaxDetailsView />;
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
         This is a placeholder for <span className="font-medium">{active}</span>.
@@ -951,4 +952,142 @@ if (typeof document !== "undefined" && !document.getElementById("settings-css"))
   tag.id = "settings-css";
   tag.innerHTML = css;
   document.head.appendChild(tag);
+}
+
+/* ---- Taxes > Tax Details ---- */
+function TaxDetailsView() {
+  const [deductorType, setDeductorType] = useState("employee");
+  const [ao, setAo] = useState({ a: "", b: "", c: "", d: "" });
+
+  return (
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,60%)_minmax(0,40%)]">
+      {/* Left: Form occupies roughly half the page */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Organisation Tax Details (no card) */}
+        <section>
+          <h3 className="text-base font-semibold text-slate-900">Organisation Tax Details</h3>
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm text-slate-700">PAN<span className="text-red-500">*</span></label>
+              <input className="input mt-1 uppercase" placeholder="AAAAA0000A" maxLength={10} />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-700">TAN</label>
+              <input className="input mt-1 uppercase" placeholder="AAAA00000A" maxLength={10} />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-700">
+                TDS circle / AO code
+                <Info className="ml-1 inline h-3.5 w-3.5 align-[-1px] text-slate-400" />
+              </label>
+              <div className="mt-1 flex items-center gap-2">
+                <input
+                  className="input w-16 text-center uppercase"
+                  placeholder="AAA"
+                  maxLength={3}
+                  value={ao.a}
+                  onChange={(e) => setAo({ ...ao, a: e.target.value })}
+                />
+                <span className="text-slate-400">/</span>
+                <input
+                  className="input w-14 text-center uppercase"
+                  placeholder="AA"
+                  maxLength={2}
+                  value={ao.b}
+                  onChange={(e) => setAo({ ...ao, b: e.target.value })}
+                />
+                <span className="text-slate-400">/</span>
+                <input
+                  className="input w-16 text-center"
+                  placeholder="000"
+                  maxLength={3}
+                  value={ao.c}
+                  onChange={(e) => setAo({ ...ao, c: e.target.value })}
+                />
+                <span className="text-slate-400">/</span>
+                <input
+                  className="input w-14 text-center"
+                  placeholder="00"
+                  maxLength={2}
+                  value={ao.d}
+                  onChange={(e) => setAo({ ...ao, d: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm text-slate-700">
+                Tax Payment Frequency
+                <Info className="ml-1 inline h-3.5 w-3.5 align-[-1px] text-slate-400" />
+              </label>
+              {/* Render as readOnly input for consistent width + alignment without disabled quirks */}
+              <input
+                className="input mt-1 bg-slate-50 text-slate-600 cursor-not-allowed focus:ring-0 focus:border-slate-200"
+                value="Monthly"
+                readOnly
+                tabIndex={-1}
+                aria-readonly="true"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Tax Deductor Details (no card) */}
+        <section>
+          <h3 className="text-base font-semibold text-slate-900">Tax Deductor Details</h3>
+          <div className="mt-4 space-y-5">
+            <div>
+              <div className="text-sm text-slate-700">Deductor's Type</div>
+              <div className="mt-2 flex items-center gap-6 text-sm">
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="deductorType"
+                    checked={deductorType === "employee"}
+                    onChange={() => setDeductorType("employee")}
+                  />
+                  <span>Employee</span>
+                </label>
+                <label className="inline-flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="deductorType"
+                    checked={deductorType === "non-employee"}
+                    onChange={() => setDeductorType("non-employee")}
+                  />
+                  <span>Non-Employee</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm text-slate-700">Deductor's Name</label>
+                <select className="input mt-1" defaultValue="">
+                  <option value="" disabled>
+                    Select a Tax Deductor
+                  </option>
+                  <option>John Doe</option>
+                  <option>Jane Smith</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Deductor's Father's Name</label>
+                <input className="input mt-1" placeholder="Enter father's name" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-4 border-t border-slate-200 pt-4 flex items-center justify-between">
+          <button className="h-9 rounded-md bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700">
+            Save
+          </button>
+          <div className="text-xs font-medium text-red-500">* indicates mandatory fields</div>
+        </div>
+      </div>
+
+      {/* Right: empty space to keep form at half width */}
+      <div className="hidden lg:block" aria-hidden />
+    </div>
+  );
 }
