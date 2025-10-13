@@ -207,6 +207,7 @@ export default function SettingsView({
       );
     if (active === "org.departments") return <DepartmentsView />;
     if (active === "org.designations") return <DesignationsView />;
+    if (active === "setup.statutory") return <StatutoryComponentsView />;
     if (active === "taxes.details") return <TaxDetailsView />;
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
@@ -1320,86 +1321,10 @@ function TaxDetailsView() {
                 <label className="block text-sm text-slate-700">Union dues (U1)</label>
                 <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.unionDuesU1} onChange={setEmpField("unionDuesU1")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">RPP/RRSP/PRPP contributions at source (F)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.contribF} onChange={setEmpField("contribF")} />
-              </div>
             </div>
           </div>
 
-          {/* D. CPP/QPP & CPP2 status */}
-          <div className="mt-6">
-            <div className="text-sm font-medium text-slate-800">D. CPP/QPP & CPP2 status</div>
-            <div className="mt-3 space-y-3 text-sm">
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={emp.cppqpp} onChange={setEmpField("cppqpp")} />
-                <span>Contribute to CPP/QPP</span>
-              </label>
-              <div className="flex items-center gap-4">
-                <label className="inline-flex items-center gap-2">
-                  <input type="checkbox" checked={emp.cpt30} onChange={setEmpField("cpt30")} />
-                  <span>CPT30 exemption filed</span>
-                </label>
-                {emp.cpt30 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-700">Effective date</span>
-                    <input type="date" className="input w-[200px]" value={emp.cpt30Date} onChange={setEmpField("cpt30Date")} />
-                  </div>
-                )}
-              </div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={emp.cpp2} onChange={setEmpField("cpp2")} />
-                <span>Track CPP2 (earnings between YMPE and YAMPE)</span>
-              </label>
-              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-[12px] text-slate-600">
-                <div>Reference caps for {currentYear} (from engine):</div>
-                <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-[88px] text-slate-500">YMPE</span>
-                    <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-[88px] text-slate-500">YAMPE</span>
-                    <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-[88px] text-slate-500">EI Max</span>
-                    <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* E. EI status */}
-          <div className="mt-6">
-            <div className="text-sm font-medium text-slate-800">E. Employment Insurance (EI)</div>
-            <label className="mt-2 inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={emp.eiInsurable} onChange={setEmpField("eiInsurable")} />
-              <span>EI insurable</span>
-            </label>
-          </div>
-
-          {/* F. Commission employees */}
-          <div className="mt-6">
-            <div className="text-sm font-medium text-slate-800">F. Commission employees (if applicable)</div>
-            <label className="mt-2 inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={emp.commissionTD1X} onChange={setEmpField("commissionTD1X")} />
-              <span>TD1X present</span>
-            </label>
-            {emp.commissionTD1X && (
-              <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-sm text-slate-700">Expected annual commission income (I1)</label>
-                  <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.commissionI1} onChange={setEmpField("commissionI1")} />
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-700">Commission expenses (E)</label>
-                  <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.commissionE} onChange={setEmpField("commissionE")} />
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Removed social programs + commission from Taxes; they live in Statutory Components */}
 
           {/* Actions */}
           <div className="mt-6 border-t border-slate-200 pt-4 flex items-center justify-between">
@@ -1411,6 +1336,111 @@ function TaxDetailsView() {
 
       {/* Right spacer to keep 60/40 layout */}
       <div className="hidden lg:block" aria-hidden />
+    </div>
+  );
+}
+
+/* ---- Setup & Configurations > Statutory Components ---- */
+function StatutoryComponentsView() {
+  const currentYear = new Date().getFullYear();
+  const [state, setState] = useState({
+    cppqpp: true,
+    cpt30: false,
+    cpt30Date: "",
+    cpp2: true,
+    eiInsurable: true,
+    td1x: false,
+    treatBonusAsNonPeriodic: false,
+    useSupplemental: false,
+    contribF: "",
+  });
+  const setField = (k) => (e) =>
+    setState((p) => ({ ...p, [k]: e?.target?.type === "checkbox" ? e.target.checked : e?.target ? e.target.value : e }));
+
+  return (
+    <div className="space-y-8">
+      {/* CPP/QPP & CPP2 */}
+      <section>
+        <h3 className="text-base font-semibold text-slate-900">CPP/QPP & CPP2</h3>
+        <div className="mt-3 space-y-3 text-sm">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={state.cppqpp} onChange={setField("cppqpp")} />
+            <span>Contribute to CPP/QPP</span>
+          </label>
+          <div className="flex items-center gap-4">
+            <label className="inline-flex items-center gap-2">
+              <input type="checkbox" checked={state.cpt30} onChange={setField("cpt30")} />
+              <span>CPT30 exemption filed</span>
+            </label>
+            {state.cpt30 && (
+              <div className="flex items-center gap-2">
+                <span className="text-slate-700">Effective date</span>
+                <input type="date" className="input w-[200px]" value={state.cpt30Date} onChange={setField("cpt30Date")} />
+              </div>
+            )}
+          </div>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={state.cpp2} onChange={setField("cpp2")} />
+            <span>Track CPP2 (earnings between YMPE and YAMPE)</span>
+          </label>
+          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-[12px] text-slate-600">
+            <div>Reference caps for {currentYear} (from engine):</div>
+            <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="flex items-center gap-2">
+                <span className="w-[88px] text-slate-500">YMPE</span>
+                <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-[88px] text-slate-500">YAMPE</span>
+                <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-[88px] text-slate-500">EI Max</span>
+                <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Employment Insurance */}
+      <section>
+        <h3 className="text-base font-semibold text-slate-900">Employment Insurance (EI)</h3>
+        <label className="mt-2 inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={state.eiInsurable} onChange={setField("eiInsurable")} />
+          <span>EI insurable</span>
+        </label>
+      </section>
+
+      {/* Commission & Non-periodic Pay */}
+      <section>
+        <h3 className="text-base font-semibold text-slate-900">Commission & Non-periodic Pay</h3>
+        <div className="mt-2 space-y-3 text-sm">
+          <label className="inline-flex items-center gap-2">
+            <input type="checkbox" checked={state.td1x} onChange={setField("td1x")} />
+            <span>TD1X present</span>
+          </label>
+          <label className="inline-flex items-center gap-2">
+            <input type="checkbox" checked={state.treatBonusAsNonPeriodic} onChange={setField("treatBonusAsNonPeriodic")} />
+            <span>Treat bonuses as non‑periodic</span>
+          </label>
+          <label className="inline-flex items-center gap-2">
+            <input type="checkbox" checked={state.useSupplemental} onChange={setField("useSupplemental")} />
+            <span>Use supplemental method for retro/bonus</span>
+          </label>
+        </div>
+      </section>
+
+      {/* Registered plans at source (Factor F) */}
+      <section>
+        <h3 className="text-base font-semibold text-slate-900">Registered plans at source (F)</h3>
+        <div className="mt-2 grid max-w-[380px] grid-cols-1 gap-3">
+          <div>
+            <label className="block text-sm text-slate-700">RPP/RRSP/PRPP contributions (per year)</label>
+            <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={state.contribF} onChange={setField("contribF")} />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
