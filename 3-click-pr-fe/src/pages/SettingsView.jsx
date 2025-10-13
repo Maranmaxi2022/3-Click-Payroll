@@ -956,137 +956,350 @@ if (typeof document !== "undefined" && !document.getElementById("settings-css"))
 
 /* ---- Taxes > Tax Details ---- */
 function TaxDetailsView() {
-  const [deductorType, setDeductorType] = useState("employee");
-  const [ao, setAo] = useState({ a: "", b: "", c: "", d: "" });
+  const SelectBox = ({ className = "", children, ...props }) => (
+    <div className={"relative " + className}>
+      <select className="input appearance-none pr-9" {...props}>
+        {children}
+      </select>
+      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+        <svg viewBox="0 0 512 512" className="h-4 w-4" aria-hidden>
+          <path fill="#999" d="M103.5 165.6c8.8-8.8 22.8-9.9 32.9-2.4l2.8 2.4L256 282.4l116.8-116.8c8.8-8.8 22.8-9.9 32.9-2.4l2.8 2.4c8.8 8.8 9.9 22.8 2.4 32.9l-2.5 2.8L256 353.8 103.5 201.3c-4.7-4.7-7.4-11.2-7.4-17.9 0-6.6 2.7-13.1 7.4-17.8z"/>
+        </svg>
+      </span>
+    </div>
+  );
+  // Employer-level state
+  const [employer, setEmployer] = useState({
+    bn: "",
+    rp: "",
+    province: "",
+    payFreq: "",
+    remitter: "",
+    usePDOC: false,
+    indexationMode: "claim-codes", // 'indexing' | 'claim-codes'
+  });
+
+  // Employee-level state
+  const [emp, setEmp] = useState({
+    province: "",
+    td1Mode: "totals", // 'totals' | 'claim-code'
+    tc: "",
+    tcp: "",
+    claimCode: "",
+    autoIndexing: false,
+    extraTaxL: "",
+    authDedF1: "",
+    unionDuesU1: "",
+    contribF: "",
+    cppqpp: true,
+    cpt30: false,
+    cpt30Date: "",
+    cpp2: true,
+    eiInsurable: true,
+    commissionTD1X: false,
+    commissionI1: "",
+    commissionE: "",
+  });
+
+  const setEmployerField = (k) => (e) =>
+    setEmployer((p) => ({ ...p, [k]: e?.target?.type === "checkbox" ? e.target.checked : e?.target ? e.target.value : e }));
+  const setEmpField = (k) => (e) =>
+    setEmp((p) => ({ ...p, [k]: e?.target?.type === "checkbox" ? e.target.checked : e?.target ? e.target.value : e }));
+
+  const PROVINCES = [
+    "Alberta",
+    "British Columbia",
+    "Manitoba",
+    "New Brunswick",
+    "Newfoundland and Labrador",
+    "Northwest Territories",
+    "Nova Scotia",
+    "Nunavut",
+    "Ontario",
+    "Prince Edward Island",
+    "Quebec",
+    "Saskatchewan",
+    "Yukon",
+  ];
+  const PAY_FREQS = ["Weekly", "Biweekly", "Semi-monthly", "Monthly", "Other"];
+  const REMITTERS = [
+    "Per pay run",
+    "Twice-monthly",
+    "Monthly",
+    "Quarterly",
+    "Custom/Other",
+  ];
+  const currentYear = new Date().getFullYear();
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,60%)_minmax(0,40%)]">
-      {/* Left: Form occupies roughly half the page */}
-      <div className="grid grid-cols-1 gap-6">
-        {/* Organisation Tax Details (no card) */}
+      {/* Left: 60% form column */}
+      <div className="grid grid-cols-1 gap-8">
+        {/* Employer setup */}
         <section>
-          <h3 className="text-base font-semibold text-slate-900">Organisation Tax Details</h3>
+          <h3 className="text-base font-semibold text-slate-900">Employer (Payroll Account) Setup - Canada</h3>
+          <p className="mt-1 text-[13px] text-slate-500">Configure how deductions are computed and remitted.</p>
+
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm text-slate-700">PAN<span className="text-red-500">*</span></label>
-              <input className="input mt-1 uppercase" placeholder="AAAAA0000A" maxLength={10} />
+              <label className="block text-sm text-slate-700">Business Number (BN)</label>
+              <input className="input mt-1" placeholder="9-digit BN" value={employer.bn} onChange={setEmployerField("bn")} />
             </div>
             <div>
-              <label className="block text-sm text-slate-700">TAN</label>
-              <input className="input mt-1 uppercase" placeholder="AAAA00000A" maxLength={10} />
+              <label className="block text-sm text-slate-700">Payroll program account (RP)</label>
+              <input className="input mt-1" placeholder="e.g., RP0001" value={employer.rp} onChange={setEmployerField("rp")} />
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-700">Province/territory of employment (default)</label>
+              <SelectBox className="mt-1" value={employer.province} onChange={setEmployerField("province")}>
+                <option value="" disabled>Select province</option>
+                {PROVINCES.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </SelectBox>
             </div>
             <div>
-              <label className="block text-sm text-slate-700">
-                TDS circle / AO code
-                <Info className="ml-1 inline h-3.5 w-3.5 align-[-1px] text-slate-400" />
-              </label>
-              <div className="mt-1 flex items-center gap-2">
-                <input
-                  className="input w-16 text-center uppercase"
-                  placeholder="AAA"
-                  maxLength={3}
-                  value={ao.a}
-                  onChange={(e) => setAo({ ...ao, a: e.target.value })}
-                />
-                <span className="text-slate-400">/</span>
-                <input
-                  className="input w-14 text-center uppercase"
-                  placeholder="AA"
-                  maxLength={2}
-                  value={ao.b}
-                  onChange={(e) => setAo({ ...ao, b: e.target.value })}
-                />
-                <span className="text-slate-400">/</span>
-                <input
-                  className="input w-16 text-center"
-                  placeholder="000"
-                  maxLength={3}
-                  value={ao.c}
-                  onChange={(e) => setAo({ ...ao, c: e.target.value })}
-                />
-                <span className="text-slate-400">/</span>
-                <input
-                  className="input w-14 text-center"
-                  placeholder="00"
-                  maxLength={2}
-                  value={ao.d}
-                  onChange={(e) => setAo({ ...ao, d: e.target.value })}
-                />
+              <label className="block text-sm text-slate-700">Pay period frequency</label>
+              <SelectBox className="mt-1" value={employer.payFreq} onChange={setEmployerField("payFreq")}>
+                <option value="" disabled>Select frequency</option>
+                {PAY_FREQS.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </SelectBox>
+              <div className="mt-1 text-[12px] text-slate-500">Used as factor P in CRA formulas.</div>
+            </div>
+
+            <div>
+              <label className="block text-sm text-slate-700">Remitter cadence</label>
+              <SelectBox className="mt-1" value={employer.remitter} onChange={setEmployerField("remitter")}>
+                <option value="" disabled>Select cadence</option>
+                {REMITTERS.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </SelectBox>
+              <div className="mt-1 text-[12px] text-slate-500">For your workflow; CRA remittance thresholds handled outside.</div>
+            </div>
+            <div>
+              <label className="block text-sm text-slate-700">Use PDOC check</label>
+              <div className="mt-2 flex items-center gap-3 text-sm">
+                <label className="inline-flex items-center gap-2">
+                  <input type="checkbox" checked={employer.usePDOC} onChange={setEmployerField("usePDOC")} />
+                  <span>Enable PDOC cross‑verification</span>
+                </label>
+                <a className="text-blue-600 hover:underline" href="https://apps.cra-arc.gc.ca/ebci/rhpd/start?request_locale=en" target="_blank" rel="noreferrer">PDOC</a>
               </div>
             </div>
-            <div>
-              <label className="block text-sm text-slate-700">
-                Tax Payment Frequency
-                <Info className="ml-1 inline h-3.5 w-3.5 align-[-1px] text-slate-400" />
+          </div>
+
+          {/* Indexation mode */}
+          <div className="mt-4">
+            <div className="text-sm text-slate-700">Indexation mode (for employee totals)</div>
+            <div className="mt-2 flex items-center gap-6 text-sm">
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="indexationMode"
+                  checked={employer.indexationMode === "indexing"}
+                  onChange={() => setEmployerField("indexationMode")({ target: { value: "indexing" } })}
+                />
+                <span>Indexing</span>
               </label>
-              {/* Render as readOnly input for consistent width + alignment without disabled quirks */}
-              <input
-                className="input mt-1 bg-slate-50 text-slate-600 cursor-not-allowed focus:ring-0 focus:border-slate-200"
-                value="Monthly"
-                readOnly
-                tabIndex={-1}
-                aria-readonly="true"
-              />
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="indexationMode"
+                  checked={employer.indexationMode === "claim-codes"}
+                  onChange={() => setEmployerField("indexationMode")({ target: { value: "claim-codes" } })}
+                />
+                <span>Claim Codes</span>
+              </label>
             </div>
           </div>
         </section>
 
-        {/* Tax Deductor Details (no card) */}
+        {/* Employee Tax Details (TD1) */}
         <section>
-          <h3 className="text-base font-semibold text-slate-900">Tax Deductor Details</h3>
-          <div className="mt-4 space-y-5">
-            <div>
-              <div className="text-sm text-slate-700">Deductor's Type</div>
-              <div className="mt-2 flex items-center gap-6 text-sm">
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="deductorType"
-                    checked={deductorType === "employee"}
-                    onChange={() => setDeductorType("employee")}
-                  />
-                  <span>Employee</span>
-                </label>
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="deductorType"
-                    checked={deductorType === "non-employee"}
-                    onChange={() => setDeductorType("non-employee")}
-                  />
-                  <span>Non-Employee</span>
-                </label>
-              </div>
-            </div>
+          <h3 className="text-base font-semibold text-slate-900">Employee Tax Details (TD1-driven)</h3>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {/* A. Residency & province */}
+          <div className="mt-4">
+            <div className="text-sm font-medium text-slate-800">A. Residency & province of employment</div>
+            <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm text-slate-700">Deductor's Name</label>
-                <select className="input mt-1" defaultValue="">
-                  <option value="" disabled>
-                    Select a Tax Deductor
-                  </option>
-                  <option>John Doe</option>
-                  <option>Jane Smith</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-slate-700">Deductor's Father's Name</label>
-                <input className="input mt-1" placeholder="Enter father's name" />
+                <label className="block text-sm text-slate-700">Province/territory for this employee</label>
+                <SelectBox className="mt-1" value={emp.province} onChange={setEmpField("province")}>
+                  <option value="" disabled>Select province</option>
+                  {PROVINCES.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </SelectBox>
+                <div className="mt-1 text-[12px] text-slate-500">Quebec income tax uses Revenu Québec tables; CRA T4127 covers non‑Quebec.</div>
               </div>
             </div>
           </div>
-        </section>
 
-        <div className="mt-4 border-t border-slate-200 pt-4 flex items-center justify-between">
-          <button className="h-9 rounded-md bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700">
-            Save
-          </button>
-          <div className="text-xs font-medium text-red-500">* indicates mandatory fields</div>
-        </div>
+          {/* B. TD1 Personal Amounts */}
+          <div className="mt-6">
+            <div className="text-sm font-medium text-slate-800">B. TD1 Personal Amounts</div>
+            <div className="mt-2 flex items-center gap-6 text-sm">
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="td1mode"
+                  checked={emp.td1Mode === "totals"}
+                  onChange={() => setEmpField("td1Mode")({ target: { value: "totals" } })}
+                />
+                <span>Use TD1 totals (TC/TCP)</span>
+              </label>
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="td1mode"
+                  checked={emp.td1Mode === "claim-code"}
+                  onChange={() => setEmpField("td1Mode")({ target: { value: "claim-code" } })}
+                />
+                <span>Use claim code (0–10)</span>
+              </label>
+            </div>
+
+            {emp.td1Mode === "totals" ? (
+              <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm text-slate-700">TD1 Federal total (TC)</label>
+                  <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.tc} onChange={setEmpField("tc")} />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-700">TD1 Provincial/Territorial total (TCP)</label>
+                  <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.tcp} onChange={setEmpField("tcp")} />
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-slate-700">Claim code</label>
+                  <SelectBox className="mt-1" value={emp.claimCode} onChange={setEmpField("claimCode")}>
+                    <option value="" disabled>Select code (0–10)</option>
+                    {Array.from({ length: 11 }, (_, i) => String(i)).map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </SelectBox>
+              </div>
+            </div>
+            )}
+
+            <label className="mt-3 inline-flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={emp.autoIndexing} onChange={setEmpField("autoIndexing")} />
+              <span>Apply indexing when no TD1 on file (NS/MB/YT rules)</span>
+            </label>
+          </div>
+
+          {/* C. Extra withholding & authorized deductions */}
+          <div className="mt-6">
+            <div className="text-sm font-medium text-slate-800">C. Extra withholding & authorized deductions</div>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm text-slate-700">Additional tax requested (L)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.extraTaxL} onChange={setEmpField("extraTaxL")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Authorized annual deductions (F1)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.authDedF1} onChange={setEmpField("authDedF1")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Union dues (U1)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.unionDuesU1} onChange={setEmpField("unionDuesU1")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">RPP/RRSP/PRPP contributions at source (F)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.contribF} onChange={setEmpField("contribF")} />
+              </div>
+            </div>
+          </div>
+
+          {/* D. CPP/QPP & CPP2 status */}
+          <div className="mt-6">
+            <div className="text-sm font-medium text-slate-800">D. CPP/QPP & CPP2 status</div>
+            <div className="mt-3 space-y-3 text-sm">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={emp.cppqpp} onChange={setEmpField("cppqpp")} />
+                <span>Contribute to CPP/QPP</span>
+              </label>
+              <div className="flex items-center gap-4">
+                <label className="inline-flex items-center gap-2">
+                  <input type="checkbox" checked={emp.cpt30} onChange={setEmpField("cpt30")} />
+                  <span>CPT30 exemption filed</span>
+                </label>
+                {emp.cpt30 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-700">Effective date</span>
+                    <input type="date" className="input w-[200px]" value={emp.cpt30Date} onChange={setEmpField("cpt30Date")} />
+                  </div>
+                )}
+              </div>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={emp.cpp2} onChange={setEmpField("cpp2")} />
+                <span>Track CPP2 (earnings between YMPE and YAMPE)</span>
+              </label>
+              <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-[12px] text-slate-600">
+                <div>Reference caps for {currentYear} (from engine):</div>
+                <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-[88px] text-slate-500">YMPE</span>
+                    <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-[88px] text-slate-500">YAMPE</span>
+                    <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-[88px] text-slate-500">EI Max</span>
+                    <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* E. EI status */}
+          <div className="mt-6">
+            <div className="text-sm font-medium text-slate-800">E. Employment Insurance (EI)</div>
+            <label className="mt-2 inline-flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={emp.eiInsurable} onChange={setEmpField("eiInsurable")} />
+              <span>EI insurable</span>
+            </label>
+          </div>
+
+          {/* F. Commission employees */}
+          <div className="mt-6">
+            <div className="text-sm font-medium text-slate-800">F. Commission employees (if applicable)</div>
+            <label className="mt-2 inline-flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={emp.commissionTD1X} onChange={setEmpField("commissionTD1X")} />
+              <span>TD1X present</span>
+            </label>
+            {emp.commissionTD1X && (
+              <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm text-slate-700">Expected annual commission income (I1)</label>
+                  <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.commissionI1} onChange={setEmpField("commissionI1")} />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-700">Commission expenses (E)</label>
+                  <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.commissionE} onChange={setEmpField("commissionE")} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="mt-6 border-t border-slate-200 pt-4 flex items-center justify-between">
+            <button className="h-9 rounded-md bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700">Save</button>
+            <div className="text-xs font-medium text-red-500">* indicates mandatory fields</div>
+          </div>
+        </section>
       </div>
 
-      {/* Right: empty space to keep form at half width */}
+      {/* Right spacer to keep 60/40 layout */}
       <div className="hidden lg:block" aria-hidden />
     </div>
   );
