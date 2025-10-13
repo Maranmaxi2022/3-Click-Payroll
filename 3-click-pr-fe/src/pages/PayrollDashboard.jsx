@@ -238,6 +238,28 @@ export default function PayrollDashboard() {
                     <Upload className="h-4 w-4" />
                   </button>
                 </div>
+              ) : settingsActive && settingsActive.startsWith("org.designations") ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    onClick={() => {
+                      try {
+                        window.dispatchEvent(new CustomEvent("designation:new"));
+                      } catch (_) {}
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Designation
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Export designations"
+                    className="grid h-10 w-10 place-items-center rounded-lg border border-[#DDE3F3] bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                  >
+                    <Upload className="h-4 w-4" />
+                  </button>
+                </div>
               ) : null}
             </div>
           ) : null

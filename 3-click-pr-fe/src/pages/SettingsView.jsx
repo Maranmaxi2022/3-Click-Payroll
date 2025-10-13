@@ -1,6 +1,6 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
-import { MoreHorizontal, Pencil, Plus, Upload, Users } from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Users } from "lucide-react";
 
 import {
   ACCENT_LIST,
@@ -819,6 +819,14 @@ function DepartmentDialog({ onClose }) {
 
 function DesignationsView() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Allow opening the dialog from the fixed subheader action
+  React.useEffect(() => {
+    const open = () => setIsFormOpen(true);
+    window.addEventListener("designation:new", open);
+    return () => window.removeEventListener("designation:new", open);
+  }, []);
+
   const designations = [
     { id: "desg-hr", name: "Junior HR", employees: 0, link: "#" },
     { id: "desg-fed", name: "Front End Developer", employees: 1, link: "#" },
@@ -832,63 +840,40 @@ function DesignationsView() {
 
   return (
     <>
-      <div className="space-y-6 pb-8">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-slate-900">Designations</h2>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-              onClick={() => setIsFormOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              New Designation
-            </button>
-            <button
-              type="button"
-              aria-label="Export designations"
-              className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-            >
-              <Upload className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-6 py-3 text-left">Designation Name</th>
-                <th className="px-6 py-3 text-right">Total Employees</th>
-                <th className="px-4 py-3" />
+      {/* Title and actions live in the subheader; no in-body header. */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-200 text-sm">
+          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <tr>
+              <th className="pl-0 pr-6 py-3 text-left">Designation Name</th>
+              <th className="px-6 py-3 text-right">Total Employees</th>
+              <th className="px-4 py-3" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200 text-slate-700">
+            {designations.map((role) => (
+              <tr key={role.id} className="hover:bg-slate-50/80">
+                <td className="pl-0 pr-6 py-3 text-sm font-medium">
+                  <a href={role.link} className="text-blue-600 hover:underline">
+                    {role.name}
+                  </a>
+                </td>
+                <td className="px-6 py-3 text-right text-sm font-semibold text-slate-800">
+                  {role.employees}
+                </td>
+                <td className="px-4 py-4 text-right">
+                  <button
+                    type="button"
+                    aria-label="Designation actions"
+                    className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 text-slate-700">
-              {designations.map((role) => (
-                <tr key={role.id} className="hover:bg-slate-50/80">
-                  <td className="px-6 py-4 text-sm font-medium">
-                    <a href={role.link} className="text-blue-600 hover:underline">
-                      {role.name}
-                    </a>
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-semibold text-slate-800">
-                    {role.employees}
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <button
-                      type="button"
-                      aria-label="Designation actions"
-                      className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {isFormOpen && <DesignationDialog onClose={() => setIsFormOpen(false)} />}
