@@ -1325,6 +1325,9 @@ function TaxDetailsView() {
           </div>
 
           {/* Removed social programs + commission from Taxes; they live in Statutory Components */}
+          <div className="mt-6 text-xs italic text-slate-500">
+            CPP/QPP/CPP2, EI and commission settings moved to <span className="font-medium not-italic">Statutory Components</span>.
+          </div>
 
           {/* Actions */}
           <div className="mt-6 border-t border-slate-200 pt-4 flex items-center justify-between">
@@ -1357,8 +1360,30 @@ function StatutoryComponentsView() {
   const setField = (k) => (e) =>
     setState((p) => ({ ...p, [k]: e?.target?.type === "checkbox" ? e.target.checked : e?.target ? e.target.value : e }));
 
+  // Engine-provided caps (placeholder wiring for now)
+  const [capsLoading, setCapsLoading] = useState(false);
+  const [caps] = useState({ YMPE: "", YAMPE: "", EI_MAX: "" });
+
+  const CapChip = ({ label, value, loading, disabled }) => (
+    <div
+      className={
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs " +
+        (disabled ? "opacity-60" : "bg-slate-50")
+      }
+      aria-disabled={disabled}
+    >
+      <span className="text-slate-500">{label} {currentYear}</span>
+      {loading ? (
+        <span className="inline-block h-3.5 w-16 animate-pulse rounded bg-slate-200" />
+      ) : (
+        <span className="font-semibold text-slate-800">{value || "—"}</span>
+      )}
+    </div>
+  );
+
   return (
-    <div className="space-y-8">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,60%)_minmax(0,40%)]">
+      <div className="grid grid-cols-1 gap-8">
       {/* CPP/QPP & CPP2 */}
       <section>
         <h3 className="text-base font-semibold text-slate-900">CPP/QPP & CPP2</h3>
@@ -1369,35 +1394,25 @@ function StatutoryComponentsView() {
           </label>
           <div className="flex items-center gap-4">
             <label className="inline-flex items-center gap-2">
-              <input type="checkbox" checked={state.cpt30} onChange={setField("cpt30")} />
+              <input type="checkbox" checked={state.cpt30} onChange={setField("cpt30")} disabled={!state.cppqpp} />
               <span>CPT30 exemption filed</span>
             </label>
             {state.cpt30 && (
               <div className="flex items-center gap-2">
                 <span className="text-slate-700">Effective date</span>
-                <input type="date" className="input w-[200px]" value={state.cpt30Date} onChange={setField("cpt30Date")} />
+                <input type="date" className="input w-[200px]" value={state.cpt30Date} onChange={setField("cpt30Date")} disabled={!state.cppqpp} />
               </div>
             )}
           </div>
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={state.cpp2} onChange={setField("cpp2")} />
+            <input type="checkbox" checked={state.cpp2} onChange={setField("cpp2")} disabled={!state.cppqpp} />
             <span>Track CPP2 (earnings between YMPE and YAMPE)</span>
           </label>
-          <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-[12px] text-slate-600">
-            <div>Reference caps for {currentYear} (from engine):</div>
-            <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <div className="flex items-center gap-2">
-                <span className="w-[88px] text-slate-500">YMPE</span>
-                <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-[88px] text-slate-500">YAMPE</span>
-                <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-[88px] text-slate-500">EI Max</span>
-                <input className="input h-8 w-full bg-white" readOnly placeholder="Auto" />
-              </div>
+          <div className="rounded-lg border border-dashed border-slate-300 bg-white p-3 text-[12px] text-slate-600">
+            <div className="mb-2">Reference caps</div>
+            <div className="flex flex-wrap gap-2">
+              <CapChip label="YMPE" value={caps.YMPE} loading={capsLoading} disabled={!state.cppqpp} />
+              <CapChip label="YAMPE" value={caps.YAMPE} loading={capsLoading} disabled={!state.cppqpp} />
             </div>
           </div>
         </div>
@@ -1406,16 +1421,19 @@ function StatutoryComponentsView() {
       {/* Employment Insurance */}
       <section>
         <h3 className="text-base font-semibold text-slate-900">Employment Insurance (EI)</h3>
-        <label className="mt-2 inline-flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={state.eiInsurable} onChange={setField("eiInsurable")} />
-          <span>EI insurable</span>
-        </label>
+        <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+          <label className="inline-flex items-center gap-2">
+            <input type="checkbox" checked={state.eiInsurable} onChange={setField("eiInsurable")} />
+            <span>EI insurable</span>
+          </label>
+          <CapChip label="EI Max" value={caps.EI_MAX} loading={capsLoading} disabled={!state.eiInsurable} />
+        </div>
       </section>
 
       {/* Commission & Non-periodic Pay */}
       <section>
         <h3 className="text-base font-semibold text-slate-900">Commission & Non-periodic Pay</h3>
-        <div className="mt-2 space-y-3 text-sm">
+        <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
           <label className="inline-flex items-center gap-2">
             <input type="checkbox" checked={state.td1x} onChange={setField("td1x")} />
             <span>TD1X present</span>
@@ -1437,10 +1455,13 @@ function StatutoryComponentsView() {
         <div className="mt-2 grid max-w-[380px] grid-cols-1 gap-3">
           <div>
             <label className="block text-sm text-slate-700">RPP/RRSP/PRPP contributions (per year)</label>
-            <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={state.contribF} onChange={setField("contribF")} />
+            <input className="input mt-1 w-[140px] sm:w-[160px]" type="number" min={0} step={1} inputMode="numeric" placeholder="0" value={state.contribF} onChange={setField("contribF")} />
           </div>
         </div>
       </section>
+      </div>
+      {/* Right spacer for 60/40 layout */}
+      <div className="hidden lg:block" aria-hidden />
     </div>
   );
 }
