@@ -69,8 +69,7 @@ export const SETTINGS_SECTIONS = [
           { id: "setup.schedule", label: "Pay Schedule" },
           { id: "setup.statutory", label: "Statutory Components" },
           { id: "setup.salaryComponents", label: "Salary Components" },
-          { id: "setup.portal", label: "Employee Portal" },
-          { id: "setup.claims", label: "Claims and Declarations" },
+          // Removed per request: Employee Portal, Claims and Declarations
         ],
       },
       {
