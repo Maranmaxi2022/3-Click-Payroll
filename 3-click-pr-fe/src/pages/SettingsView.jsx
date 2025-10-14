@@ -1,6 +1,7 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState } from "react";
 import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
+import SalaryComponents from "./SalaryComponents";
 
 import {
   ACCENT_LIST,
@@ -208,6 +209,7 @@ export default function SettingsView({
     if (active === "org.departments") return <DepartmentsView />;
     if (active === "org.designations") return <DesignationsView />;
     if (active === "setup.statutory") return <StatutoryComponentsView />;
+    if (active === "setup.salaryComponents") return <SalaryComponents />;
     if (active === "taxes.details") return <TaxDetailsView />;
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
