@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Check } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Plus, Check, MoreHorizontal } from "lucide-react";
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
 
@@ -400,18 +401,18 @@ export default function SalaryComponents() {
                 {currentList.map((item, idx) => (
                   <tr key={item.id} className={cx("hover:bg-slate-50/80", idx !== 0 ? "border-t border-slate-200" : "") }>
                     {columns.map((c) => (
-                      <td key={c.key} className="px-3 py-3 first:pl-0 last:pr-0 align-middle text-slate-700">
-                        {c.key === "actions" ? (
-                          <RowActions item={item} tab={activeTab} onEdit={onEdit} onToggle={onToggle} onDelete={onDelete} />
-                        ) : (
-                          renderCell(activeTab, item, c.key)
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        <td key={c.key} className="px-3 py-3 first:pl-0 last:pr-0 align-middle text-slate-700">
+                          {c.key === "actions" ? (
+                            <RowMenu item={item} tab={activeTab} onEdit={onEdit} onToggle={onToggle} onDelete={onDelete} />
+                          ) : (
+                            renderCell(activeTab, item, c.key)
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
           </div>
 
           {/* Mobile stacked rows */}
@@ -466,8 +467,8 @@ export default function SalaryComponents() {
                     </>
                   )}
                 </div>
-                <div className="flex items-center justify-end gap-3 border-t border-slate-200 px-3 py-2">
-                  <RowActions item={item} tab={activeTab} onEdit={onEdit} onToggle={onToggle} onDelete={onDelete} />
+                <div className="flex items-center justify-end border-t border-slate-200 px-3 py-2">
+                  <RowMenu item={item} tab={activeTab} onEdit={onEdit} onToggle={onToggle} onDelete={onDelete} />
                 </div>
               </div>
             ))}
@@ -518,19 +519,98 @@ function DL({ label, value }) {
   );
 }
 
-function RowActions({ item, tab, onEdit, onToggle, onDelete }) {
+function RowMenu({ item, tab, onEdit, onToggle, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const menuRef = useRef(null);
   const isActive = item.status === "Active";
-  return (
-    <div className="flex flex-wrap items-center gap-3 text-sm">
-      <button type="button" className="text-blue-600 hover:underline" onClick={() => onEdit(tab, item)}>
-        Edit
-      </button>
-      <button type="button" className="text-slate-600 hover:underline" onClick={() => onToggle(tab, item.id)}>
+
+  useEffect(() => {
+    const onDoc = (e) => {
+      if (!open) return;
+      if (
+        menuRef.current && !menuRef.current.contains(e.target) &&
+        btnRef.current && !btnRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const doEdit = () => { onEdit(tab, item); setOpen(false); };
+  const doToggle = () => { onToggle(tab, item.id); setOpen(false); };
+  const doDelete = () => { onDelete(tab, item.id, item.name); setOpen(false); };
+
+  // Floating position (portal) to avoid table scroll/reflow
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  useEffect(() => {
+    if (!open) return;
+    const update = () => {
+      const btn = btnRef.current;
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const estW = 176; // ~w-44
+      let top = rect.bottom + 8;
+      let left = Math.min(window.innerWidth - 8 - estW, Math.max(8, rect.right - estW));
+      setPos({ top, left });
+      // refine after menu renders
+      requestAnimationFrame(() => {
+        const m = menuRef.current;
+        if (!m) return;
+        const mw = m.offsetWidth || estW;
+        const mh = m.offsetHeight || 0;
+        let t = rect.bottom + 8;
+        let l = Math.min(window.innerWidth - 8 - mw, Math.max(8, rect.right - mw));
+        if (t + mh > window.innerHeight - 8) t = Math.max(8, rect.top - 8 - mh);
+        setPos({ top: t, left: l });
+      });
+    };
+    update();
+    const onScroll = () => update();
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [open]);
+
+  const MenuCard = (
+    <div
+      ref={menuRef}
+      role="menu"
+      style={{ position: "fixed", top: pos.top, left: pos.left }}
+      className="z-[60] w-44 overflow-hidden rounded-xl border border-slate-200 bg-white/95 backdrop-blur-sm py-1 text-sm shadow-2xl"
+    >
+      <button role="menuitem" className="block w-full px-3 py-2 text-left hover:bg-slate-50" onClick={doEdit}>Edit</button>
+      <button role="menuitem" className="block w-full px-3 py-2 text-left hover:bg-slate-50" onClick={doToggle}>
         {isActive ? "Deactivate" : "Activate"}
       </button>
-      <button type="button" className="text-red-600 hover:underline" onClick={() => onDelete(tab, item.id, item.name)}>
-        Delete
+      <button role="menuitem" className="block w-full px-3 py-2 text-left text-red-600 hover:bg-red-50" onClick={doDelete}>Delete</button>
+    </div>
+  );
+
+  return (
+    <div className="relative flex justify-end">
+      <button
+        type="button"
+        ref={btnRef}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Component actions"
+        onClick={() => setOpen((o) => !o)}
+        className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+      >
+        <MoreHorizontal className="h-4 w-4" />
       </button>
+      {open && createPortal(MenuCard, document.body)}
     </div>
   );
 }
