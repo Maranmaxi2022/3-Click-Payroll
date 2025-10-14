@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Check } from "lucide-react";
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
 
@@ -735,10 +735,16 @@ function AddEditModal({ tab, mode, initial, onCancel, onSave, existingNames }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700">Status</label>
-              <select className="input mt-1" value={data.status} onChange={setField("status")}>
-                <option>Active</option>
-                <option>Inactive</option>
-              </select>
+              <SearchSelect
+                className="mt-1"
+                value={data.status}
+                onChange={setField("status")}
+                placeholder="Select status"
+                options={[
+                  { value: "Active", label: "Active" },
+                  { value: "Inactive", label: "Inactive" },
+                ]}
+              />
             </div>
           </div>
 
@@ -753,7 +759,13 @@ function AddEditModal({ tab, mode, initial, onCancel, onSave, existingNames }) {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Earning Type<span className="text-red-500">*</span></label>
-                  <select className="input mt-1" value={data.type} onChange={setField("type")}> {EARNING_TYPES.map((t) => (<option key={t}>{t}</option>))} </select>
+                  <SearchSelect
+                    className="mt-1"
+                    value={data.type}
+                    onChange={setField("type")}
+                    placeholder="Select earning type"
+                    options={EARNING_TYPES.map((t) => ({ value: t, label: t }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Calculation Type<span className="text-red-500">*</span></label>
@@ -794,14 +806,23 @@ function AddEditModal({ tab, mode, initial, onCancel, onSave, existingNames }) {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="md:col-span-1">
                 <label className="block text-sm font-medium text-slate-700">Deduction Type<span className="text-red-500">*</span></label>
-                <select className="input mt-1" value={data.type} onChange={setField("type")}> {DEDUCTION_TYPES.map((t) => (<option key={t}>{t}</option>))} </select>
+                <SearchSelect
+                  className="mt-1"
+                  value={data.type}
+                  onChange={setField("type")}
+                  placeholder="Select deduction type"
+                  options={DEDUCTION_TYPES.map((t) => ({ value: t, label: t }))}
+                />
               </div>
               <div className="md:col-span-1">
                 <label className="block text-sm font-medium text-slate-700">Frequency<span className="text-red-500">*</span></label>
-                <select className="input mt-1" value={data.frequency} onChange={setField("frequency")}>
-                  <option>One-time</option>
-                  <option>Recurring</option>
-                </select>
+                <SearchSelect
+                  className="mt-1"
+                  value={data.frequency}
+                  onChange={setField("frequency")}
+                  placeholder="Select frequency"
+                  options={["One-time","Recurring"].map((t) => ({ value: t, label: t }))}
+                />
               </div>
               <div className="md:col-span-1">
                 <label className="block text-sm font-medium text-slate-700">Default Amount</label>
@@ -815,14 +836,23 @@ function AddEditModal({ tab, mode, initial, onCancel, onSave, existingNames }) {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Benefit Type<span className="text-red-500">*</span></label>
-                  <select className="input mt-1" value={data.type} onChange={setField("type")}> {BENEFIT_TYPES.map((t) => (<option key={t}>{t}</option>))} </select>
+                  <SearchSelect
+                    className="mt-1"
+                    value={data.type}
+                    onChange={setField("type")}
+                    placeholder="Select benefit type"
+                    options={BENEFIT_TYPES.map((t) => ({ value: t, label: t }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Frequency<span className="text-red-500">*</span></label>
-                  <select className="input mt-1" value={data.frequency} onChange={setField("frequency")}>
-                    <option>Recurring</option>
-                    <option>One-time</option>
-                  </select>
+                  <SearchSelect
+                    className="mt-1"
+                    value={data.frequency}
+                    onChange={setField("frequency")}
+                    placeholder="Select frequency"
+                    options={["Recurring","One-time"].map((t) => ({ value: t, label: t }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Taxable?<span className="text-red-500">*</span></label>
@@ -860,7 +890,13 @@ function AddEditModal({ tab, mode, initial, onCancel, onSave, existingNames }) {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Reimbursement Type<span className="text-red-500">*</span></label>
-                  <select className="input mt-1" value={data.type} onChange={setField("type")}> {REIMBURSEMENT_TYPES.map((t) => (<option key={t}>{t}</option>))} </select>
+                  <SearchSelect
+                    className="mt-1"
+                    value={data.type}
+                    onChange={setField("type")}
+                    placeholder="Select reimbursement type"
+                    options={REIMBURSEMENT_TYPES.map((t) => ({ value: t, label: t }))}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Max Reimbursable Amount<span className="text-red-500">*</span></label>
@@ -868,11 +904,13 @@ function AddEditModal({ tab, mode, initial, onCancel, onSave, existingNames }) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700">Period<span className="text-red-500">*</span></label>
-                  <select className="input mt-1" value={data.period} onChange={setField("period")}>
-                    <option>per month</option>
-                    <option>quarter</option>
-                    <option>year</option>
-                  </select>
+                  <SearchSelect
+                    className="mt-1"
+                    value={data.period}
+                    onChange={setField("period")}
+                    placeholder="Select period"
+                    options={["per month","quarter","year"].map((t) => ({ value: t, label: t }))}
+                  />
                 </div>
               </div>
               <label className="inline-flex items-center gap-2 text-sm">
@@ -891,6 +929,111 @@ function AddEditModal({ tab, mode, initial, onCancel, onSave, existingNames }) {
           </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+// Lightweight searchable select (combobox-like)
+function SearchSelect({ options = [], value, onChange, placeholder = "Select...", className = "" }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [highlight, setHighlight] = useState(0);
+  const ref = useRef(null);
+
+  const normalizedOptions = Array.isArray(options)
+    ? options.map((o) => (typeof o === "string" ? { value: o, label: o } : o))
+    : [];
+  const selected = normalizedOptions.find((o) => o.value === value) || null;
+
+  useEffect(() => {
+    const close = (e) => {
+      if (!ref.current) return;
+      if (!ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  useEffect(() => {
+    if (!open) setQuery("");
+    else setHighlight(0);
+  }, [open]);
+
+  const norm = (s) => (s || "").toString().toLowerCase();
+  const filtered = normalizedOptions.filter((o) => norm(o.label).includes(norm(query)));
+
+  const commit = (opt) => {
+    onChange?.(opt.value);
+    setOpen(false);
+  };
+
+  const handleKey = (e) => {
+    if (!open && (e.key === "ArrowDown" || e.key === "Enter")) {
+      setOpen(true);
+      e.preventDefault();
+      return;
+    }
+    if (!open) return;
+    if (e.key === "ArrowDown") {
+      setHighlight((h) => Math.min(h + 1, Math.max(filtered.length - 1, 0)));
+      e.preventDefault();
+    } else if (e.key === "ArrowUp") {
+      setHighlight((h) => Math.max(h - 1, 0));
+      e.preventDefault();
+    } else if (e.key === "Enter") {
+      const opt = filtered[highlight];
+      if (opt) commit(opt);
+      e.preventDefault();
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div ref={ref} className={"relative " + className}>
+      <div className="relative">
+        <input
+          className="input pr-9"
+          placeholder={placeholder}
+          value={open ? query : selected?.label || ""}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setOpen(true)}
+          onKeyDown={handleKey}
+        />
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" aria-hidden>
+          <svg viewBox="0 0 512 512" className="h-4 w-4"><path fill="#999" d="M103.5 165.6c8.8-8.8 22.8-9.9 32.9-2.4l2.8 2.4L256 282.4l116.8-116.8c8.8-8.8 22.8-9.9 32.9-2.4l2.8 2.4c8.8 8.8 9.9 22.8 2.4 32.9l-2.5 2.8L256 353.8 103.5 201.3c-4.7-4.7-7.4-11.2-7.4-17.9 0-6.6 2.7-13.1 7.4-17.8z"/></svg>
+        </span>
+      </div>
+
+      {open && (
+        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+          <div className="max-h-64 overflow-auto p-1">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-slate-500">No results</div>
+            ) : (
+              filtered.map((opt, idx) => {
+                const active = idx === highlight;
+                const isSelected = selected && selected.value === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    onMouseEnter={() => setHighlight(idx)}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => commit(opt)}
+                    className={
+                      "flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm " +
+                      (active ? "bg-indigo-50" : "hover:bg-slate-50")
+                    }
+                  >
+                    <span className="truncate">{opt.label}</span>
+                    {isSelected && <Check className="h-4 w-4 text-emerald-600" />}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
