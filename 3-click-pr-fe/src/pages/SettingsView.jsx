@@ -2,6 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
 import SalaryComponents from "./SalaryComponents";
+import PaySchedule from "./PaySchedule";
 
 import {
   ACCENT_LIST,
@@ -207,6 +208,7 @@ export default function SettingsView({
       );
     if (active === "org.departments") return <DepartmentsView />;
     if (active === "org.designations") return <DesignationsView />;
+    if (active === "setup.schedule") return <PaySchedule />;
     if (active === "setup.statutory") return <StatutoryComponentsView />;
     if (active === "setup.salaryComponents") return <SalaryComponents />;
     if (active === "taxes.details") return <TaxDetailsView />;
