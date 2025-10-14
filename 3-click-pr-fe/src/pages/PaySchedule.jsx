@@ -157,7 +157,7 @@ export default function PaySchedule() {
   };
 
   return (
-    <div className="space-y-6 md:w-[55%]">
+    <div className="space-y-6 md:w-[60%]">
       {/* Work week */}
       <section>
           <div className="text-sm font-semibold text-slate-900">Select your work week<span className="text-red-500">*</span></div>
