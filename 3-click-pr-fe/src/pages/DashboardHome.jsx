@@ -92,6 +92,8 @@ export default function DashboardHome() {
     { name: "State Tax", outstanding: "$1,176.46", funded: "$430.00" },
   ];
 
+  // Employee distribution counts (removed bars; keep if needed later)
+
   const costSummary = [
     { label: "Net Pay", amount: "$56,816.36", value: 90, color: "bg-rose-700" },
     { label: "Taxes", amount: "$78,026.52", value: 100, color: "bg-red-500" },
@@ -106,14 +108,13 @@ export default function DashboardHome() {
 
   return (
     <div className="pb-8">
-      {/* Welcome + Quick overview */}
-      <div className="mb-4 text-[22px] font-semibold tracking-[-0.01em] text-slate-900">
+      {/* Mobile-only welcome (desktop uses fixed subheader) */}
+      <div className="mb-4 text-[22px] font-semibold tracking-[-0.01em] text-slate-900 lg:hidden">
         Welcome Maran!
       </div>
 
       {/* Main dashboard layout */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6">
+      <div className="space-y-6">
           <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6">
             <div className="pointer-events-none absolute inset-y-0 left-0 w-2 rounded-l-2xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-300">
               <div className="absolute inset-y-1 right-0 w-[1px] rounded-full bg-white/60" />
@@ -195,11 +196,11 @@ export default function DashboardHome() {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2" title="Summary of Liabilities">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {liabilities.map((li) => (
                   <section
                     key={li.name}
-                    className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
                   >
                     <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
                       <svg
@@ -213,13 +214,13 @@ export default function DashboardHome() {
                       </svg>
                       {li.name}
                     </div>
-                    <div className="flex items-start gap-4">
-                      <span className="h-16 w-[3px] rounded-full bg-orange-600" />
+                    <div className="flex items-start gap-3">
+                      <span className="h-12 w-[3px] rounded-full bg-orange-600" />
                       <div className="space-y-3">
                         <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                           Total Outstanding
                         </div>
-                        <div className="text-[26px] font-semibold text-slate-700">
+                        <div className="text-[22px] font-semibold text-slate-700">
                           {li.outstanding}
                         </div>
                         <div className="text-[12px] text-slate-500">
@@ -235,21 +236,14 @@ export default function DashboardHome() {
               </div>
             </Card>
 
-            <Card>
-              <div className="flex flex-col gap-10 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex flex-col gap-8 sm:flex-1">
-                  <div className="space-y-5">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
-                      Employee Summary
-                    </div>
-                    <div className="space-y-4">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-                        Active Employees
-                      </div>
-                      <div className="text-[42px] font-semibold leading-none text-slate-700">
-                        30
-                      </div>
-                    </div>
+            <Card title="Employee Summary">
+              <div className="flex flex-col">
+                <div className="space-y-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                    Active Employees
+                  </div>
+                  <div className="text-[42px] font-semibold leading-none text-slate-700">
+                    30
                   </div>
                   <button
                     type="button"
@@ -258,20 +252,6 @@ export default function DashboardHome() {
                     View Employees
                   </button>
                 </div>
-                <div className="flex w-full justify-between gap-8 border-t border-slate-200 pt-8 sm:w-auto sm:border-l sm:border-t-0 sm:pl-12 sm:pt-0">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="h-24 w-9 rounded-sm bg-amber-400" />
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      Hourly
-                    </span>
-                  </div>
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="h-32 w-9 rounded-sm bg-orange-700" />
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      Salaried
-                    </span>
-                  </div>
-                </div>
               </div>
             </Card>
           </div>
@@ -279,9 +259,6 @@ export default function DashboardHome() {
           <Card
             className="rounded-2xl"
             title="Payroll Cost Summary"
-            headerRight={
-              <div className="text-[13px] text-slate-500">This year ▾</div>
-            }
           >
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_240px]">
               <div className="space-y-3">
@@ -312,35 +289,6 @@ export default function DashboardHome() {
               </div>
             </div>
           </Card>
-        </div>
-
-        <Card className="rounded-2xl lg:self-start" title="To Do Tasks">
-          <div className="space-y-4 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 text-slate-700">
-                You have 4 pending tax payments.
-              </div>
-              <button
-                type="button"
-                className={cx(cardActionButton, "shrink-0")}
-              >
-                View Details
-              </button>
-            </div>
-            <div className="h-px bg-slate-200" />
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1 text-slate-700">
-                W-2 forms have been generated for all employees.
-              </div>
-              <button
-                type="button"
-                className={cx(cardActionButton, "shrink-0")}
-              >
-                Review and Send
-              </button>
-            </div>
-          </div>
-        </Card>
       </div>
     </div>
   );
