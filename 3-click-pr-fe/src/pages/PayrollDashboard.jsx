@@ -262,6 +262,8 @@ export default function PayrollDashboard() {
                 </div>
               ) : null}
             </div>
+          ) : tab === "dashboard" ? (
+            <div className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">Welcome Maran!</div>
           ) : null
         }
         inSettings={tab === "settings"}
@@ -328,7 +330,7 @@ export default function PayrollDashboard() {
       {/* Main content gets a left margin equal to the sidebar width on desktop */}
       <main className={cls(
         "px-4 md:px-8 lg:px-12 xl:px-16 md:ml-[var(--sidebar-w)]",
-        tab === "settings" ? "lg:pt-[84px]" : ""
+        tab === "settings" || tab === "dashboard" ? "lg:pt-[84px]" : ""
       )}>
         <div className="mx-auto max-w-none">
           {tab === "dashboard" && <DashboardHome />}
