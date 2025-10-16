@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
 import SalaryComponents from "./SalaryComponents";
 import PaySchedule from "./PaySchedule";
+import SearchSelect from "../components/SearchSelect";
 
 import {
   ACCENT_LIST,
@@ -395,6 +396,44 @@ function OrgBranding({ branding, onUpdateBranding }) {
 }
 
 function OrgProfile() {
+  // Local UI state for selects (purely presentational)
+  const [businessLocation, setBusinessLocation] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [dateFormat, setDateFormat] = useState("");
+  const [fieldSep, setFieldSep] = useState("");
+  const [stateName, setStateName] = useState("");
+
+  const BUSINESS_LOCATIONS = [
+    { value: "chennai", label: "Head Office – Chennai", icon: "🏢" },
+    { value: "blr", label: "Bengaluru", icon: "🏙️" },
+    { value: "remote", label: "Remote", icon: "🌐" },
+  ];
+
+  const INDUSTRIES = [
+    { value: "it", label: "IT Services", icon: "💻" },
+    { value: "eng", label: "Engineering", icon: "🛠️" },
+    { value: "edu", label: "Education", icon: "🎓" },
+    { value: "health", label: "Health", icon: "🏥" },
+  ];
+
+  const DATE_FORMATS = [
+    { value: "ddmmyyyy", label: "dd/MM/yyyy [ 28/09/2025 ]", icon: "📅" },
+    { value: "mmddyyyy", label: "MM/dd/yyyy [ 09/28/2025 ]", icon: "📅" },
+    { value: "iso", label: "yyyy-MM-dd [ 2025-09-28 ]", icon: "📅" },
+  ];
+
+  const FIELD_SEPARATORS = [
+    { value: "/", label: "/", icon: "➗" },
+    { value: "-", label: "-", icon: "➖" },
+    { value: ".", label: ".", icon: "·" },
+  ];
+
+  const INDIAN_STATES = [
+    { value: "TN", label: "Tamil Nadu", icon: "🗺️" },
+    { value: "KA", label: "Karnataka", icon: "🗺️" },
+    { value: "MH", label: "Maharashtra", icon: "🗺️" },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Section heading (mobile only; desktop title is in the fixed subheader) */}
@@ -434,35 +473,46 @@ function OrgProfile() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm text-slate-700">Business Location<span className="text-red-500">*</span></label>
-              <input className="input mt-1" placeholder="Select business location" />
+              <SearchSelect
+                className="mt-1"
+                value={businessLocation}
+                onChange={(opt) => setBusinessLocation(opt?.value || "")}
+                placeholder="Select business location"
+                options={BUSINESS_LOCATIONS}
+              />
             </div>
             <div>
               <label className="block text-sm text-slate-700">Industry<span className="text-red-500">*</span></label>
-              <select className="input mt-1" defaultValue="">
-                <option value="" disabled>Select industry</option>
-                <option>Engineering</option>
-                <option>IT Services</option>
-              </select>
+              <SearchSelect
+                className="mt-1"
+                value={industry}
+                onChange={(opt) => setIndustry(opt?.value || "")}
+                placeholder="Select industry"
+                options={INDUSTRIES}
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm text-slate-700">Date Format<span className="text-red-500">*</span></label>
-              <select className="input mt-1" defaultValue="">
-                <option value="" disabled>Select date format</option>
-                <option>dd/MM/yyyy [ 28/09/2025 ]</option>
-                <option>MM/dd/yyyy [ 09/28/2025 ]</option>
-              </select>
+              <SearchSelect
+                className="mt-1"
+                value={dateFormat}
+                onChange={(opt) => setDateFormat(opt?.value || "")}
+                placeholder="Select date format"
+                options={DATE_FORMATS}
+              />
             </div>
             <div>
               <label className="block text-sm text-slate-700">Field Separator</label>
-              <select className="input mt-1" defaultValue="">
-                <option value="" disabled>Select separator</option>
-                <option>/</option>
-                <option>-</option>
-                <option>.</option>
-              </select>
+              <SearchSelect
+                className="mt-1"
+                value={fieldSep}
+                onChange={(opt) => setFieldSep(opt?.value || "")}
+                placeholder="Select separator"
+                options={FIELD_SEPARATORS}
+              />
             </div>
           </div>
 
@@ -474,10 +524,12 @@ function OrgProfile() {
             <input className="input" placeholder="Address Line 1" />
             <input className="input" placeholder="Address Line 2" />
             <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
-              <select className="input" defaultValue="">
-                <option value="" disabled>Select state</option>
-                <option>Tamil Nadu</option>
-              </select>
+              <SearchSelect
+                value={stateName}
+                onChange={(opt) => setStateName(opt?.value || "")}
+                placeholder="Select state"
+                options={INDIAN_STATES}
+              />
               <input className="input" placeholder="City" />
               <input className="input" placeholder="PIN Code" />
             </div>
@@ -487,7 +539,7 @@ function OrgProfile() {
               <div className="text-[13px] text-slate-500 mt-1">
                 This registered address will be used across all Forms and Payslips.
               </div>
-              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4">
                 <div className="mb-1 flex items-center justify-between text-sm font-semibold text-slate-800">
                   <span className="text-slate-600">No filing address selected</span>
                   <a href="#" className="text-blue-600 hover:underline">Set</a>
@@ -1046,7 +1098,7 @@ function TaxDetailsView() {
         </div>
 
         {open && (
-          <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+          <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white">
             <div className="max-h-64 overflow-auto p-1">
               {filtered.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-slate-500">No results</div>
