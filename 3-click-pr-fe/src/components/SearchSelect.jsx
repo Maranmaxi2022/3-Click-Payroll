@@ -57,8 +57,9 @@ export default function SearchSelect({
         setTimeout(() => menuSearchRef.current?.focus(), 0);
       } else {
         setTimeout(() => inputRef.current?.focus(), 0);
-        // when opening, seed query with current label
-        setQuery(selected?.label || "");
+        // When opening via click, show the full list.
+        // Do not pre-filter by the currently selected label.
+        setQuery("");
       }
       const idx = filtered.findIndex((o) => o.value === selected?.value);
       setActiveIndex(idx >= 0 ? idx : 0);
@@ -93,7 +94,7 @@ export default function SearchSelect({
   const inputBox = (
     <div
       className={cx(
-        "relative w-full rounded-xl border bg-white px-3 py-2 shadow-sm",
+        "relative w-full rounded-xl border bg-white px-3 py-2",
         open
           ? "border-blue-500 ring-2 ring-blue-300/50"
           : "border-slate-300 hover:border-slate-400",
@@ -128,7 +129,7 @@ export default function SearchSelect({
       {open && (
         <div
           className={cx(
-            "absolute left-0 right-0 z-50 mt-2 max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white shadow-xl",
+            "absolute left-0 right-0 z-50 mt-2 max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white",
             menuClassName
           )}
           role="listbox"
@@ -158,7 +159,6 @@ export default function SearchSelect({
           {filtered.map((opt, idx) => {
             const selected = opt.value === value;
             const active = idx === activeIndex;
-            const isImage = opt.icon && /\//.test(opt.icon);
             return (
               <button
                 type="button"
@@ -172,15 +172,6 @@ export default function SearchSelect({
                 role="option"
                 aria-selected={selected}
               >
-                {opt.icon ? (
-                  isImage ? (
-                    <img src={opt.icon} alt="" className="h-4 w-4 rounded-sm" />
-                  ) : (
-                    <span className={cx("text-lg leading-none", selected ? "text-white/90" : "")}>{opt.icon}</span>
-                  )
-                ) : (
-                  <span className="h-4 w-4" />
-                )}
                 <span className={cx("flex-1 font-medium", selected ? "text-white" : "text-slate-800")}>{opt.label}</span>
                 {selected && <Check className={cx("h-4 w-4", selected ? "text-white" : "text-blue-600")} />}
               </button>
