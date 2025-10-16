@@ -1,5 +1,6 @@
 // src/pages/EmployeeWizard.jsx
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import SearchSelect from "../components/SearchSelect";
 import SuccessArt from "../assets/Pay Roll_03.svg"; // completion SVG
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
@@ -35,9 +36,75 @@ const StepItem = ({ index, label, state }) => {
   );
 };
 
+// Province/Territory options (Canada)
+const PROVINCES = [
+  { value: "AB", label: "Alberta" },
+  { value: "BC", label: "British Columbia" },
+  { value: "MB", label: "Manitoba" },
+  { value: "NB", label: "New Brunswick" },
+  { value: "NL", label: "Newfoundland and Labrador" },
+  { value: "NS", label: "Nova Scotia" },
+  { value: "NT", label: "Northwest Territories" },
+  { value: "NU", label: "Nunavut" },
+  { value: "ON", label: "Ontario" },
+  { value: "PE", label: "Prince Edward Island" },
+  { value: "QC", label: "Québec" },
+  { value: "SK", label: "Saskatchewan" },
+  { value: "YT", label: "Yukon" },
+];
+
+function ProvinceSelect({ value, onChange, offsetForLabel = false }) {
+  return (
+    <SearchSelect
+      options={PROVINCES}
+      value={value}
+      onChange={onChange}
+      placeholder="Select Province/Territory"
+      searchInMenu
+      searchPlaceholder="Search province/territory"
+      inputClassName="h-9 rounded-md px-3"
+      offsetForExternalLabel={offsetForLabel}
+      floatingLabel={false}
+    />
+  );
+}
+
+function StatutoryToggle({ label, subLabel, checked, onChange, reason, onReason }) {
+  return (
+    <div>
+      <label className="flex items-center gap-2 text-sm text-slate-700">
+        <input type="checkbox" checked={checked} onChange={(e) => onChange?.(e.target.checked)} />
+        <span className="font-medium text-slate-800">{label}</span>
+      </label>
+      {subLabel && <div className="ml-6 text-xs text-slate-500">{subLabel}</div>}
+      {!checked && (
+        <div className="ml-6 mt-1">
+          <input
+            className="input h-8"
+            placeholder="Exempt with reason (e.g., CPT30)"
+            value={reason || ""}
+            onChange={(e) => onReason?.(e.target.value)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EmployeeWizard({ onCancel, onFinish }) {
   // steps: 1..4 = forms, 5 = success
   const [step, setStep] = useState(1);
+  // Shrinking sticky header on scroll
+  const [compactHeader, setCompactHeader] = useState(false);
+  useEffect(() => {
+    const onScroll = () => {
+      if (typeof window === "undefined") return;
+      setCompactHeader(window.scrollY > 24);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   /* ---------- Step 1 (basic) ---------- */
   const [form, setForm] = useState({
@@ -49,11 +116,24 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
     workEmail: "",
     mobile: "",
     gender: "",
+    // Canada – employment province + Quebec flag
+    provinceEmployment: "",
+    quebecEmployee: false,
+    // Work location details
+    locationCity: "",
+    locationProvince: "",
+    locationPostal: "",
+    // legacy text field replaced by city/province/postal
     location: "Head Office",
     designation: "",
-    department: "Engineering",
+    department: "",
     enablePortal: false,
-    professionalTax: true,
+    // Canada – statutory programs
+    cppEnabled: true,
+    cpp2Enabled: true,
+    eiEnabled: true,
+    qpipEnabled: false, // Quebec only
+    exemptions: { cpp: "", cpp2: "", ei: "", qpip: "" },
   });
   const set = (k) => (e) =>
     setForm((f) => ({
@@ -61,6 +141,9 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
       [k]:
         e.target?.type === "checkbox" ? e.target.checked : e.target.value,
     }));
+
+  // For Date of Joining placeholder consistency
+  const [dojInputType, setDojInputType] = useState("text");
 
   /* ---------- Step 2 (salary) ---------- */
   const [annualCTC, setAnnualCTC] = useState(0);
@@ -249,32 +332,57 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
   /* ---------- UI ---------- */
   return (
     <div className="py-4">
-      {/* Heading + stepper */}
-      <div className="mb-2 flex justify-center">
-        <h1 className="text-[18px] font-semibold text-slate-800 text-center">
-          {step === 5 ? "Priya's Profile" : "Add Employee"}
-        </h1>
-      </div>
-      <div className="mb-4 flex justify-center">
-        <div className="flex items-center gap-4">
-          {steps.map((s, i) => {
-            const state =
-              step === 5
-                ? "done"
-                : s.id < step
-                ? "done"
-                : s.id === step
-                ? "active"
-                : "todo";
-            return (
-              <React.Fragment key={s.id}>
-                <StepItem index={s.id} label={s.label} state={state} />
-                {i < steps.length - 1 && (
-                  <div className="h-px w-8 bg-slate-200" />
-                )}
-              </React.Fragment>
-            );
-          })}
+      {/* Sticky, shrinking header with title + stepper */}
+      <div
+        className={cx(
+          // Stick just below the fixed app navbar; small extra offset prevents overlap on bounce/scroll
+          "sticky top-[68px] z-45 bg-white/85 backdrop-blur border-b border-slate-200",
+          // Smooth collapse
+          "transition-[padding,box-shadow] duration-200",
+          compactHeader ? "py-2 shadow-[0_1px_2px_rgba(0,0,0,0.08)]" : "py-4",
+          // Remove top radius when touching the viewport edge
+          compactHeader ? "rounded-t-none" : ""
+        )}
+      >
+        {/* Constrain width to the same content container as the form */}
+        <div className="mx-auto w-full max-w-[980px] px-4">
+        <div className="flex justify-center">
+          <h1
+            className={cx(
+              "font-semibold text-slate-800 text-center transition-[font-size]",
+              compactHeader ? "text-[16px]" : "text-[18px]"
+            )}
+          >
+            {step === 5 ? "Priya's Profile" : "Add Employee"}
+          </h1>
+        </div>
+        <div className="mt-2 flex justify-center">
+          <div
+            className={cx(
+              "flex items-center gap-4 transition-transform duration-200",
+              compactHeader ? "scale-[0.96]" : "scale-100"
+            )}
+          >
+            {steps.map((s, i) => {
+              const state =
+                step === 5
+                  ? "done"
+                  : s.id < step
+                  ? "done"
+                  : s.id === step
+                  ? "active"
+                  : "todo";
+              return (
+                <React.Fragment key={s.id}>
+                  <StepItem index={s.id} label={s.label} state={state} />
+                  {i < steps.length - 1 && (
+                    <div className="h-px w-8 bg-slate-200" />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
         </div>
       </div>
 
@@ -311,11 +419,20 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
                       workEmail: "",
                       mobile: "",
                       gender: "",
+                      provinceEmployment: "",
+                      quebecEmployee: false,
+                      locationCity: "",
+                      locationProvince: "",
+                      locationPostal: "",
                       location: "Head Office",
                       designation: "",
-                      department: "Engineering",
+                      department: "",
                       enablePortal: false,
-                      professionalTax: true,
+                      cppEnabled: true,
+                      cpp2Enabled: true,
+                      eiEnabled: true,
+                      qpipEnabled: false,
+                      exemptions: { cpp: "", cpp2: "", ei: "", qpip: "" },
                     });
                     setAnnualCTC(0);
                     setBasicPct(50);
@@ -421,10 +538,15 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
                     Date of Joining *
                   </label>
                   <input
-                    type="date"
+                    type={dojInputType}
                     className="input mt-1"
                     value={form.doj}
                     onChange={set("doj")}
+                    placeholder="yyyy-mm-dd"
+                    onFocus={() => setDojInputType("date")}
+                    onBlur={(e) => {
+                      if (!e.target.value) setDojInputType("text");
+                    }}
                   />
                 </div>
 
@@ -447,38 +569,83 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
                   </label>
                   <input
                     className="input mt-1"
+                    inputMode="tel"
                     value={form.mobile}
-                    onChange={set("mobile")}
-                    placeholder="+94 7X XXX XXXX"
+                    onChange={(e) => {
+                      const raw = String(e.target.value || "");
+                      const digits = raw.replace(/\D+/g, "");
+                      // Normalize to North American format +1 (###) ###-####
+                      let d = digits;
+                      if (d.startsWith("1")) d = d.slice(1);
+                      d = d.slice(0, 10);
+                      const p1 = d.slice(0, 3);
+                      const p2 = d.slice(3, 6);
+                      const p3 = d.slice(6, 10);
+                      let fmt = "";
+                      if (p1) {
+                        fmt = "+1 (" + p1 + (p1.length === 3 ? ")" : "");
+                        if (p2) fmt += " " + p2;
+                        if (p3) fmt += "-" + p3;
+                      }
+                      setForm((f) => ({ ...f, mobile: fmt }));
+                    }}
+                    placeholder="e.g., +1 (416) 555-1234"
                   />
                 </div>
 
                 <div className="md:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm text-slate-600">
-                      Gender *
-                    </label>
-                    <select
-                      className="input mt-1"
+                    <label className="block text-sm text-slate-600">Gender *</label>
+                    <SearchSelect
+                      options={[
+                        { value: "Female", label: "Female" },
+                        { value: "Male", label: "Male" },
+                        { value: "Non-binary", label: "Non-binary" },
+                        { value: "Prefer not to say", label: "Prefer not to say" },
+                      ]}
                       value={form.gender}
-                      onChange={set("gender")}
-                    >
-                      <option value="">Select</option>
-                      <option>Female</option>
-                      <option>Male</option>
-                      <option>Non-binary</option>
-                      <option>Prefer not to say</option>
-                    </select>
+                      onChange={(opt) => setForm((f) => ({ ...f, gender: opt?.value || "" }))}
+                      placeholder="Select"
+                      inputClassName="h-9 rounded-md px-3"
+                      menuClassName="rounded-md"
+                      floatingLabel={false}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm text-slate-600">
-                      Work Location *
+                      Province/Territory of Employment <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      className="input mt-1"
-                      value={form.location}
-                      onChange={set("location")}
+                    <ProvinceSelect
+                      value={form.provinceEmployment}
+                      offsetForLabel
+                      onChange={(opt) =>
+                        setForm((f) => ({
+                          ...f,
+                          provinceEmployment: opt?.value || "",
+                          // if selecting QC, default Quebec employee toggle on; otherwise keep user's choice
+                          quebecEmployee: opt?.value === "QC" ? true : f.quebecEmployee,
+                          // if moving away from QC, hide QPIP
+                          qpipEnabled: opt?.value === "QC" ? f.qpipEnabled : false,
+                        }))
+                      }
                     />
+                    <label className="mt-2 flex items-center gap-2 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={form.quebecEmployee}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            quebecEmployee: e.target.checked,
+                            qpipEnabled: e.target.checked ? f.qpipEnabled : false,
+                          }))
+                        }
+                      />
+                      Québec employee
+                    </label>
+                    <div className="text-xs text-slate-500 mt-1">
+                      If Quebec is selected, QPP/QPIP and Revenu Québec tax apply later.
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm text-slate-600">
@@ -499,6 +666,7 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
                       className="input mt-1"
                       value={form.department}
                       onChange={set("department")}
+                      placeholder="Department"
                     />
                   </div>
 
@@ -518,18 +686,95 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
                     </span>
                   </label>
 
-                  <div className="border-t border-slate-200 pt-3 md:col-span-2">
-                    <div className="text-sm font-medium text-slate-800">
-                      Statutory Components
-                    </div>
-                    <label className="mt-2 flex items-center gap-2 text-sm text-slate-700">
+                  {/* Work Location */}
+                  <div className="md:col-span-2">
+                    <div className="text-sm font-medium text-slate-800">Work Location *</div>
+                    <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
                       <input
-                        type="checkbox"
-                        checked={form.professionalTax}
-                        onChange={set("professionalTax")}
+                        className="input"
+                        placeholder="City"
+                        value={form.locationCity}
+                        onChange={set("locationCity")}
                       />
-                      Professional Tax
-                    </label>
+                      <ProvinceSelect
+                        value={form.locationProvince}
+                        onChange={(opt) =>
+                          setForm((f) => ({
+                            ...f,
+                            locationProvince: opt?.value || "",
+                            // default Province of Employment to work location province if empty
+                            provinceEmployment: f.provinceEmployment || opt?.value || "",
+                            quebecEmployee:
+                              (f.provinceEmployment || opt?.value) === "QC" ? true : f.quebecEmployee,
+                            qpipEnabled:
+                              (f.provinceEmployment || opt?.value) === "QC" ? f.qpipEnabled : false,
+                          }))
+                        }
+                      />
+                      <input
+                        className="input"
+                        placeholder="Postal Code (A1A 1A1)"
+                        value={form.locationPostal}
+                        onChange={(e) => {
+                          const v = e.target.value.toUpperCase();
+                          // Keep letters/numbers/space and format as A1A 1A1 progressively
+                          const clean = v.replace(/[^A-Z0-9]/g, "").slice(0, 6);
+                          const a = clean.slice(0, 3);
+                          const b = clean.slice(3, 6);
+                          const pc = b ? `${a} ${b}` : a;
+                          setForm((f) => ({ ...f, locationPostal: pc }));
+                        }}
+                      />
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      Province selected here defaults the Province of Employment.
+                    </div>
+                  </div>
+
+                  {/* Statutory Components – Canada */}
+                  <div className="border-t border-slate-200 pt-3 md:col-span-2">
+                    <div className="text-sm font-medium text-slate-800">Statutory Components</div>
+                    <div className="mt-2 grid grid-cols-1 gap-2">
+                      <StatutoryToggle
+                        label={form.quebecEmployee ? "QPP (instead of CPP)" : "CPP"}
+                        checked={form.cppEnabled}
+                        onChange={(checked) =>
+                          setForm((f) => ({
+                            ...f,
+                            cppEnabled: checked,
+                          }))
+                        }
+                        reason={form.exemptions.cpp}
+                        onReason={(val) => setForm((f) => ({ ...f, exemptions: { ...f.exemptions, cpp: val } }))}
+                      />
+                      <StatutoryToggle
+                        label="CPP2 (second additional CPP)"
+                        subLabel="Auto-applies based on earnings"
+                        checked={form.cpp2Enabled}
+                        onChange={(checked) => setForm((f) => ({ ...f, cpp2Enabled: checked }))}
+                        reason={form.exemptions.cpp2}
+                        onReason={(val) => setForm((f) => ({ ...f, exemptions: { ...f.exemptions, cpp2: val } }))}
+                      />
+                      <StatutoryToggle
+                        label={form.quebecEmployee ? "EI (federal employment insurance)" : "EI"}
+                        checked={form.eiEnabled}
+                        onChange={(checked) => setForm((f) => ({ ...f, eiEnabled: checked }))}
+                        reason={form.exemptions.ei}
+                        onReason={(val) => setForm((f) => ({ ...f, exemptions: { ...f.exemptions, ei: val } }))}
+                      />
+                      {form.quebecEmployee && (
+                        <StatutoryToggle
+                          label="QPIP (Québec only)"
+                          checked={form.qpipEnabled}
+                          onChange={(checked) => setForm((f) => ({ ...f, qpipEnabled: checked }))}
+                          reason={form.exemptions.qpip}
+                          onReason={(val) => setForm((f) => ({ ...f, exemptions: { ...f.exemptions, qpip: val } }))}
+                        />
+                      )}
+                      <div className="text-xs text-slate-500 mt-1">
+                        Uncheck to mark as exempt and provide a reason (e.g., CPT30 for CPP, clergy EI exemption).
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -13,6 +13,7 @@ const cx = (...xs) => xs.filter(Boolean).join(" ");
  * - placeholder?: string
  * - className?: string (applied to root)
  * - inputClassName?: string (applied to input box)
+ * - floatingLabel?: boolean (default true, uses placeholder as floating label)
  */
 export default function SearchSelect({
   options = [],
@@ -25,6 +26,8 @@ export default function SearchSelect({
   menuClassName,
   menuSearchClassName,
   searchPlaceholder = "",
+  floatingLabel = true,
+  offsetForExternalLabel = false,
 }) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -32,6 +35,7 @@ export default function SearchSelect({
   const rootRef = React.useRef(null);
   const inputRef = React.useRef(null);
   const menuSearchRef = React.useRef(null);
+  const menuRef = React.useRef(null);
 
   const selected = React.useMemo(() => options.find((o) => o.value === value) || null, [options, value]);
 
@@ -91,25 +95,46 @@ export default function SearchSelect({
     }
   };
 
+  const hasValue = !!(selected?.label);
+  const floatActive = open || hasValue || (!!query && !searchInMenu);
+  const effectivePlaceholder = floatingLabel ? " " : placeholder;
+
   const inputBox = (
     <div
       className={cx(
-        "relative w-full rounded-xl border bg-white px-3 py-2",
+        // Match default .input dimensions (h-9, rounded-md, px-3, py-2)
+        "relative w-full rounded-md border bg-white px-3 py-2 h-9",
         open
-          ? "border-blue-500 ring-2 ring-blue-300/50"
-          : "border-slate-300 hover:border-slate-400",
+          ? "border-blue-500 ring-2 ring-blue-300/50 shadow-sm"
+          : "border-slate-200 hover:border-slate-300",
         inputClassName
       )}
       role="combobox"
       aria-expanded={open}
       aria-haspopup="listbox"
-      onClick={() => setOpen((o) => !o)}
+      onClick={(e) => {
+        // Avoid re-opening immediately when clicking inside the menu
+        if (menuRef.current && menuRef.current.contains(e.target)) return;
+        setOpen(true);
+      }}
     >
+      {floatingLabel && (
+        <span
+          className={cx(
+            "pointer-events-none absolute left-2 z-10 select-none rounded bg-white px-1 transition-all",
+            floatActive
+              ? "top-0 -translate-y-1/2 text-[11px] text-slate-500"
+              : "top-1/2 -translate-y-1/2 text-[14px] text-slate-400"
+          )}
+        >
+          {placeholder}
+        </span>
+      )}
       <input
         ref={inputRef}
         type="text"
-        className="w-full bg-transparent pr-6 text-[14px] text-slate-800 placeholder:text-slate-400 focus:outline-none"
-        placeholder={placeholder}
+        className="w-full bg-transparent pr-6 text-sm leading-5 text-slate-800 placeholder:text-slate-400 focus:outline-none"
+        placeholder={effectivePlaceholder}
         value={searchInMenu ? (selected?.label || "") : (open ? query : selected?.label || "")}
         onChange={(e) => {
           if (searchInMenu) return; // input acts as display only
@@ -124,12 +149,13 @@ export default function SearchSelect({
   );
 
   return (
-    <div className={cx("relative", className)} ref={rootRef}>
+    <div className={cx("relative", floatingLabel && offsetForExternalLabel ? "mt-3" : "", className)} ref={rootRef}>
       {inputBox}
       {open && (
         <div
+          ref={menuRef}
           className={cx(
-            "absolute left-0 right-0 z-50 mt-2 max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white",
+            "absolute left-0 right-0 z-50 mt-2 max-h-64 overflow-auto rounded-md border border-slate-200 bg-white shadow-lg",
             menuClassName
           )}
           role="listbox"
@@ -142,8 +168,8 @@ export default function SearchSelect({
                   ref={menuSearchRef}
                   type="text"
                   className={cx(
-                    "w-full border border-slate-300 bg-white py-2 pl-7 pr-2 text-[14px] text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200",
-                    menuSearchClassName || "rounded-xl"
+                    "w-full border border-slate-300 bg-white py-2 pl-7 pr-2 text-[14px] text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-md",
+                    menuSearchClassName || "rounded-md"
                   )}
                   placeholder={searchPlaceholder}
                   value={query}
