@@ -1086,7 +1086,7 @@ function SearchSelect({ options = [], value, onChange, placeholder = "Select..."
       </div>
 
       {open && (
-        <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+          <div className="absolute z-20 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="max-h-64 overflow-auto p-1">
             {filtered.length === 0 ? (
               <div className="px-3 py-2 text-sm text-slate-500">No results</div>
