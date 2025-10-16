@@ -102,8 +102,8 @@ export default function SearchSelect({
   const inputBox = (
     <div
       className={cx(
-        // Match default .input dimensions (h-9, rounded-md, px-3, py-2)
-        "relative w-full rounded-md border bg-white px-3 py-2 h-9",
+        // Match input height and center contents so placeholder and chevron align
+        "relative w-full rounded-md border bg-white h-9 px-3 flex items-center",
         open
           ? "border-blue-500 ring-2 ring-blue-300/50 shadow-sm"
           : "border-slate-200 hover:border-slate-300",
