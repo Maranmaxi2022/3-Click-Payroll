@@ -96,15 +96,34 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
   const [step, setStep] = useState(1);
   // Shrinking sticky header on scroll
   const [compactHeader, setCompactHeader] = useState(false);
+  // Smooth progress value (0 at top, 1 after a threshold of scroll)
+  const [scrollY, setScrollY] = useState(0);
   useEffect(() => {
     const onScroll = () => {
       if (typeof window === "undefined") return;
-      setCompactHeader(window.scrollY > 24);
+      const y = window.scrollY || 0;
+      setScrollY(y);
+      setCompactHeader(y > 24);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Map scroll to header height and typography
+  const clamp01 = (n) => (n < 0 ? 0 : n > 1 ? 1 : n);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  // After ~200px of scroll, treat as fully compact
+  const progress = clamp01((scrollY || 0) / 200);
+  const HEADER_MAX = 150; // px when at top
+  const HEADER_MIN = 100; // px when compact
+  const headerHeight = Math.round(lerp(HEADER_MAX, HEADER_MIN, progress));
+  // Title scales with header height
+  const TITLE_MAX = 20; // px
+  const TITLE_MIN = 16; // px
+  const titleSize = lerp(TITLE_MAX, TITLE_MIN, progress);
+  // Stepper slightly scales as well
+  const stepScale = lerp(1, 0.96, progress);
 
   /* ---------- Step 1 (basic) ---------- */
   const [form, setForm] = useState({
@@ -332,59 +351,53 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
   /* ---------- UI ---------- */
   return (
     <div className="py-4">
-      {/* Sticky, shrinking header with title + stepper */}
+      {/* Fixed Add Employee header below the global navbar, offset by sidebar on desktop */}
       <div
         className={cx(
-          // Stick just below the fixed app navbar; small extra offset prevents overlap on bounce/scroll
-          "sticky top-[68px] z-45 bg-white/85 backdrop-blur border-b border-slate-200",
-          // Smooth collapse
-          "transition-[padding,box-shadow] duration-200",
-          compactHeader ? "py-2 shadow-[0_1px_2px_rgba(0,0,0,0.08)]" : "py-4",
-          // Remove top radius when touching the viewport edge
-          compactHeader ? "rounded-t-none" : ""
+          // Fixed bar aligned with content area (to the right of the sidebar on md+)
+          "fixed top-16 left-0 right-0 md:left-[var(--sidebar-w)] z-[45] bg-white/90 backdrop-blur border-t border-b border-slate-200",
+          // Smooth shadow on scroll
+          "transition-[box-shadow] duration-200",
+          compactHeader ? "shadow-[0_1px_2px_rgba(0,0,0,0.08)]" : ""
         )}
+        style={{ height: `${headerHeight}px` }}
       >
-        {/* Constrain width to the same content container as the form */}
-        <div className="mx-auto w-full max-w-[980px] px-4">
-        <div className="flex justify-center">
-          <h1
-            className={cx(
-              "font-semibold text-slate-800 text-center transition-[font-size]",
-              compactHeader ? "text-[16px]" : "text-[18px]"
-            )}
-          >
-            {step === 5 ? "Priya's Profile" : "Add Employee"}
-          </h1>
-        </div>
-        <div className="mt-2 flex justify-center">
-          <div
-            className={cx(
-              "flex items-center gap-4 transition-transform duration-200",
-              compactHeader ? "scale-[0.96]" : "scale-100"
-            )}
-          >
-            {steps.map((s, i) => {
-              const state =
-                step === 5
-                  ? "done"
-                  : s.id < step
-                  ? "done"
-                  : s.id === step
-                  ? "active"
-                  : "todo";
-              return (
-                <React.Fragment key={s.id}>
-                  <StepItem index={s.id} label={s.label} state={state} />
-                  {i < steps.length - 1 && (
-                    <div className="h-px w-8 bg-slate-200" />
-                  )}
-                </React.Fragment>
-              );
-            })}
+        {/* Centered inner content to match form width */}
+        <div className="mx-auto flex h-full w-full max-w-[980px] flex-col items-center justify-center px-4">
+          <div className="flex justify-center">
+            <h1
+              className={cx("font-semibold text-slate-800 text-center")}
+              style={{ fontSize: `${titleSize}px` }}
+            >
+              {step === 5 ? "Priya's Profile" : "Add Employee"}
+            </h1>
+          </div>
+          <div className="mt-2 flex justify-center">
+            <div className={cx("flex items-center gap-4")}
+                 style={{ transform: `scale(${stepScale})`, transition: "transform 150ms ease" }}>
+              {steps.map((s, i) => {
+                const state =
+                  step === 5
+                    ? "done"
+                    : s.id < step
+                    ? "done"
+                    : s.id === step
+                    ? "active"
+                    : "todo";
+                return (
+                  <React.Fragment key={s.id}>
+                    <StepItem index={s.id} label={s.label} state={state} />
+                    {i < steps.length - 1 && <div className="h-px w-8 bg-slate-200" />}
+                  </React.Fragment>
+                );
+              })}
+            </div>
           </div>
         </div>
-        </div>
       </div>
+
+      {/* Spacer to keep form content below the fixed Add Employee header */}
+      <div className="w-full" style={{ height: `${headerHeight}px` }} />
 
       <div className="mx-auto w-full max-w-[980px]">
         {/* Success screen */}
