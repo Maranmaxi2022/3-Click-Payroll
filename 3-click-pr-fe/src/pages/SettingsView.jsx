@@ -416,11 +416,43 @@ function OrgProfile() {
     { value: "health", label: "Health", icon: "🏥" },
   ];
 
-  const DATE_FORMATS = [
-    { value: "ddmmyyyy", label: "dd/MM/yyyy [ 28/09/2025 ]", icon: "📅" },
-    { value: "mmddyyyy", label: "MM/dd/yyyy [ 09/28/2025 ]", icon: "📅" },
-    { value: "iso", label: "yyyy-MM-dd [ 2025-09-28 ]", icon: "📅" },
-  ];
+  // Build Date Format options with a live preview that respects the selected
+  // field separator as the date delimiter. Falls back to the format's default
+  // delimiter if none selected.
+  const DATE_FORMATS = React.useMemo(() => {
+    const sep = fieldSep || "/";
+    const pad = (n) => String(n).padStart(2, "0");
+    const sample = new Date(2025, 8, 28); // 28 Sep 2025
+    const parts = {
+      dd: pad(sample.getDate()),
+      MM: pad(sample.getMonth() + 1),
+      yyyy: String(sample.getFullYear()),
+    };
+
+    const build = (tokens, defaultSep) => {
+      const useSep = fieldSep || defaultSep || "/";
+      const fmt = tokens.join(useSep);
+      const preview = tokens
+        .map((t) => parts[t] ?? t)
+        .join(useSep);
+      return `${fmt} [ ${preview} ]`;
+    };
+
+    return [
+      {
+        value: "ddmmyyyy",
+        label: build(["dd", "MM", "yyyy"], "/"),
+      },
+      {
+        value: "mmddyyyy",
+        label: build(["MM", "dd", "yyyy"], "/"),
+      },
+      {
+        value: "iso",
+        label: build(["yyyy", "MM", "dd"], "-"),
+      },
+    ];
+  }, [fieldSep]);
 
   const FIELD_SEPARATORS = [
     { value: "/", label: "/", icon: "➗" },
