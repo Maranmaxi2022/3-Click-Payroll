@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { loadPayrollSettings, savePayrollSettings } from "../utils/payrollStore";
 import { createPortal } from "react-dom";
 import { Plus, Check, MoreHorizontal } from "lucide-react";
 
@@ -12,13 +13,12 @@ const TABS = [
 ];
 
 const EARNING_TYPES = [
-  "Basic",
-  "House Rent Allowance",
-  "Fixed Allowance",
-  "Conveyance/Transport",
-  "Bonus",
-  "Commission",
+  "Regular Wages",
   "Overtime",
+  "Vacation Pay",
+  "Bonus/Retro/Non-periodic",
+  "Commission",
+  "Taxable Benefit",
   "Other",
 ];
 
@@ -76,17 +76,21 @@ export default function SalaryComponents() {
   const [activeTab, setActiveTab] = useState("earnings");
   const tabRefs = useRef({});
 
-  // Seed data (short lists)
-  const [earnings, setEarnings] = useState([
+  // Load saved components; fall back to seeds on first run
+  const saved = loadPayrollSettings();
+  const savedSC = saved.salaryComponents || {};
+
+  const [earnings, setEarnings] = useState(
+    savedSC.earnings && savedSC.earnings.length > 0 ? savedSC.earnings : [
     {
       id: uid(),
-      name: "Basic Pay",
-      type: "Basic",
+      name: "Regular Wages",
+      type: "Regular Wages",
       calc: { kind: "flat", value: 4000 },
       includeCPP: true,
       includeEI: true,
       status: "Active",
-      description: "Fixed monthly component",
+      description: "Fixed per-pay or salaried component",
     },
     {
       id: uid(),
@@ -98,9 +102,11 @@ export default function SalaryComponents() {
       status: "Inactive",
       description: "Paid at 1.5x basic calculation",
     },
-  ]);
+  ]
+  );
 
-  const [deductions, setDeductions] = useState([
+  const [deductions, setDeductions] = useState(
+    savedSC.deductions && savedSC.deductions.length > 0 ? savedSC.deductions : [
     {
       id: uid(),
       name: "Union Dues",
@@ -119,9 +125,11 @@ export default function SalaryComponents() {
       status: "Inactive",
       description: "Applied upon termination as required",
     },
-  ]);
+  ]
+  );
 
-  const [benefits, setBenefits] = useState([
+  const [benefits, setBenefits] = useState(
+    savedSC.benefits && savedSC.benefits.length > 0 ? savedSC.benefits : [
     {
       id: uid(),
       name: "Employer RRSP",
@@ -142,9 +150,11 @@ export default function SalaryComponents() {
       status: "Inactive",
       description: "Annual top-up",
     },
-  ]);
+  ]
+  );
 
-  const [reimbursements, setReimbursements] = useState([
+  const [reimbursements, setReimbursements] = useState(
+    savedSC.reimbursements && savedSC.reimbursements.length > 0 ? savedSC.reimbursements : [
     {
       id: uid(),
       name: "Fuel Reimbursement",
@@ -165,7 +175,16 @@ export default function SalaryComponents() {
       status: "Inactive",
       description: "Monthly home internet stipend",
     },
-  ]);
+  ]
+  );
+
+  // Persist to the shared store whenever lists change
+  useEffect(() => {
+    savePayrollSettings((current) => ({
+      ...current,
+      salaryComponents: { earnings, deductions, benefits, reimbursements },
+    }));
+  }, [earnings, deductions, benefits, reimbursements]);
 
   // Toasts
   const [toasts, setToasts] = useState([]);
@@ -263,8 +282,8 @@ export default function SalaryComponents() {
       if (colKey === "calc") {
         const { kind, value } = item.calc || {};
         if (kind === "flat") return `Flat ${toCurrency(value)}`;
-        if (kind === "pct_ctc") return `${value || 0}% of CTC`;
-        if (kind === "pct_basic") return `${value || 0}% of Basic`;
+        if (kind === "pct_ctc") return `${value || 0}% of Gross`;
+        if (kind === "pct_basic") return `${value || 0}% of Regular`;
         return "—";
       }
       if (colKey === "cpp") return item.includeCPP ? "Yes" : "No";
@@ -856,11 +875,11 @@ function AddEditModal({ tab, mode, initial, onCancel, onSave, existingNames }) {
                     </label>
                     <label className="inline-flex items-center gap-2 text-sm">
                       <input type="radio" name="calc" checked={data.calc?.kind === "pct_ctc"} onChange={() => setCalc({ kind: "pct_ctc" })} />
-                      <span>Percentage of CTC</span>
+                      <span>Percentage of Gross</span>
                     </label>
                     <label className="inline-flex items-center gap-2 text-sm">
                       <input type="radio" name="calc" checked={data.calc?.kind === "pct_basic"} onChange={() => setCalc({ kind: "pct_basic" })} />
-                      <span>Percentage of Basic</span>
+                      <span>Percentage of Regular</span>
                     </label>
                   </div>
                 </div>
