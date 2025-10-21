@@ -1443,45 +1443,45 @@ function TaxDetailsView() {
           {/* D. Mid-year YTD carry-ins */}
           <div className="mt-6">
             <div className="text-sm font-medium text-slate-800">D. Mid‑year YTD carry‑ins</div>
-            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3 field-grid-3">
               {emp.province === "Quebec" ? (
                 <>
-                  <div>
-                    <label className="block text-sm text-slate-700">QPP YTD (employee)</label>
-                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp} onChange={setEmpField("ytdQpp")} />
+                  <div className="field-float">
+                    <label className="floating-label">QPP YTD (employee)</label>
+                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp} onChange={setEmpField("ytdQpp")} />
                   </div>
-                  <div>
-                    <label className="block text-sm text-slate-700">QPP2 YTD (employee)</label>
-                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp2} onChange={setEmpField("ytdQpp2")} />
+                  <div className="field-float">
+                    <label className="floating-label">QPP2 YTD (employee)</label>
+                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp2} onChange={setEmpField("ytdQpp2")} />
                   </div>
-                  <div>
-                    <label className="block text-sm text-slate-700">QPIP YTD (employee)</label>
-                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpip} onChange={setEmpField("ytdQpip")} />
+                  <div className="field-float">
+                    <label className="floating-label">QPIP YTD (employee)</label>
+                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdQpip} onChange={setEmpField("ytdQpip")} />
                   </div>
                 </>
               ) : (
                 <>
-                  <div>
-                    <label className="block text-sm text-slate-700">CPP YTD (employee)</label>
-                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp} onChange={setEmpField("ytdCpp")} />
+                  <div className="field-float">
+                    <label className="floating-label">CPP YTD (employee)</label>
+                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp} onChange={setEmpField("ytdCpp")} />
                   </div>
-                  <div>
-                    <label className="block text-sm text-slate-700">CPP2 YTD (employee)</label>
-                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp2} onChange={setEmpField("ytdCpp2")} />
+                  <div className="field-float">
+                    <label className="floating-label">CPP2 YTD (employee)</label>
+                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp2} onChange={setEmpField("ytdCpp2")} />
                   </div>
-                  <div>
-                    <label className="block text-sm text-slate-700">EI YTD (employee)</label>
-                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdEi} onChange={setEmpField("ytdEi")} />
+                  <div className="field-float">
+                    <label className="floating-label">EI YTD (employee)</label>
+                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdEi} onChange={setEmpField("ytdEi")} />
                   </div>
                 </>
               )}
-              <div>
-                <label className="block text-sm text-slate-700">Tax YTD (federal + provincial)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdTax} onChange={setEmpField("ytdTax")} />
+              <div className="field-float">
+                <label className="floating-label">Tax YTD (federal + provincial)</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdTax} onChange={setEmpField("ytdTax")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">Non‑periodic YTD (bonus method)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdNonPeriodic} onChange={setEmpField("ytdNonPeriodic")} />
+              <div className="field-float md:col-span-2">
+                <label className="floating-label">Non‑periodic YTD (bonus method)</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdNonPeriodic} onChange={setEmpField("ytdNonPeriodic")} />
               </div>
             </div>
           </div>
@@ -1489,39 +1489,38 @@ function TaxDetailsView() {
           {/* E. Registered plans & other credits */}
           <div className="mt-6">
             <div className="text-sm font-medium text-slate-800">E. Pre‑tax deductions & other credits</div>
-            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div>
-                <label className="block text-sm text-slate-700">RRSP employee (this pay)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rrspCurrent} onChange={setEmpField("rrspCurrent")} />
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-6">
+              <div className="field-float md:col-span-2">
+                <label className="floating-label">RRSP employee (this pay)</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.rrspCurrent} onChange={setEmpField("rrspCurrent")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">RRSP YTD</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rrspYtd} onChange={setEmpField("rrspYtd")} />
+              <div className="field-float md:col-span-2">
+                <label className="floating-label">RRSP YTD</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.rrspYtd} onChange={setEmpField("rrspYtd")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">RPP employee (this pay)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rppCurrent} onChange={setEmpField("rppCurrent")} />
+              <div className="field-float md:col-span-2">
+                <label className="floating-label">RPP employee (this pay)</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.rppCurrent} onChange={setEmpField("rppCurrent")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">RPP YTD</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rppYtd} onChange={setEmpField("rppYtd")} />
+              <div className="field-float md:col-span-2">
+                <label className="floating-label">RPP YTD</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.rppYtd} onChange={setEmpField("rppYtd")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">Court‑ordered support/alimony (F2)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.alimonyF2} onChange={setEmpField("alimonyF2")} />
+              <div className="field-float md:col-span-4">
+                <label className="floating-label">Court‑ordered support/alimony (F2)</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.alimonyF2} onChange={setEmpField("alimonyF2")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">Northern residents deduction (HD)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.northernHD} onChange={setEmpField("northernHD")} />
+              <div className="field-float md:col-span-3">
+                <label className="floating-label">Northern residents deduction (HD)</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.northernHD} onChange={setEmpField("northernHD")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">Labour‑sponsored capital (Federal LCF)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.lcf} onChange={setEmpField("lcf")} />
-                <div className="text-[12px] text-slate-500 mt-1">Maximum $750/year</div>
+              <div className="field-float md:col-span-3">
+                <label className="floating-label">Labour‑sponsored capital (Federal LCF)</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.lcf} onChange={setEmpField("lcf")} />
               </div>
-              <div>
-                <label className="block text-sm text-slate-700">Labour‑sponsored capital (Provincial LCP)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.lcp} onChange={setEmpField("lcp")} />
+              <div className="field-float md:col-span-6">
+                <label className="floating-label">Labour‑sponsored capital (Provincial LCP)</label>
+                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.lcp} onChange={setEmpField("lcp")} />
               </div>
             </div>
           </div>
