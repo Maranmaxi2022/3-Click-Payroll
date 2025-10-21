@@ -4,6 +4,7 @@ import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
 import SalaryComponents from "./SalaryComponents";
 import PaySchedule from "./PaySchedule";
 import SearchSelect from "../components/SearchSelect";
+import { loadPayrollSettings, savePayrollSettings } from "../utils/payrollStore";
 
 import {
   ACCENT_LIST,
@@ -1161,6 +1162,9 @@ function TaxDetailsView() {
       </div>
     );
   };
+  const persisted = loadPayrollSettings();
+  const persistedTaxes = persisted.taxes || {};
+
   // Employer-level state
   const [employer, setEmployer] = useState({
     bn: "",
@@ -1170,6 +1174,7 @@ function TaxDetailsView() {
     remitter: "",
     usePDOC: false,
     indexationMode: "claim-codes", // 'indexing' | 'claim-codes'
+    ...(persistedTaxes.employer || {}),
   });
 
   // Employee-level state
@@ -1192,7 +1197,31 @@ function TaxDetailsView() {
     commissionTD1X: false,
     commissionI1: "",
     commissionE: "",
+    // Mid-year carry-ins
+    ytdCpp: "",
+    ytdCpp2: "",
+    ytdEi: "",
+    ytdQpp: "",
+    ytdQpp2: "",
+    ytdQpip: "",
+    ytdTax: "",
+    ytdNonPeriodic: "",
+    // Registered plans & other credits
+    rrspCurrent: "",
+    rrspYtd: "",
+    rppCurrent: "",
+    rppYtd: "",
+    alimonyF2: "",
+    northernHD: "",
+    lcf: "",
+    lcp: "",
+    ...(persistedTaxes.employee || {}),
   });
+
+  // Persist taxes whenever either object changes
+  React.useEffect(() => {
+    savePayrollSettings((curr) => ({ ...curr, taxes: { employer, employee: emp } }));
+  }, [employer, emp]);
 
   const setEmployerField = (k) => (e) =>
     setEmployer((p) => ({ ...p, [k]: e?.target?.type === "checkbox" ? e.target.checked : e?.target ? e.target.value : e }));
@@ -1411,10 +1440,94 @@ function TaxDetailsView() {
             </div>
           </div>
 
-          {/* Removed social programs + commission from Taxes; they live in Statutory Components */}
-          <div className="mt-6 text-xs italic text-slate-500">
-            CPP/QPP/CPP2, EI and commission settings moved to <span className="font-medium not-italic">Statutory Components</span>.
+          {/* D. Mid-year YTD carry-ins */}
+          <div className="mt-6">
+            <div className="text-sm font-medium text-slate-800">D. Mid‑year YTD carry‑ins</div>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
+              {emp.province === "Quebec" ? (
+                <>
+                  <div>
+                    <label className="block text-sm text-slate-700">QPP YTD (employee)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp} onChange={setEmpField("ytdQpp")} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-700">QPP2 YTD (employee)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp2} onChange={setEmpField("ytdQpp2")} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-700">QPIP YTD (employee)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpip} onChange={setEmpField("ytdQpip")} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm text-slate-700">CPP YTD (employee)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp} onChange={setEmpField("ytdCpp")} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-700">CPP2 YTD (employee)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp2} onChange={setEmpField("ytdCpp2")} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-700">EI YTD (employee)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdEi} onChange={setEmpField("ytdEi")} />
+                  </div>
+                </>
+              )}
+              <div>
+                <label className="block text-sm text-slate-700">Tax YTD (federal + provincial)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdTax} onChange={setEmpField("ytdTax")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Non‑periodic YTD (bonus method)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdNonPeriodic} onChange={setEmpField("ytdNonPeriodic")} />
+              </div>
+            </div>
           </div>
+
+          {/* E. Registered plans & other credits */}
+          <div className="mt-6">
+            <div className="text-sm font-medium text-slate-800">E. Pre‑tax deductions & other credits</div>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div>
+                <label className="block text-sm text-slate-700">RRSP employee (this pay)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rrspCurrent} onChange={setEmpField("rrspCurrent")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">RRSP YTD</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rrspYtd} onChange={setEmpField("rrspYtd")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">RPP employee (this pay)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rppCurrent} onChange={setEmpField("rppCurrent")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">RPP YTD</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rppYtd} onChange={setEmpField("rppYtd")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Court‑ordered support/alimony (F2)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.alimonyF2} onChange={setEmpField("alimonyF2")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Northern residents deduction (HD)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.northernHD} onChange={setEmpField("northernHD")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Labour‑sponsored capital (Federal LCF)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.lcf} onChange={setEmpField("lcf")} />
+                <div className="text-[12px] text-slate-500 mt-1">Maximum $750/year</div>
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Labour‑sponsored capital (Provincial LCP)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.lcp} onChange={setEmpField("lcp")} />
+              </div>
+            </div>
+          </div>
+
+          {/* Removed social programs from Taxes; they live in Statutory Components */}
+          <div className="mt-6 text-xs italic text-slate-500">CPP/QPP/CPP2, EI/QPIP and commission settings live in <span className="font-medium not-italic">Statutory Components</span>.</div>
 
           {/* Actions */}
           <div className="mt-6 border-t border-slate-200 pt-4 flex items-center justify-between">
@@ -1433,6 +1546,7 @@ function TaxDetailsView() {
 /* ---- Setup & Configurations > Statutory Components ---- */
 function StatutoryComponentsView() {
   const currentYear = new Date().getFullYear();
+  const persisted = loadPayrollSettings();
   const [state, setState] = useState({
     cppqpp: true,
     cpt30: false,
@@ -1440,9 +1554,12 @@ function StatutoryComponentsView() {
     cpp2: true,
     eiInsurable: true,
     td1x: false,
+    commissionI1: "",
+    commissionE: "",
     treatBonusAsNonPeriodic: false,
     useSupplemental: false,
     contribF: "",
+    ...(persisted.statutory || {}),
   });
   const setField = (k) => (e) =>
     setState((p) => ({ ...p, [k]: e?.target?.type === "checkbox" ? e.target.checked : e?.target ? e.target.value : e }));
@@ -1467,6 +1584,11 @@ function StatutoryComponentsView() {
       )}
     </div>
   );
+
+  // Persist statutory switches whenever they change
+  React.useEffect(() => {
+    savePayrollSettings((curr) => ({ ...curr, statutory: state }));
+  }, [state]);
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,60%)_minmax(0,40%)]">
@@ -1525,6 +1647,18 @@ function StatutoryComponentsView() {
             <input type="checkbox" checked={state.td1x} onChange={setField("td1x")} />
             <span>TD1X present</span>
           </label>
+          {state.td1x && (
+            <div className="grid max-w-[520px] grid-cols-1 gap-3 md:grid-cols-2">
+              <div>
+                <label className="block text-sm text-slate-700">TD1X I1 (Annual expenses)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={state.commissionI1} onChange={setField("commissionI1")} />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">TD1X E (Commissions/expenses ratio)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={state.commissionE} onChange={setField("commissionE")} />
+              </div>
+            </div>
+          )}
           <label className="flex items-center gap-3">
             <input type="checkbox" checked={state.treatBonusAsNonPeriodic} onChange={setField("treatBonusAsNonPeriodic")} />
             <span>Treat bonuses as non‑periodic</span>
@@ -1533,6 +1667,14 @@ function StatutoryComponentsView() {
             <input type="checkbox" checked={state.useSupplemental} onChange={setField("useSupplemental")} />
             <span>Use supplemental method for retro/bonus</span>
           </label>
+        </div>
+      </section>
+
+      {/* Quebec parental insurance */}
+      <section>
+        <h3 className="text-base font-semibold text-slate-900">Quebec Parental Insurance (QPIP)</h3>
+        <div className="mt-2 text-sm text-slate-600">
+          QPIP applies only when the province of employment is Quebec. Rates and caps are handled by the engine. EI does not apply in Quebec.
         </div>
       </section>
 
