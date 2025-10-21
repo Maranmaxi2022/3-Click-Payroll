@@ -1,4 +1,5 @@
 import React from "react";
+import { ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Bar } from "recharts";
 import { getAccentPreset, loadBrandingPreferences } from "../utils/branding";
 
 // Simple building blocks for cards and stats
@@ -224,7 +225,7 @@ function DropdownFilter({ value, onChange, accent }) {
   );
 }
 
-// Stacked monthly bar chart (no external libs)
+// Stacked monthly bar chart (Recharts)
 function StackedBarChartCA({ data = [] }) {
   const COLORS = {
     net: "bg-emerald-500",
@@ -232,108 +233,88 @@ function StackedBarChartCA({ data = [] }) {
     statutory: "bg-blue-500",
     deductions: "bg-rose-500",
   };
+  const HEX = {
+    net: "#10b981",
+    taxes: "#fbbf24",
+    statutory: "#3b82f6",
+    deductions: "#f43f5e",
+  };
 
-  const totals = data.map((d) => d.net + d.taxes + d.statutory + d.deductions);
-  const max = Math.max(1, ...totals);
-  const desiredTicks = 7; // denser scale for smaller gaps
-  const { niceMax, ticks } = niceScale(0, max, desiredTicks);
-  const H = 256; // px – match h-64
-  const BOTTOM_PAD = 24; // reserved space for x-axis labels (px)
+  const MonthYearTick = ({ x, y, payload }) => {
+    const row = payload?.payload;
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text dy={14} textAnchor="middle" fill="#475569" fontSize="12">
+          {payload.value}
+        </text>
+        <text dy={28} textAnchor="middle" fill="#94a3b8" fontSize="11">
+          {row?.y}
+        </text>
+      </g>
+    );
+  };
 
-  const [hover, setHover] = React.useState(null);
+  const CustomTooltip = ({ active, payload }) => {
+    if (!active || !payload || !payload.length) return null;
+    const d = payload[0].payload || {};
+    return (
+      <div className="rounded-lg bg-white p-3 text-[13px] shadow-lg ring-1 ring-slate-200">
+        <div className="space-y-1">
+          <LegendRow color={COLORS.net} label="Net Pay" value={toCAD(d.net)} />
+          <LegendRow color={COLORS.taxes} label="Taxes" value={toCAD(d.taxes)} />
+          <LegendRow color={COLORS.statutory} label="Statutories" value={toCAD(d.statutory)} />
+          <LegendRow color={COLORS.deductions} label="Deductions" value={toCAD(d.deductions)} />
+        </div>
+      </div>
+    );
+  };
+
+  const YTick = ({ x, y, payload }) => (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0}
+        y={0}
+        textAnchor="end"
+        dominantBaseline="central"
+        fill="#94a3b8"
+        fontSize="11"
+      >
+        {formatShort(payload.value)}
+      </text>
+    </g>
+  );
 
   return (
-    <div className="grid grid-cols-[56px_minmax(0,1fr)] gap-2">
-        <div className="relative h-64 select-none">
-          <div className="absolute inset-x-0 top-0" style={{ bottom: `${BOTTOM_PAD}px` }}>
-            {ticks.map((t, i) => (
-              <div
-                key={i}
-                className="absolute right-1 -translate-y-1/2 text-[11px] text-slate-400"
-                style={{ bottom: `${(i / (ticks.length - 1)) * 100}%` }}
-              >
-                {formatShort(t)}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative h-64">
-          {/* Plot area that clips its contents; bars are drawn inside this box */}
-          <div className="absolute inset-0 overflow-hidden rounded-md ring-1 ring-slate-200">
-            {/* Grid background */}
-            <div
-              className="absolute inset-x-0 top-0"
-              style={{
-                bottom: `${BOTTOM_PAD}px`,
-                backgroundImage: (() => {
-                  const stepPx = (H - BOTTOM_PAD) / Math.max(1, (ticks.length - 1));
-                  return `repeating-linear-gradient(to top, rgba(203,213,225,0.35) 0px, rgba(203,213,225,0.35) 1px, transparent 1px, transparent ${stepPx}px)`;
-                })(),
-              }}
-            />
-
-            {/* Bars, confined to the plot box (leaving space at bottom for labels) */}
-            <div
-              className="absolute inset-x-0 top-0 flex items-end gap-4 px-3 sm:gap-6 md:gap-8"
-              style={{ bottom: `${BOTTOM_PAD}px` }}
-            >
-              {data.map((d, i) => {
-                const total = totals[i] || 1;
-                const hPx = Math.max(2, Math.round((total / niceMax) * (H - BOTTOM_PAD)));
-                const sNet = Math.round((d.net / total) * hPx);
-                const sTaxes = Math.round((d.taxes / total) * hPx);
-                const sStat = Math.round((d.statutory / total) * hPx);
-                // ensure sum fills the column exactly
-                const sDed = Math.max(0, hPx - (sNet + sTaxes + sStat));
-                const leftPct = ((i + 0.5) / data.length) * 100;
-                const showTip = hover === i;
-                return (
-                  <div
-                    key={d.key || i}
-                    className="group relative flex w-[10px] flex-col items-center sm:w-[12px] md:w-[14px]"
-                    onMouseEnter={() => setHover(i)}
-                    onMouseLeave={() => setHover(null)}
-                  >
-                    <div
-                      className="relative w-full overflow-hidden rounded-lg bg-white/80 ring-1 ring-slate-200"
-                      style={{ height: `${hPx}px` }}
-                    >
-                      <div className={cx("w-full first:rounded-b-lg last:rounded-t-lg", COLORS.net)} style={{ height: `${sNet}px` }} />
-                      <div className={cx("w-full first:rounded-b-lg last:rounded-t-lg", COLORS.taxes)} style={{ height: `${sTaxes}px` }} />
-                      <div className={cx("w-full first:rounded-b-lg last:rounded-t-lg", COLORS.statutory)} style={{ height: `${sStat}px` }} />
-                      <div className={cx("w-full first:rounded-b-lg last:rounded-t-lg", COLORS.deductions)} style={{ height: `${sDed}px` }} />
-                    </div>
-
-                    {showTip ? (
-                      <div
-                        className="absolute z-10 -translate-x-1/2 rounded-lg bg-white p-3 text-[13px] shadow-lg ring-1 ring-slate-200"
-                        style={{ left: `${Math.max(10, Math.min(90, leftPct))}%`, bottom: "60%" }}
-                      >
-                        <div className="space-y-1">
-                          <LegendRow color={COLORS.net} label="Net Pay" value={toCAD(d.net)} />
-                          <LegendRow color={COLORS.taxes} label="Taxes" value={toCAD(d.taxes)} />
-                          <LegendRow color={COLORS.statutory} label="Statutories" value={toCAD(d.statutory)} />
-                          <LegendRow color={COLORS.deductions} label="Deductions" value={toCAD(d.deductions)} />
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* X-axis labels below the clipped plot area */}
-          <div className="absolute inset-x-0 bottom-0 flex gap-4 px-3 sm:gap-6 md:gap-8">
-            {data.map((d, i) => (
-              <div key={(d.key || i) + "-lbl"} className="w-[10px] text-center text-[12px] leading-tight text-slate-600 select-none sm:w-[12px] md:w-[14px]">
-                {d.m}
-                <div className="text-[11px] text-slate-400">{d.y}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+    <div className="relative h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 8, right: 8, left: 8, bottom: 34 }}
+          barCategoryGap={24}
+        >
+          <CartesianGrid vertical={false} stroke="rgba(203,213,225,0.35)" />
+          <XAxis
+            dataKey="m"
+            interval={0}
+            tickLine={false}
+            axisLine={false}
+            tick={<MonthYearTick />}
+            tickMargin={8}
+          />
+          <YAxis
+            width={56}
+            tick={<YTick />}
+            tickLine={false}
+            axisLine={false}
+            padding={{ top: 8, bottom: 8 }}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
+          <Bar dataKey="net" stackId="a" fill={HEX.net} barSize={14} />
+          <Bar dataKey="taxes" stackId="a" fill={HEX.taxes} barSize={14} />
+          <Bar dataKey="statutory" stackId="a" fill={HEX.statutory} barSize={14} />
+          <Bar dataKey="deductions" stackId="a" fill={HEX.deductions} barSize={14} />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
