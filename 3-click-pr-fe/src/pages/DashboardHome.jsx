@@ -185,7 +185,7 @@ function DropdownFilter({ value, onChange, accent }) {
     <div className="relative" ref={ref}>
       <button
         type="button"
-        className={`inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current focus:border-current ${accent ? `focus:${accent.textClass}` : "focus:text-blue-600"}`}
+        className={`inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current focus:border-current ${accent ? `focus:${accent.textClass}` : "focus:text-blue-600"}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
@@ -487,7 +487,7 @@ export default function DashboardHome() {
                 {liabilities.map((li) => (
                   <section
                     key={li.name}
-                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4"
                   >
                     <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
                       <svg
