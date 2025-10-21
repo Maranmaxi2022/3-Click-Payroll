@@ -2,8 +2,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import SearchSelect from "../components/SearchSelect";
 import SuccessArt from "../assets/Pay Roll_03.svg"; // completion SVG
+import { loadPayrollSettings, subscribePayrollSettings } from "../utils/payrollStore";
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
+
+// CAD currency formatting helper
+const toCAD = (n) => {
+  const num = Number(n);
+  if (Number.isNaN(num)) return "—";
+  return new Intl.NumberFormat(undefined, { style: "currency", currency: "CAD", maximumFractionDigits: 2 }).format(num);
+};
 
 /* Zoho-style step item */
 const StepItem = ({ index, label, state }) => {
@@ -165,33 +173,82 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
   const [dojInputType, setDojInputType] = useState("text");
 
   /* ---------- Step 2 (salary) ---------- */
-  const [annualCTC, setAnnualCTC] = useState(0);
-  const [basicPct, setBasicPct] = useState(50);
-  const [hraPctOfBasic, setHraPctOfBasic] = useState(50);
-  const [convMonthly, setConvMonthly] = useState(0);
+  // Use existing variable name for annual gross to minimize churn across file
+  const [annualCTC, setAnnualCTC] = useState(0); // Annual gross salary (CAD)
+  const [payFrequency, setPayFrequency] = useState("monthly"); // weekly|biweekly|semimonthly|monthly
+  const PERIODS = { weekly: 52, biweekly: 26, semimonthly: 24, monthly: 12 };
 
-  const salary = useMemo(() => {
+  // Canada earnings buckets (amounts entered per pay unless noted)
+  const [earnings, setEarnings] = useState({
+    overtime: 0,
+    vacation: 0,
+    bonus: 0,
+    commissions: 0,
+    taxableBenefits: 0,
+    benefitPensionable: true,
+    benefitInsurable: true,
+  });
+  const setE = (k) => (e) =>
+    setEarnings((s) => ({
+      ...s,
+      [k]: e?.target?.type === "checkbox" ? e.target.checked : e.target.value,
+    }));
+
+  // TD1 and tax inputs
+  const [td1FedMode, setTd1FedMode] = useState("total"); // total|code
+  const [td1FedTotal, setTd1FedTotal] = useState(0);
+  const [td1FedCode, setTd1FedCode] = useState(1);
+  const [td1UseIndexing, setTd1UseIndexing] = useState(true);
+
+  const [td1ProvMode, setTd1ProvMode] = useState("total");
+  const [td1ProvTotal, setTd1ProvTotal] = useState(0);
+  const [td1ProvCode, setTd1ProvCode] = useState(1);
+
+  const [additionalTaxPerPay, setAdditionalTaxPerPay] = useState(0);
+
+  // YTD carry-ins for mid‑year hires
+  const [ytd, setYtd] = useState({ cpp: 0, cpp2: 0, qpp: 0, qpp2: 0, ei: 0, qpip: 0, tax: 0, nonPeriodic: 0 });
+  const setY = (k) => (e) => setYtd((s) => ({ ...s, [k]: e.target.value }));
+
+  // Registered plans and other credits
+  const [credits, setCredits] = useState({ rrsp: 0, rrspYtd: 0, rpp: 0, rppYtd: 0, unionDues: 0, alimony: 0, northernDeduction: 0, lcf: 0, lcp: 0, commissionEmployee: false });
+  const setC = (k) => (e) => setCredits((s) => ({ ...s, [k]: e?.target?.type === "checkbox" ? e.target.checked : e.target.value }));
+
+  // Load salary components from shared store
+  const [settingsAll, setSettingsAll] = useState(() => loadPayrollSettings());
+  useEffect(() => subscribePayrollSettings((next) => setSettingsAll(next)), []);
+
+  // Map of per-pay amounts for earnings components (by id)
+  const [compAmounts, setCompAmounts] = useState({});
+  const setCompAmt = (id) => (e) => setCompAmounts((m) => ({ ...m, [id]: e.target.value }));
+
+  // Derived compensation figures for display
+  const caComp = useMemo(() => {
     const toNum = (v) => (isNaN(+v) ? 0 : +v);
-    const ctcYear = Math.max(0, toNum(annualCTC));
-    const ctcMonth = ctcYear / 12;
-    const basicM = ctcMonth * (toNum(basicPct) / 100);
-    const hraM = basicM * (toNum(hraPctOfBasic) / 100);
-    const convM = Math.max(0, toNum(convMonthly));
-    const fixedM = Math.max(0, ctcMonth - (basicM + hraM + convM));
+    const grossY = Math.max(0, toNum(annualCTC));
+    const P = PERIODS[payFrequency] || 12;
+    const regularPerPay = grossY / P;
+    // Compute active earnings from Settings
+    const activeEarnings = Array.isArray(settingsAll.salaryComponents?.earnings)
+      ? settingsAll.salaryComponents.earnings.filter((e) => e?.status === "Active")
+      : [];
+    const perPayFromComponents = activeEarnings.reduce((sum, c) => {
+      // Skip a row named 'Regular Wages' because it’s represented by derived regularPerPay
+      if ((c.type || c.name) === "Regular Wages") return sum;
+      const kind = c?.calc?.kind;
+      const val = Number(c?.calc?.value) || 0;
+      let defAmount = 0;
+      if (kind === "flat") defAmount = val;
+      else if (kind === "pct_ctc") defAmount = regularPerPay * (val / 100);
+      else if (kind === "pct_basic") defAmount = regularPerPay * (val / 100);
+      const override = Number(compAmounts[c.id]);
+      return sum + (Number.isFinite(override) && override > 0 ? override : defAmount);
+    }, 0);
+
+    const thisPayTotal = regularPerPay + perPayFromComponents;
     const r2 = (n) => Math.round(n * 100) / 100;
-    return {
-      ctcMonth: r2(ctcMonth),
-      ctcYear: r2(ctcYear),
-      basic: { m: r2(basicM), y: r2(basicM * 12) },
-      hra: { m: r2(hraM), y: r2(hraM * 12) },
-      conv: { m: r2(convM), y: r2(convM * 12) },
-      fixed: { m: r2(fixedM), y: r2(fixedM * 12) },
-      totals: {
-        m: r2(basicM + hraM + convM + fixedM),
-        y: r2((basicM + hraM + convM + fixedM) * 12),
-      },
-    };
-  }, [annualCTC, basicPct, hraPctOfBasic, convMonthly]);
+    return { P, grossY: r2(grossY), regularPerPay: r2(regularPerPay), thisPayTotal: r2(thisPayTotal), activeEarnings };
+  }, [annualCTC, payFrequency, settingsAll, compAmounts]);
 
   /* ---------- Step 3 (personal) ---------- */
   const [personal, setPersonal] = useState({
@@ -448,9 +505,18 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
                       exemptions: { cpp: "", cpp2: "", ei: "", qpip: "" },
                     });
                     setAnnualCTC(0);
-                    setBasicPct(50);
-                    setHraPctOfBasic(50);
-                    setConvMonthly(0);
+                    setPayFrequency("monthly");
+                    setEarnings({ overtime: 0, vacation: 0, bonus: 0, commissions: 0, taxableBenefits: 0, benefitPensionable: true, benefitInsurable: true });
+                    setTd1FedMode("total");
+                    setTd1FedTotal(0);
+                    setTd1FedCode(1);
+                    setTd1ProvMode("total");
+                    setTd1ProvTotal(0);
+                    setTd1ProvCode(1);
+                    setTd1UseIndexing(true);
+                    setAdditionalTaxPerPay(0);
+                    setYtd({ cpp: 0, cpp2: 0, qpp: 0, qpp2: 0, ei: 0, qpip: 0, tax: 0, nonPeriodic: 0 });
+                    setCredits({ rrsp: 0, rrspYtd: 0, rpp: 0, rppYtd: 0, unionDues: 0, alimony: 0, northernDeduction: 0, lcf: 0, lcp: 0, commissionEmployee: false });
                     setPersonal({
                       dob: "",
                       fatherName: "",
@@ -484,11 +550,18 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
                   onClick={() => {
                     onFinish?.({
                       form,
-                      salarySettings: {
-                        annualCTC,
-                        basicPct,
-                        hraPctOfBasic,
-                        convMonthly,
+                      compensation: {
+                        annualGross: annualCTC,
+                        payFrequency,
+                        periodsPerYear: caComp.P,
+                        earnings,
+                        td1: {
+                          federal: { mode: td1FedMode, total: td1FedTotal, code: td1FedCode, indexing: td1UseIndexing },
+                          provincial: { mode: td1ProvMode, total: td1ProvTotal, code: td1ProvCode },
+                          additionalTaxPerPay,
+                        },
+                        ytd,
+                        credits,
                       },
                       personal,
                       paymentMethod,
@@ -793,122 +866,108 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
               </div>
             )}
 
-            {/* STEP 2 */}
+            {/* STEP 2 – Canada salary + tax inputs */}
             {step === 2 && (
               <div className="space-y-4">
                 <div className="rounded-lg border border-slate-200">
                   <div className="grid items-center gap-3 p-4 sm:grid-cols-[1fr_auto_auto_1fr]">
-                    <label className="text-sm text-slate-700">
-                      Annual CTC *
-                    </label>
+                    <label className="text-sm text-slate-700">Annual gross salary <span className="text-red-500">*</span></label>
                     <div className="grid grid-cols-[40px_1fr] gap-2">
-                      <span className="grid place-items-center rounded-md border border-slate-200 bg-slate-50 text-slate-600">
-                        ₹
-                      </span>
-                      <input
-                        className="input"
-                        inputMode="numeric"
-                        value={annualCTC}
-                        onChange={(e) => setAnnualCTC(e.target.value)}
-                        placeholder="0"
-                      />
+                      <span className="grid place-items-center rounded-md border border-slate-200 bg-slate-50 text-slate-600">$</span>
+                      <input className="input" inputMode="numeric" value={annualCTC} onChange={(e) => setAnnualCTC(e.target.value)} placeholder="0" />
                     </div>
-                    <span className="text-sm text-slate-600 text-center">
-                      per year
-                    </span>
+                    <span className="text-sm text-slate-600 text-center">per year (CAD)</span>
+                  </div>
+                  <div className="px-4 pb-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-sm text-slate-700">Pay frequency</label>
+                        <SearchSelect
+                          className="mt-1"
+                          value={payFrequency}
+                          onChange={(opt) => setPayFrequency(opt?.value || payFrequency)}
+                          placeholder="Select pay frequency"
+                          inputClassName="h-11 rounded-md px-3"
+                          floatingLabel={false}
+                          options={[
+                            { value: "weekly", label: "Weekly (52)" },
+                            { value: "biweekly", label: "Biweekly (26)" },
+                            { value: "semimonthly", label: "Semimonthly (24)" },
+                            { value: "monthly", label: "Monthly (12)" },
+                          ]}
+                        />
+                      </div>
+                      <div className="text-sm text-slate-600 grid content-end">Periods per year: <span className="font-medium text-slate-800">{caComp.P}</span></div>
+                    </div>
                   </div>
                   <div className="h-px w-full bg-slate-200" />
-                  <div className="grid grid-cols-[2fr_1fr_1fr_80px] gap-3 px-4 py-2 text-xs font-medium text-slate-600">
-                    <div>SALARY COMPONENTS</div>
-                    <div>CALCULATION TYPE</div>
-                    <div>MONTHLY AMOUNT</div>
+                  <div className="grid grid-cols-[2fr_1fr_1fr_120px] gap-3 px-4 py-2 text-xs font-medium text-slate-600">
+                    <div>EARNINGS</div>
+                    <div>CALCULATION</div>
+                    <div>PER PAY</div>
                     <div className="text-right pr-2">ANNUAL</div>
                   </div>
                   <div className="px-4 pb-4">
-                    <div className="py-2 text-sm font-semibold text-slate-800">
-                      Earnings
+                    {/* Regular wages row derived from Annual Gross */}
+                    <div className="grid grid-cols-[2fr_1fr_1fr_120px] gap-3 items-center py-2">
+                      <div className="text-slate-700">Regular salary/wages</div>
+                      <div className="text-slate-600">Derived</div>
+                      <div className="text-slate-700">{toCAD(caComp.regularPerPay)}</div>
+                      <div className="text-right pr-2 text-slate-700">{toCAD(caComp.grossY)}</div>
                     </div>
-                    <div className="grid grid-cols-[2fr_1fr_1fr_80px] gap-3 items-center py-2">
-                      <div className="text-slate-700">Basic</div>
-                      <div className="flex gap-2">
-                        <input
-                          className="input w-24"
-                          inputMode="decimal"
-                          value={basicPct}
-                          onChange={(e) => setBasicPct(e.target.value)}
-                          placeholder="50.00"
-                        />
-                        <span className="grid place-items-center rounded-md border border-slate-200 bg-slate-50 px-2 text-sm text-slate-700">
-                          % of CTC
-                        </span>
-                      </div>
-                      <div className="text-slate-700">{salary.basic.m}</div>
-                      <div className="text-right pr-2 text-slate-700">
-                        {salary.basic.y}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-[2fr_1fr_1fr_80px] gap-3 items-center py-2">
-                      <div className="text-slate-700">House Rent Allowance</div>
-                      <div className="flex gap-2">
-                        <input
-                          className="input w-24"
-                          inputMode="decimal"
-                          value={hraPctOfBasic}
-                          onChange={(e) => setHraPctOfBasic(e.target.value)}
-                          placeholder="50.00"
-                        />
-                        <span className="grid place-items-center rounded-md border border-slate-200 bg-slate-50 px-2 text-sm text-slate-700">
-                          % of Basic
-                        </span>
-                      </div>
-                      <div className="text-slate-700">{salary.hra.m}</div>
-                      <div className="text-right pr-2 text-slate-700">
-                        {salary.hra.y}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-[2fr_1fr_1fr_80px] gap-3 items-center py-2">
-                      <div className="text-slate-700">Conveyance Allowance</div>
-                      <div className="text-slate-600">Fixed amount</div>
-                      <div>
-                        <input
-                          className="input"
-                          inputMode="decimal"
-                          value={convMonthly}
-                          onChange={(e) => setConvMonthly(e.target.value)}
-                          placeholder="0"
-                        />
-                      </div>
-                      <div className="text-right pr-2 text-slate-700">
-                        {salary.conv.y}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-[2fr_1fr_1fr_80px] gap-3 items-center py-2">
-                      <div className="text-slate-700">
-                        Fixed Allowance{" "}
-                        <span
-                          className="text-slate-400"
-                          title="Monthly CTC - sum of all other components"
-                        >
-                          ⓘ
-                        </span>
-                      </div>
-                      <div className="text-slate-600">Fixed amount</div>
-                      <div className="text-slate-700">{salary.fixed.m}</div>
-                      <div className="text-right pr-2 text-slate-700">
-                        {salary.fixed.y}
-                      </div>
-                    </div>
+                    {/* Dynamic earnings from Settings (Active) */}
+                    {caComp.activeEarnings.filter((c) => (c.type || c.name) !== "Regular Wages").map((c) => {
+                      const kind = c?.calc?.kind;
+                      const val = Number(c?.calc?.value) || 0;
+                      let calcLabel = "—";
+                      if (kind === "flat") calcLabel = "Per pay";
+                      else if (kind === "pct_ctc") calcLabel = `${val}% of Gross`;
+                      else if (kind === "pct_basic") calcLabel = `${val}% of Regular`;
+                      const override = compAmounts[c.id];
+                      const P = caComp.P || 12;
+                      // Default amount from calculation for initial hint
+                      let defAmount = 0;
+                      if (kind === "flat") defAmount = val; else if (kind === "pct_ctc" || kind === "pct_basic") defAmount = (Number(annualCTC || 0) / P) * (val / 100);
+                      const perPay = override !== undefined && override !== "" ? Number(override) : defAmount;
+                      return (
+                        <div key={c.id} className="grid grid-cols-[2fr_1fr_1fr_120px] gap-3 items-center py-2">
+                          <div className="text-slate-700">{c.name}</div>
+                          <div className="text-slate-600">{calcLabel}</div>
+                          <div>
+                            <input className="input" inputMode="decimal" value={override ?? (defAmount ? String(defAmount) : "")} onChange={setCompAmt(c.id)} placeholder={defAmount ? String(defAmount) : "0"} />
+                          </div>
+                          <div className="text-right pr-2 text-slate-700">{perPay ? toCAD(perPay * P) : <span className="text-slate-400">—</span>}</div>
+                        </div>
+                      );
+                    })}
+
                     <div className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm font-medium text-slate-800 flex items-center justify-between">
-                      <span>Cost to Company</span>
-                      <span>
-                        ₹{salary.totals.m}{" "}
-                        <span className="text-slate-500">/ month</span>
-                        <span className="mx-2 text-slate-400">•</span>
-                        ₹{salary.totals.y}{" "}
-                        <span className="text-slate-500">/ year</span>
-                      </span>
+                      <span>Total earnings (this pay)</span>
+                      <span>{toCAD(caComp.thisPayTotal)}</span>
                     </div>
                   </div>
+                </div>
+
+                {/* Taxes are configured in Settings → Tax Details & Statutory Components. */}
+                <div className="rounded-lg border border-slate-200 p-4 text-[13px] text-slate-600">
+                  <div className="font-medium text-slate-800 mb-1">Taxes & statutory (from Settings)</div>
+                  <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
+                    <div>
+                      <div>TD1 mode: <span className="font-medium text-slate-800">{settingsAll?.taxes?.employee?.td1Mode || "—"}</span></div>
+                      {settingsAll?.taxes?.employee?.td1Mode === "totals" ? (
+                        <div className="text-slate-600">TC {settingsAll?.taxes?.employee?.tc || "—"}; TCP {settingsAll?.taxes?.employee?.tcp || "—"}</div>
+                      ) : (
+                        <div className="text-slate-600">Claim code {settingsAll?.taxes?.employee?.claimCode || "—"}</div>
+                      )}
+                      <div className="text-slate-600">Additional tax (L): {settingsAll?.taxes?.employee?.extraTaxL || "—"}</div>
+                    </div>
+                    <div>
+                      <div>CPP/QPP: <span className="font-medium text-slate-800">{settingsAll?.statutory?.cppqpp ? "On" : "Off"}</span>; CPP2: <span className="font-medium text-slate-800">{settingsAll?.statutory?.cpp2 ? "On" : "Off"}</span></div>
+                      <div>EI insurable: <span className="font-medium text-slate-800">{settingsAll?.statutory?.eiInsurable ? "Yes" : "No"}</span>{form.quebecEmployee ? " (Use QPIP)" : ""}</div>
+                      <div>TD1X: <span className="font-medium text-slate-800">{settingsAll?.statutory?.td1x ? "Present" : "No"}</span></div>
+                    </div>
+                  </div>
+                  <div className="mt-2">Edit in Settings → Tax Details and Statutory Components.</div>
                 </div>
               </div>
             )}
