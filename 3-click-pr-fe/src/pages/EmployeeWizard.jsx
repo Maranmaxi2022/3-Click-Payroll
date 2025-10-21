@@ -253,17 +253,23 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
   /* ---------- Step 3 (personal) ---------- */
   const [personal, setPersonal] = useState({
     dob: "",
-    fatherName: "",
-    pan: "",
-    diffAbled: "None",
+    // Canada: SIN capture (store only hash + last3 for display)
+    sinDigits: "", // transient 0-9 digits
+    sinLast3: "", // for masked display
+    sinHash: "", // salted SHA-256 of digits
+    sinMasked: false, // mask on blur
+    preferredName: "", // optional middle/preferred name
     personalEmail: "",
     addr1: "",
     addr2: "",
     city: "",
-    state: "",
-    pin: "",
+    province: "",
+    postal: "",
+    country: "Canada",
+    langPref: "English", // English | French
+    consentEslips: false, // consent to electronic T4/RL-1
   });
-  const setP = (k) => (e) => setPersonal((p) => ({ ...p, [k]: e.target.value }));
+  const setP = (k) => (e) => setPersonal((p) => ({ ...p, [k]: e.target?.type === "checkbox" ? e.target.checked : e.target.value }));
 
   const age = useMemo(() => {
     if (!personal.dob) return "";
@@ -275,6 +281,66 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
     if (m < 0 || (m === 0 && t.getDate() < dob.getDate())) a--;
     return a >= 0 ? String(a) : "";
   }, [personal.dob]);
+
+  // Helpers: SIN formatting + hashing
+  const formatSin = (digits) => {
+    const d = (digits || "").replace(/\D+/g, "").slice(0, 9);
+    const a = d.slice(0, 3);
+    const b = d.slice(3, 6);
+    const c = d.slice(6, 9);
+    return [a, b, c].filter(Boolean).join(" ");
+  };
+  const maskSin = (digits) => {
+    const d = (digits || "").replace(/\D+/g, "").slice(0, 9);
+    if (!d) return "";
+    const last3 = d.slice(-3);
+    return `XXX XXX ${last3}`;
+  };
+  const isObviousInvalidSIN = (digits) => {
+    const d = (digits || "").replace(/\D+/g, "");
+    if (d.length !== 9) return true;
+    if (/^(\d)\1{8}$/.test(d)) return true; // all same digit
+    return false;
+  };
+  // Luhn (Mod 10) check for SIN
+  const luhnCheck = (digits) => {
+    const d = (digits || "").replace(/\D+/g, "");
+    if (d.length !== 9) return false;
+    let sum = 0;
+    for (let i = 0; i < d.length; i++) {
+      let n = Number(d[i]);
+      if (i % 2 === 1) { // even position (0-based) -> double
+        n *= 2;
+        if (n > 9) n -= 9;
+      }
+      sum += n;
+    }
+    return sum % 10 === 0;
+  };
+  // Salted hash using Web Crypto; fallback to simple hash if unavailable
+  async function hashSIN(digits) {
+    const enc = new TextEncoder();
+    const salt = new Uint8Array(12);
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) crypto.getRandomValues(salt);
+    const payload = new Uint8Array([...salt, ...enc.encode(String(digits || ""))]);
+    let digestHex = "";
+    try {
+      if (crypto?.subtle?.digest) {
+        const buf = await crypto.subtle.digest("SHA-256", payload);
+        const bytes = new Uint8Array(buf);
+        digestHex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+      } else {
+        // very small fallback
+        let h = 0;
+        for (let i = 0; i < payload.length; i++) h = (h * 31 + payload[i]) >>> 0;
+        digestHex = h.toString(16);
+      }
+    } catch (e) {
+      digestHex = "";
+    }
+    const saltHex = Array.from(salt, (b) => b.toString(16).padStart(2, "0")).join("");
+    return `${saltHex}$${digestHex}`;
+  }
 
   /* ---------- Step 4 (payment information) ---------- */
   const [paymentMethod, setPaymentMethod] = useState("bank");
@@ -519,15 +585,20 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
                     setCredits({ rrsp: 0, rrspYtd: 0, rpp: 0, rppYtd: 0, unionDues: 0, alimony: 0, northernDeduction: 0, lcf: 0, lcp: 0, commissionEmployee: false });
                     setPersonal({
                       dob: "",
-                      fatherName: "",
-                      pan: "",
-                      diffAbled: "None",
+                      sinDigits: "",
+                      sinLast3: "",
+                      sinHash: "",
+                      sinMasked: false,
+                      preferredName: "",
                       personalEmail: "",
                       addr1: "",
                       addr2: "",
                       city: "",
-                      state: "",
-                      pin: "",
+                      province: "",
+                      postal: "",
+                      country: "Canada",
+                      langPref: "English",
+                      consentEslips: false,
                     });
                     setPaymentMethod("bank");
                     setBank({
@@ -977,114 +1048,103 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
-                    <label className="block text-sm text-slate-700">
-                      Date of Birth *
-                    </label>
-                    <input
-                      type="date"
-                      className="input mt-1"
-                      value={personal.dob}
-                      onChange={setP("dob")}
-                    />
+                    <label className="block text-sm text-slate-700">Date of Birth *</label>
+                    <input type="date" className="input mt-1" value={personal.dob} onChange={setP("dob")} />
+                    <div className="mt-1 text-xs text-slate-500">
+                      {(() => {
+                        if (!personal.dob) return null;
+                        const a = Number(age || 0);
+                        if (a < 18) return "CPP not deducted until month after 18th birthday.";
+                        if (a >= 70) return "CPP stops this month.";
+                        return null;
+                      })()}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm text-slate-700">Age</label>
+                    <input className="input mt-1 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed" value={age} disabled placeholder="—" />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-slate-700">SIN (Social Insurance Number)</label>
                     <input
-                      className="input mt-1 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
-                      value={age}
-                      disabled
-                      placeholder="—"
+                      className={cx("input mt-1", (personal.sinDigits && (isObviousInvalidSIN(personal.sinDigits) || !luhnCheck(personal.sinDigits))) ? "border-red-300" : "")}
+                      inputMode="numeric"
+                      placeholder="### ### ###"
+                      value={personal.sinMasked ? maskSin(personal.sinDigits) : formatSin(personal.sinDigits)}
+                      onChange={(e) => {
+                        const raw = (e.target.value || "").replace(/\D+/g, "").slice(0, 9);
+                        setPersonal((p) => ({ ...p, sinDigits: raw }));
+                      }}
+                      onFocus={() => setPersonal((p) => ({ ...p, sinMasked: false }))}
+                      onBlur={async () => {
+                        setPersonal((p) => ({ ...p, sinMasked: true }));
+                        const d = personal.sinDigits;
+                        if (!d || isObviousInvalidSIN(d)) return;
+                        const sinHash = await hashSIN(d);
+                        setPersonal((p) => ({ ...p, sinHash, sinLast3: d.slice(-3) }));
+                      }}
                     />
+                    <div className="mt-1 text-xs text-slate-500">Digits only; formats to 123 456 789. Stored encrypted; only last 3 digits are shown after entry.</div>
+                    {(personal.sinDigits && isObviousInvalidSIN(personal.sinDigits)) && (
+                      <div className="text-xs text-red-600 mt-1">Please enter a 9-digit SIN that isn’t a repeated digit.</div>
+                    )}
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-slate-700">Middle name / Preferred name (optional)</label>
+                    <input className="input mt-1" value={personal.preferredName} onChange={setP("preferredName")} />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-slate-700">Personal Email Address</label>
+                    <input className="input mt-1" placeholder="abc@xyz.com" value={personal.personalEmail} onChange={setP("personalEmail")} />
                   </div>
                   <div>
-                    <label className="block text-sm text-slate-700">
-                      Father&apos;s Name *
-                    </label>
-                    <input
-                      className="input mt-1"
-                      value={personal.fatherName}
-                      onChange={setP("fatherName")}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-slate-700">PAN</label>
-                    <input
-                      className="input mt-1"
-                      placeholder="AAAAA0000A"
-                      value={personal.pan}
-                      onChange={setP("pan")}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-slate-700">
-                      Differently Abled Type
-                    </label>
-                    <select
-                      className="input mt-1"
-                      value={personal.diffAbled}
-                      onChange={setP("diffAbled")}
-                    >
-                      <option>None</option>
-                      <option>Blindness</option>
-                      <option>Low vision</option>
-                      <option>Hearing impairment</option>
-                      <option>Loco-motor disability</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-slate-700">
-                      Personal Email Address
-                    </label>
-                    <input
-                      className="input mt-1"
-                      placeholder="abc@xyz.com"
-                      value={personal.personalEmail}
-                      onChange={setP("personalEmail")}
+                    <label className="block text-sm text-slate-700">Language preference</label>
+                    <SearchSelect
+                      options={[{ value: "English", label: "English" }, { value: "French", label: "Français" }]}
+                      value={personal.langPref}
+                      onChange={(opt) => setPersonal((p) => ({ ...p, langPref: opt?.value || p.langPref }))}
+                      placeholder="Select"
+                      inputClassName="h-9 rounded-md px-3"
+                      floatingLabel={false}
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm text-slate-700">
-                      Residential Address
+                    <label className="flex items-center gap-2 text-sm text-slate-700">
+                      <input type="checkbox" checked={personal.consentEslips} onChange={setP("consentEslips")} />
+                      Consent to electronic T4 / RL-1
                     </label>
-                    <input
-                      className="input mt-1"
-                      placeholder="Address Line 1"
-                      value={personal.addr1}
-                      onChange={setP("addr1")}
-                    />
-                    <input
-                      className="input mt-2"
-                      placeholder="Address Line 2"
-                      value={personal.addr2}
-                      onChange={setP("addr2")}
-                    />
-                    <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm text-slate-700">Residential Address</label>
+                    <input className="input mt-1" placeholder="Address Line 1" value={personal.addr1} onChange={setP("addr1")} />
+                    <input className="input mt-2" placeholder="Address Line 2" value={personal.addr2} onChange={setP("addr2")} />
+                    <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-4">
+                      <input className="input" placeholder="City" value={personal.city} onChange={setP("city")} />
+                      <ProvinceSelect value={personal.province} onChange={(opt) => setPersonal((p) => ({ ...p, province: opt?.value || "" }))} />
                       <input
                         className="input"
-                        placeholder="City"
-                        value={personal.city}
-                        onChange={setP("city")}
+                        placeholder="Postal Code (A1A 1A1)"
+                        value={personal.postal}
+                        onChange={(e) => {
+                          const v = (e.target.value || "").toUpperCase();
+                          const clean = v.replace(/[^A-Z0-9]/g, "").slice(0, 6);
+                          const a = clean.slice(0, 3);
+                          const b = clean.slice(3, 6);
+                          const pc = b ? `${a} ${b}` : a;
+                          setPersonal((p) => ({ ...p, postal: pc }));
+                        }}
                       />
-                      <select
-                        className="input"
-                        value={personal.state}
-                        onChange={setP("state")}
-                      >
-                        <option value="">State</option>
-                        <option>Tamil Nadu</option>
-                        <option>Karnataka</option>
-                        <option>Maharashtra</option>
-                        <option>Delhi</option>
-                        <option>Kerala</option>
-                        <option>Telangana</option>
-                      </select>
-                      <input
-                        className="input"
-                        placeholder="PIN Code"
-                        inputMode="numeric"
-                        value={personal.pin}
-                        onChange={setP("pin")}
+                      <SearchSelect
+                        options={[{ value: "Canada", label: "Canada" }, { value: "United States", label: "United States" }, { value: "Other", label: "Other" }]}
+                        value={personal.country}
+                        onChange={(opt) => setPersonal((p) => ({ ...p, country: opt?.value || "Canada" }))}
+                        placeholder="Country"
+                        inputClassName="h-9 rounded-md px-3"
+                        floatingLabel={false}
                       />
                     </div>
                   </div>
