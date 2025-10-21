@@ -1,4 +1,5 @@
 import React from "react";
+import { getAccentPreset, loadBrandingPreferences } from "../utils/branding";
 
 // Simple building blocks for cards and stats
 const cx = (...xs) => xs.filter(Boolean).join(" ");
@@ -61,6 +62,282 @@ function BarRow({ label, value, amount, color = "bg-red-500", max = 100 }) {
   );
 }
 
+// CAD formatting and chart helpers (for Canadian payroll)
+const toCAD = (n) =>
+  new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "CAD",
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(n) ? n : 0);
+
+const formatShort = (n) => {
+  const abs = Math.abs(n || 0);
+  if (abs >= 1e9) {
+    const v = n / 1e9;
+    const d = Number.isInteger(v) ? 0 : 1;
+    return `${v.toFixed(d)} B`;
+  }
+  if (abs >= 1e6) {
+    const v = n / 1e6;
+    const d = Number.isInteger(v) ? 0 : 1;
+    return `${v.toFixed(d)} M`;
+  }
+  if (abs >= 1e3) return `${(n / 1e3).toFixed(0)} K`;
+  return `${n || 0}`;
+};
+
+// Produce "nice" axis ticks for a given range
+function niceNum(x, round) {
+  if (!isFinite(x) || x <= 0) return 1;
+  const exp = Math.floor(Math.log10(x));
+  const f = x / Math.pow(10, exp);
+  let nf;
+  if (round) {
+    if (f < 1.5) nf = 1;
+    else if (f < 3) nf = 2;
+    else if (f < 3.5) nf = 2.5;
+    else if (f < 7) nf = 5;
+    else nf = 10;
+  } else {
+    if (f <= 1) nf = 1;
+    else if (f <= 2) nf = 2;
+    else if (f <= 2.5) nf = 2.5;
+    else if (f <= 5) nf = 5;
+    else nf = 10;
+  }
+  return nf * Math.pow(10, exp);
+}
+
+function niceScale(min, max, desiredTicks = 7) {
+  const range = niceNum(max - min, false);
+  const step = niceNum(range / (desiredTicks - 1), true);
+  const niceMin = Math.floor(min / step) * step;
+  const niceMax = Math.ceil(max / step) * step;
+  const ticks = [];
+  for (let v = niceMin; v <= niceMax + step / 2; v += step) ticks.push(v);
+  return { niceMin, niceMax, step, ticks };
+}
+
+function LegendRow({ color, label, value }) {
+  return (
+    <div className="flex items-center justify-between text-[13px] text-slate-700">
+      <div className="flex items-center gap-2">
+        <Dot className={color} />
+        <span>{label}</span>
+      </div>
+      <div className="font-medium">{value}</div>
+    </div>
+  );
+}
+
+// Polished dropdown used in Box 01 (header)
+function DropdownFilter({ value, onChange, accent }) {
+  const options = [
+    { id: "year", label: "This Year" },
+    { id: "quarter", label: "This Quarter" },
+    { id: "month", label: "This Month" },
+    { id: "custom", label: "Custom Range" },
+  ];
+  const [open, setOpen] = React.useState(false);
+  const [hover, setHover] = React.useState(() => options.findIndex((o) => o.id === value));
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    const onDoc = (e) => {
+      if (!ref.current) return;
+      if (!ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const select = (id) => {
+    onChange?.(id);
+    setOpen(false);
+  };
+
+  const onKeyDown = (e) => {
+    if (!open && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      setOpen(true);
+      return;
+    }
+    if (!open) return;
+    if (e.key === "Escape") {
+      setOpen(false);
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHover((h) => (h + 1) % options.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHover((h) => (h - 1 + options.length) % options.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const opt = options[hover] || options[0];
+      select(opt.id);
+    }
+  };
+
+  const label = options.find((o) => o.id === value)?.label ?? "This Year";
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        className={`inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current focus:border-current ${accent ? `focus:${accent.textClass}` : "focus:text-blue-600"}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        onKeyDown={onKeyDown}
+      >
+        {label}
+        <svg width="16" height="16" viewBox="0 0 20 20" className="text-slate-500"><path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-slate-100"
+        >
+          {options.map((opt, i) => {
+            const active = opt.id === value;
+            const hovered = i === hover;
+            return (
+              <div
+                key={opt.id}
+                role="option"
+                aria-selected={active}
+                className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm ${hovered ? "bg-slate-50" : ""}`}
+                onMouseEnter={() => setHover(i)}
+                onClick={() => select(opt.id)}
+              >
+                <span className={`truncate ${active ? "font-semibold text-slate-800" : "text-slate-700"}`}>{opt.label}</span>
+                {active ? (
+                  <svg width="16" height="16" viewBox="0 0 20 20" className={`${accent?.textClass || "text-blue-600"}`}><path d="M7.5 11.5l2 2 4-5" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Stacked monthly bar chart (no external libs)
+function StackedBarChartCA({ data = [] }) {
+  const COLORS = {
+    net: "bg-emerald-500",
+    taxes: "bg-amber-400",
+    statutory: "bg-blue-500",
+    deductions: "bg-rose-500",
+  };
+
+  const totals = data.map((d) => d.net + d.taxes + d.statutory + d.deductions);
+  const max = Math.max(1, ...totals);
+  const desiredTicks = 7; // denser scale for smaller gaps
+  const { niceMax, ticks } = niceScale(0, max, desiredTicks);
+  const H = 256; // px – match h-64
+  const BOTTOM_PAD = 24; // reserved space for x-axis labels (px)
+
+  const [hover, setHover] = React.useState(null);
+
+  return (
+    <div className="grid grid-cols-[56px_minmax(0,1fr)] gap-2">
+        <div className="relative h-64 select-none">
+          <div className="absolute inset-x-0 top-0" style={{ bottom: `${BOTTOM_PAD}px` }}>
+            {ticks.map((t, i) => (
+              <div
+                key={i}
+                className="absolute right-1 -translate-y-1/2 text-[11px] text-slate-400"
+                style={{ bottom: `${(i / (ticks.length - 1)) * 100}%` }}
+              >
+                {formatShort(t)}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative h-64">
+          {/* Plot area that clips its contents; bars are drawn inside this box */}
+          <div className="absolute inset-0 overflow-hidden rounded-md ring-1 ring-slate-200">
+            {/* Grid background */}
+            <div
+              className="absolute inset-x-0 top-0"
+              style={{
+                bottom: `${BOTTOM_PAD}px`,
+                backgroundImage: (() => {
+                  const stepPx = (H - BOTTOM_PAD) / Math.max(1, (ticks.length - 1));
+                  return `repeating-linear-gradient(to top, rgba(203,213,225,0.35) 0px, rgba(203,213,225,0.35) 1px, transparent 1px, transparent ${stepPx}px)`;
+                })(),
+              }}
+            />
+
+            {/* Bars, confined to the plot box (leaving space at bottom for labels) */}
+            <div
+              className="absolute inset-x-0 top-0 flex items-end gap-4 px-3 sm:gap-6 md:gap-8"
+              style={{ bottom: `${BOTTOM_PAD}px` }}
+            >
+              {data.map((d, i) => {
+                const total = totals[i] || 1;
+                const hPx = Math.max(2, Math.round((total / niceMax) * (H - BOTTOM_PAD)));
+                const sNet = Math.round((d.net / total) * hPx);
+                const sTaxes = Math.round((d.taxes / total) * hPx);
+                const sStat = Math.round((d.statutory / total) * hPx);
+                // ensure sum fills the column exactly
+                const sDed = Math.max(0, hPx - (sNet + sTaxes + sStat));
+                const leftPct = ((i + 0.5) / data.length) * 100;
+                const showTip = hover === i;
+                return (
+                  <div
+                    key={d.key || i}
+                    className="group relative flex w-[10px] flex-col items-center sm:w-[12px] md:w-[14px]"
+                    onMouseEnter={() => setHover(i)}
+                    onMouseLeave={() => setHover(null)}
+                  >
+                    <div
+                      className="relative w-full overflow-hidden rounded-lg bg-white/80 ring-1 ring-slate-200"
+                      style={{ height: `${hPx}px` }}
+                    >
+                      <div className={cx("w-full first:rounded-b-lg last:rounded-t-lg", COLORS.net)} style={{ height: `${sNet}px` }} />
+                      <div className={cx("w-full first:rounded-b-lg last:rounded-t-lg", COLORS.taxes)} style={{ height: `${sTaxes}px` }} />
+                      <div className={cx("w-full first:rounded-b-lg last:rounded-t-lg", COLORS.statutory)} style={{ height: `${sStat}px` }} />
+                      <div className={cx("w-full first:rounded-b-lg last:rounded-t-lg", COLORS.deductions)} style={{ height: `${sDed}px` }} />
+                    </div>
+
+                    {showTip ? (
+                      <div
+                        className="absolute z-10 -translate-x-1/2 rounded-lg bg-white p-3 text-[13px] shadow-lg ring-1 ring-slate-200"
+                        style={{ left: `${Math.max(10, Math.min(90, leftPct))}%`, bottom: "60%" }}
+                      >
+                        <div className="space-y-1">
+                          <LegendRow color={COLORS.net} label="Net Pay" value={toCAD(d.net)} />
+                          <LegendRow color={COLORS.taxes} label="Taxes" value={toCAD(d.taxes)} />
+                          <LegendRow color={COLORS.statutory} label="Statutories" value={toCAD(d.statutory)} />
+                          <LegendRow color={COLORS.deductions} label="Deductions" value={toCAD(d.deductions)} />
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* X-axis labels below the clipped plot area */}
+          <div className="absolute inset-x-0 bottom-0 flex gap-4 px-3 sm:gap-6 md:gap-8">
+            {data.map((d, i) => (
+              <div key={(d.key || i) + "-lbl"} className="w-[10px] text-center text-[12px] leading-tight text-slate-600 select-none sm:w-[12px] md:w-[14px]">
+                {d.m}
+                <div className="text-[11px] text-slate-400">{d.y}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+    </div>
+  );
+}
+
 const formatLong = (iso) =>
   new Date(iso).toLocaleString(undefined, {
     month: "long",
@@ -94,17 +371,46 @@ export default function DashboardHome() {
 
   // Employee distribution counts (removed bars; keep if needed later)
 
-  const costSummary = [
-    { label: "Net Pay", amount: "$56,816.36", value: 90, color: "bg-rose-700" },
-    { label: "Taxes", amount: "$78,026.52", value: 100, color: "bg-red-500" },
-    { label: "Benefits", amount: "$800.00", value: 10, color: "bg-amber-400" },
-    {
-      label: "Deductions",
-      amount: "$9,000.00",
-      value: 25,
-      color: "bg-orange-300",
-    },
-  ];
+  // Filtered period for chart
+  const [period, setPeriod] = React.useState("year"); // 'year' | 'quarter' | 'month' | 'custom'
+
+  // Accented input styles
+  const accent = getAccentPreset(loadBrandingPreferences().accent);
+  const accentFocus = `${accent.textClass} focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current focus:border-current`;
+
+  // Generate synthetic monthly data for the selected period (replace with real aggregates)
+  const buildMonthly = React.useCallback((count) => {
+    const now = new Date();
+    return Array.from({ length: count }).map((_, idxFromEnd) => {
+      const d = new Date(
+        now.getFullYear(),
+        now.getMonth() - (count - 1 - idxFromEnd),
+        1
+      );
+      const y = d.getFullYear();
+      const m = d.toLocaleString(undefined, { month: "short" });
+      const base = 90000 + (idxFromEnd % 3) * 6000;
+      const net = base * 10.5;
+      const taxes = base * 5.8;
+      const statutory = base * 0.35;
+      const deductions = base * 0.05;
+      return { key: `${y}-${m}`, y, m, net, taxes, statutory, deductions };
+    });
+  }, []);
+
+  const monthlyCA = React.useMemo(() => {
+    switch (period) {
+      case "quarter":
+        return buildMonthly(3);
+      case "month":
+        return buildMonthly(1);
+      case "custom":
+        return buildMonthly(6);
+      case "year":
+      default:
+        return buildMonthly(10);
+    }
+  }, [period, buildMonthly]);
 
   return (
     <div className="pb-8">
@@ -259,33 +565,17 @@ export default function DashboardHome() {
           <Card
             className="rounded-2xl"
             title="Payroll Cost Summary"
+            headerRight={<DropdownFilter value={period} onChange={setPeriod} accent={accent} />}
           >
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_240px]">
-              <div className="space-y-3">
-                {costSummary.map((row) => (
-                  <BarRow
-                    key={row.label}
-                    label={row.label}
-                    amount={row.amount}
-                    value={row.value}
-                    color={row.color}
-                    max={100}
-                  />
-                ))}
-              </div>
+            {/* Box 02 — content area */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px]">
+              <StackedBarChartCA data={monthlyCA} />
+              {/* Legend panel (right on large, stacked on mobile) */}
               <div className="space-y-2">
-                {costSummary.map((row) => (
-                  <div
-                    key={row.label}
-                    className="flex items-center justify-between text-[13px] text-slate-700"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Dot className={row.color} />
-                      <span>{row.label}</span>
-                    </div>
-                    <div className="font-medium">{row.amount}</div>
-                  </div>
-                ))}
+                <LegendRow label="Net Pay" color="bg-emerald-500" value={toCAD(monthlyCA.reduce((s, d) => s + (d.net || 0), 0))} />
+                <LegendRow label="Taxes" color="bg-amber-400" value={toCAD(monthlyCA.reduce((s, d) => s + (d.taxes || 0), 0))} />
+                <LegendRow label="Statutories" color="bg-blue-500" value={toCAD(monthlyCA.reduce((s, d) => s + (d.statutory || 0), 0))} />
+                <LegendRow label="Deductions" color="bg-rose-500" value={toCAD(monthlyCA.reduce((s, d) => s + (d.deductions || 0), 0))} />
               </div>
             </div>
           </Card>
