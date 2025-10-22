@@ -15,7 +15,6 @@ import {
 
 import DashboardHome from "./DashboardHome";
 import EmployeesView from "./EmployeesView";
-import TimeOffView from "./TimeOffView";
 import PayRunsView from "./PayRunsView";
 import SettingsView from "./SettingsView";
 import EmployeeWizard from "./EmployeeWizard";
@@ -41,7 +40,7 @@ const stepData = [
 export default function PayrollDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [tab, setTab] = useState("dashboard"); // 'dashboard' | 'employees' | 'timeoff' | 'payruns' | 'settings'
+  const [tab, setTab] = useState("dashboard"); // 'dashboard' | 'employees' | 'payruns' | 'settings'
   const [subroute, setSubroute] = useState(""); // e.g., 'employees/new'
   const [settingsActive, setSettingsActive] = useState("org.profile");
   const [branding, setBranding] = useState(() => {
@@ -50,7 +49,7 @@ export default function PayrollDashboard() {
   });
   const [settingsTitleOverride, setSettingsTitleOverride] = useState("");
 
-  const TABS = ["dashboard", "employees", "timeoff", "payruns", "settings"];
+  const TABS = ["dashboard", "employees", "payruns", "settings"];
 
   // Read current hash on load + on change
   useEffect(() => {
@@ -293,14 +292,7 @@ export default function PayrollDashboard() {
                 appearance={branding.appearance}
                 accent={branding.accent}
               />
-              <SidebarLink
-                icon={Clock}
-                label="Work Calendar"
-                active={tab === "timeoff"}
-                onClick={go("timeoff")}
-                appearance={branding.appearance}
-                accent={branding.accent}
-              />
+              {/* Work Calendar removed */}
               <SidebarLink
                 icon={Wallet}
                 label="Pay Runs"
@@ -346,7 +338,7 @@ export default function PayrollDashboard() {
               : <EmployeesView />
           )}
 
-          {tab === "timeoff" && <TimeOffView />}
+          {/* Work Calendar removed */}
           {tab === "payruns" && <PayRunsView />}
           {tab === "settings" && (
             <SettingsView
@@ -424,14 +416,7 @@ export default function PayrollDashboard() {
               appearance={branding.appearance}
               accent={branding.accent}
             />
-            <SidebarLink
-              icon={Clock}
-              label="Work Calendar"
-              active={tab === "timeoff"}
-              onClick={goMobile("timeoff")}
-              appearance={branding.appearance}
-              accent={branding.accent}
-            />
+            {/* Work Calendar removed */}
             <div className={cls("my-1 h-px", dividerClass)} />
             <SidebarLink
               icon={Wallet}
