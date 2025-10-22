@@ -295,7 +295,7 @@ export default function PayrollDashboard() {
               />
               <SidebarLink
                 icon={Clock}
-                label="Time Off"
+                label="Work Calendar"
                 active={tab === "timeoff"}
                 onClick={go("timeoff")}
                 appearance={branding.appearance}
@@ -426,7 +426,7 @@ export default function PayrollDashboard() {
             />
             <SidebarLink
               icon={Clock}
-              label="Time Off"
+              label="Work Calendar"
               active={tab === "timeoff"}
               onClick={goMobile("timeoff")}
               appearance={branding.appearance}
