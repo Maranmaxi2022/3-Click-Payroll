@@ -66,6 +66,16 @@ body { overflow-x: hidden; }
   }
 }
 
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* On md+ screens, reserve space for up to two lines of label text */
 @media (min-width: 768px) {
   .form-label { min-height: 44px; }
