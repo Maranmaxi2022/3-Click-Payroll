@@ -75,7 +75,7 @@ export function WorkCalendarNavBar() {
           {WEEK_DAYS[0].label}
         </div>
         <div className="mt-3 rounded-lg bg-white">
-          <div className="h-[260px] overflow-y-auto py-1 hide-scrollbar">
+          <div className="max-h-[520px] overflow-y-auto py-1 hide-scrollbar">
             {EMPLOYEES.map((emp) => (
               <div
                 key={emp.id}
@@ -121,7 +121,7 @@ export function WorkCalendarNavBar() {
 
 export function WorkCalendarHeaderBar() {
   return (
-    <div className="space-y-4">
+    <div className="rounded-2xl bg-white p-4 space-y-4">
       <WorkCalendarPrimaryControls />
       <WorkCalendarNavBar />
     </div>
@@ -130,9 +130,13 @@ export function WorkCalendarHeaderBar() {
 
 export default function WorkCalendarView() {
   return (
-    <div className="lg:hidden sticky top-16 z-40 border-b border-slate-200 bg-white px-4 py-4 space-y-4">
-      <WorkCalendarPrimaryControls />
-      <WorkCalendarNavBar />
+    <div className="space-y-6">
+      <div className="lg:hidden sticky top-16 z-40 border-b border-slate-200 bg-white px-4 py-4">
+        <div className="rounded-2xl bg-white p-4 space-y-4">
+          <WorkCalendarPrimaryControls />
+          <WorkCalendarNavBar />
+        </div>
+      </div>
     </div>
   );
 }
