@@ -68,51 +68,154 @@ function WorkCalendarPrimaryControls() {
 }
 
 export function WorkCalendarNavBar() {
+  const headerScrollRef = React.useRef(null);
+  const gridScrollRef = React.useRef(null);
+  const containerRef = React.useRef(null);
+  const [maxHeight, setMaxHeight] = React.useState(520);
+
+  React.useEffect(() => {
+    const headerEl = headerScrollRef.current;
+    const gridEl = gridScrollRef.current;
+
+    if (!headerEl || !gridEl) {
+      return;
+    }
+
+    let syncingFromHeader = false;
+    let syncingFromGrid = false;
+
+    const handleHeaderScroll = () => {
+      if (syncingFromHeader) {
+        syncingFromHeader = false;
+        return;
+      }
+      syncingFromGrid = true;
+      gridEl.scrollLeft = headerEl.scrollLeft;
+    };
+
+    const handleGridScroll = () => {
+      if (syncingFromGrid) {
+        syncingFromGrid = false;
+        return;
+      }
+      syncingFromHeader = true;
+      headerEl.scrollLeft = gridEl.scrollLeft;
+    };
+
+    headerEl.addEventListener("scroll", handleHeaderScroll, { passive: true });
+    gridEl.addEventListener("scroll", handleGridScroll, { passive: true });
+
+    return () => {
+      headerEl.removeEventListener("scroll", handleHeaderScroll);
+      gridEl.removeEventListener("scroll", handleGridScroll);
+    };
+  }, []);
+
+  React.useLayoutEffect(() => {
+    const containerEl = containerRef.current;
+    if (!containerEl) {
+      return;
+    }
+
+    const calculateHeight = () => {
+      const rect = containerEl.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const spacing = 32; // leave a bit of breathing room at the bottom
+      const available = viewportHeight - rect.top - spacing;
+
+      if (!Number.isFinite(available)) {
+        return;
+      }
+
+      const nextHeight = Math.max(320, Math.floor(available));
+      setMaxHeight((prev) => (prev !== nextHeight ? nextHeight : prev));
+    };
+
+    calculateHeight();
+    window.addEventListener("resize", calculateHeight);
+    window.addEventListener("orientationchange", calculateHeight);
+    window.addEventListener("scroll", calculateHeight, { passive: true });
+
+    return () => {
+      window.removeEventListener("resize", calculateHeight);
+      window.removeEventListener("orientationchange", calculateHeight);
+      window.removeEventListener("scroll", calculateHeight);
+    };
+  }, []);
+
   return (
-    <div className="flex items-stretch gap-4">
-      <div className="flex w-[278px] shrink-0 flex-col">
-        <div className="flex h-[68px] items-center rounded-lg bg-slate-50 px-4 text-sm font-semibold text-slate-600">
-          {WEEK_DAYS[0].label}
+    <div ref={containerRef} className="hide-scrollbar overflow-y-auto" style={{ maxHeight }}>
+      <div className="sticky top-0 z-30 bg-white pb-2">
+        <div className="flex items-stretch gap-4">
+          <div className="flex h-[68px] w-[278px] shrink-0 items-center rounded-lg bg-slate-50 px-4 text-sm font-semibold text-slate-600">
+            {WEEK_DAYS[0].label}
+          </div>
+          <div ref={headerScrollRef} className="flex-1 min-w-0 overflow-x-auto hide-scrollbar">
+            <div className="min-w-max">
+              <div className="flex items-stretch gap-4">
+                {dateItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={
+                      "relative flex min-w-[120px] flex-col items-center rounded-lg px-3 pb-4 pt-2 text-sm font-medium transition " +
+                      (item.active ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-100")
+                    }
+                  >
+                    <div className="text-lg font-semibold">{item.date}</div>
+                    <div className="text-xs text-inherit">{item.day}</div>
+                    {item.active ? (
+                      <span className="absolute inset-x-8 bottom-1 h-1 rounded-full bg-blue-600" />
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="mt-3 rounded-lg bg-white">
-          <div className="max-h-[520px] overflow-y-auto py-1 hide-scrollbar">
-            {EMPLOYEES.map((emp) => (
-              <div
-                key={emp.id}
-                className="flex h-[104px] w-[278px] shrink-0 items-center gap-3 px-3 text-left text-sm text-slate-600 transition hover:bg-slate-50"
-              >
-                <div className={`grid h-9 w-9 place-items-center rounded-full text-[13px] font-semibold ${emp.badgeClass}`}>
-                  {emp.initials}
-                </div>
-                <div>
-                  <div className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 hover:underline">
-                    {emp.name}
+      </div>
+      <div className="flex items-stretch gap-4 pb-1">
+        <div className="flex w-[278px] shrink-0 flex-col">
+          <div className="mt-3 rounded-lg bg-white">
+            <div className="py-1">
+              {EMPLOYEES.map((emp) => (
+                <div
+                  key={emp.id}
+                  className="flex h-[104px] w-[278px] shrink-0 items-center gap-3 px-3 text-left text-sm text-slate-600 transition hover:bg-slate-50"
+                >
+                  <div className={`grid h-9 w-9 place-items-center rounded-full text-[13px] font-semibold ${emp.badgeClass}`}>
+                    {emp.initials}
                   </div>
-                  <div className="text-xs text-slate-500">{emp.title}</div>
+                  <div>
+                    <div className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 hover:underline">
+                      {emp.name}
+                    </div>
+                    <div className="text-xs text-slate-500">{emp.title}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div ref={gridScrollRef} className="flex-1 min-w-0 overflow-x-auto hide-scrollbar">
+          <div className="flex items-stretch gap-4 pt-3 min-w-max">
+            {dateItems.map((item) => (
+              <div key={item.id} className="flex min-w-[120px] flex-col">
+                <div className="rounded-lg bg-white">
+                  <div className="py-1">
+                    {EMPLOYEES.map((emp) => (
+                      <div
+                        key={`${item.id}-${emp.id}`}
+                        className="flex h-[104px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-400"
+                      >
+                        <span className="sr-only">Schedule slot for {emp.name}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      </div>
-      <div className="flex-1 min-w-0 overflow-x-auto hide-scrollbar">
-        <div className="flex items-stretch gap-4 pb-1">
-          {dateItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={
-                "relative flex min-w-[120px] flex-col items-center rounded-lg px-3 pb-4 pt-2 text-sm font-medium transition " +
-                (item.active ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-100")
-              }
-            >
-              <div className="text-lg font-semibold">{item.date}</div>
-              <div className="text-xs text-inherit">{item.day}</div>
-              {item.active ? (
-                <span className="absolute inset-x-8 bottom-1 h-1 rounded-full bg-blue-600" />
-              ) : null}
-            </button>
-          ))}
         </div>
       </div>
     </div>
