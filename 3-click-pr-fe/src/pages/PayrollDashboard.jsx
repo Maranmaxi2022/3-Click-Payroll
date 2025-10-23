@@ -15,6 +15,7 @@ import {
 
 import DashboardHome from "./DashboardHome";
 import EmployeesView from "./EmployeesView";
+import WorkCalendarView, { WorkCalendarHeaderBar } from "./WorkCalendarView";
 import PayRunsView from "./PayRunsView";
 import SettingsView from "./SettingsView";
 import EmployeeWizard from "./EmployeeWizard";
@@ -40,7 +41,7 @@ const stepData = [
 export default function PayrollDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [tab, setTab] = useState("dashboard"); // 'dashboard' | 'employees' | 'payruns' | 'settings'
+  const [tab, setTab] = useState("dashboard"); // 'dashboard' | 'employees' | 'work-calendar' | 'payruns' | 'settings'
   const [subroute, setSubroute] = useState(""); // e.g., 'employees/new'
   const [settingsActive, setSettingsActive] = useState("org.profile");
   const [branding, setBranding] = useState(() => {
@@ -49,7 +50,7 @@ export default function PayrollDashboard() {
   });
   const [settingsTitleOverride, setSettingsTitleOverride] = useState("");
 
-  const TABS = ["dashboard", "employees", "payruns", "settings"];
+  const TABS = ["dashboard", "employees", "work-calendar", "payruns", "settings"];
 
   // Read current hash on load + on change
   useEffect(() => {
@@ -263,6 +264,8 @@ export default function PayrollDashboard() {
             </div>
           ) : tab === "dashboard" ? (
             <div className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">Welcome Maran!</div>
+          ) : tab === "work-calendar" ? (
+            <WorkCalendarHeaderBar />
           ) : null
         }
         inSettings={tab === "settings"}
@@ -292,7 +295,14 @@ export default function PayrollDashboard() {
                 appearance={branding.appearance}
                 accent={branding.accent}
               />
-              {/* Work Calendar removed */}
+              <SidebarLink
+                icon={Clock}
+                label="Work Calendar"
+                active={tab === "work-calendar"}
+                onClick={go("work-calendar")}
+                appearance={branding.appearance}
+                accent={branding.accent}
+              />
               <SidebarLink
                 icon={Wallet}
                 label="Pay Runs"
@@ -322,7 +332,8 @@ export default function PayrollDashboard() {
       {/* Main content gets a left margin equal to the sidebar width on desktop */}
       <main className={cls(
         "px-4 md:px-8 lg:px-12 xl:px-16 md:ml-[var(--sidebar-w)]",
-        tab === "settings" || tab === "dashboard" ? "lg:pt-[84px]" : ""
+        tab === "settings" || tab === "dashboard" ? "lg:pt-[84px]" : "",
+        tab === "work-calendar" ? "lg:pt-[420px]" : ""
       )}>
         <div className="mx-auto max-w-none">
           {tab === "dashboard" && <DashboardHome />}
@@ -338,7 +349,7 @@ export default function PayrollDashboard() {
               : <EmployeesView />
           )}
 
-          {/* Work Calendar removed */}
+          {tab === "work-calendar" && <WorkCalendarView />}
           {tab === "payruns" && <PayRunsView />}
           {tab === "settings" && (
             <SettingsView
@@ -416,7 +427,14 @@ export default function PayrollDashboard() {
               appearance={branding.appearance}
               accent={branding.accent}
             />
-            {/* Work Calendar removed */}
+            <SidebarLink
+              icon={Clock}
+              label="Work Calendar"
+              active={tab === "work-calendar"}
+              onClick={goMobile("work-calendar")}
+              appearance={branding.appearance}
+              accent={branding.accent}
+            />
             <div className={cls("my-1 h-px", dividerClass)} />
             <SidebarLink
               icon={Wallet}
