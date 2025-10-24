@@ -24,7 +24,22 @@ const EMPLOYEES = [
 
 const dateItems = WEEK_DAYS.filter((item) => !item.meta);
 
-function WorkCalendarPrimaryControls() {
+const ACTIVE_DAY_ID = "2024-10-23";
+
+const MONTH_DAYS = Array.from({ length: 31 }, (_, index) => {
+  const dateObj = new Date(2024, 9, index + 1);
+  const id = dateObj.toISOString().slice(0, 10);
+  const weekday = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+  return {
+    id,
+    day: weekday,
+    date: index + 1,
+    active: id === ACTIVE_DAY_ID,
+  };
+});
+
+function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode }) {
+  const isWeek = viewMode === "week";
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -53,8 +68,27 @@ function WorkCalendarPrimaryControls() {
             <path d="M8 5l5 5-5 5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <div className="ml-2 inline-flex items-center rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white">
-          Week
+        <div className="ml-2 inline-flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onChangeViewMode("week")}
+            className={
+              "inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-semibold transition " +
+              (isWeek ? "bg-slate-900 text-white" : "border border-slate-200 bg-white text-slate-500 hover:bg-slate-100")
+            }
+          >
+            Week
+          </button>
+          <button
+            type="button"
+            onClick={() => onChangeViewMode("month")}
+            className={
+              "inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-semibold transition " +
+              (!isWeek ? "bg-slate-900 text-white" : "border border-slate-200 bg-white text-slate-500 hover:bg-slate-100")
+            }
+          >
+            Month
+          </button>
         </div>
       </div>
       <label className="inline-flex items-center gap-2 text-sm text-slate-500">
@@ -67,11 +101,13 @@ function WorkCalendarPrimaryControls() {
   );
 }
 
-export function WorkCalendarNavBar() {
+export function WorkCalendarNavBar({ viewMode }) {
   const headerScrollRef = React.useRef(null);
   const gridScrollRef = React.useRef(null);
   const containerRef = React.useRef(null);
   const [maxHeight, setMaxHeight] = React.useState(520);
+  const isMonthView = viewMode === "month";
+  const periodItems = isMonthView ? MONTH_DAYS : dateItems;
 
   React.useEffect(() => {
     const headerEl = headerScrollRef.current;
@@ -141,31 +177,51 @@ export function WorkCalendarNavBar() {
       window.removeEventListener("orientationchange", calculateHeight);
       window.removeEventListener("scroll", calculateHeight);
     };
-  }, []);
+  }, [isMonthView]);
 
   return (
-    <div ref={containerRef} className="hide-scrollbar overflow-y-auto" style={{ maxHeight }}>
+    <div
+      ref={containerRef}
+      className="hide-scrollbar overflow-y-auto"
+      style={{ height: maxHeight, maxHeight }}
+    >
       <div className="sticky top-0 z-30 bg-white pb-2">
-        <div className="flex items-stretch gap-4">
-          <div className="flex h-[68px] w-[278px] shrink-0 items-center rounded-lg bg-slate-50 px-4 text-sm font-semibold text-slate-600">
+        <div className={`flex items-stretch ${isMonthView ? "gap-2" : "gap-4"}`}>
+          <div
+            className={
+              "flex w-[278px] shrink-0 items-center rounded-lg bg-slate-50 px-4 text-sm font-semibold text-slate-600 " +
+              (isMonthView ? "h-14" : "h-[68px]")
+            }
+          >
             {WEEK_DAYS[0].label}
           </div>
           <div ref={headerScrollRef} className="flex-1 min-w-0 overflow-x-auto hide-scrollbar">
             <div className="min-w-max">
-              <div className="flex items-stretch gap-4">
-                {dateItems.map((item) => (
+              <div className={`flex items-stretch ${isMonthView ? "gap-2" : "gap-4"}`}>
+                {periodItems.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     className={
-                      "relative flex min-w-[120px] flex-col items-center rounded-lg px-3 pb-4 pt-2 text-sm font-medium transition " +
+                      (isMonthView
+                        ? "relative flex h-14 min-w-[39px] flex-col items-center justify-center rounded-lg px-1 text-[11px] font-semibold transition "
+                        : "relative flex min-w-[120px] flex-col items-center rounded-lg px-3 pb-4 pt-2 text-sm font-medium transition ") +
                       (item.active ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-100")
                     }
                   >
-                    <div className="text-lg font-semibold">{item.date}</div>
-                    <div className="text-xs text-inherit">{item.day}</div>
+                    <div className={isMonthView ? "text-sm font-semibold leading-tight" : "text-lg font-semibold"}>
+                      {item.date}
+                    </div>
+                    <div className={isMonthView ? "text-[10px] font-medium uppercase text-slate-400" : "text-xs text-inherit"}>
+                      {isMonthView ? item.day.slice(0, 3) : item.day}
+                    </div>
                     {item.active ? (
-                      <span className="absolute inset-x-8 bottom-1 h-1 rounded-full bg-blue-600" />
+                      <span
+                        className={
+                          "absolute bottom-1 h-1 rounded-full bg-blue-600 " +
+                          (isMonthView ? "left-1 right-1" : "inset-x-8")
+                        }
+                      />
                     ) : null}
                   </button>
                 ))}
@@ -174,14 +230,17 @@ export function WorkCalendarNavBar() {
           </div>
         </div>
       </div>
-      <div className="flex items-stretch gap-4 pb-1">
+      <div className={`flex items-stretch pb-1 ${isMonthView ? "gap-2" : "gap-4"}`}>
         <div className="flex w-[278px] shrink-0 flex-col">
-          <div className="mt-3 rounded-lg bg-white">
+          <div className={(isMonthView ? "rounded-lg bg-white" : "mt-3 rounded-lg bg-white")}>
             <div className="py-1">
               {EMPLOYEES.map((emp) => (
                 <div
                   key={emp.id}
-                  className="flex h-[104px] w-[278px] shrink-0 items-center gap-3 px-3 text-left text-sm text-slate-600 transition hover:bg-slate-50"
+                  className={
+                    "flex w-[278px] shrink-0 items-center gap-3 px-3 text-left text-sm text-slate-600 transition hover:bg-slate-50 " +
+                    (isMonthView ? "h-14" : "h-[104px]")
+                  }
                 >
                   <div className={`grid h-9 w-9 place-items-center rounded-full text-[13px] font-semibold ${emp.badgeClass}`}>
                     {emp.initials}
@@ -198,15 +257,18 @@ export function WorkCalendarNavBar() {
           </div>
         </div>
         <div ref={gridScrollRef} className="flex-1 min-w-0 overflow-x-auto hide-scrollbar">
-          <div className="flex items-stretch gap-4 pt-3 min-w-max">
-            {dateItems.map((item) => (
-              <div key={item.id} className="flex min-w-[120px] flex-col">
-                <div className="rounded-lg bg-white">
+          <div className={`flex items-stretch min-w-max ${isMonthView ? "gap-2" : "gap-4"} ${isMonthView ? "pt-0" : "pt-3"}`}>
+            {periodItems.map((item) => (
+              <div key={item.id} className={`flex flex-col ${isMonthView ? "min-w-[39px]" : "min-w-[120px]"}`}>
+                <div className={(isMonthView ? "rounded-lg bg-white" : "rounded-lg bg-white")}>
                   <div className="py-1">
                     {EMPLOYEES.map((emp) => (
                       <div
                         key={`${item.id}-${emp.id}`}
-                        className="flex h-[104px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-400"
+                        className={
+                          "flex items-center justify-center rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-400 " +
+                          (isMonthView ? "h-14 w-[39px]" : "h-[104px] w-full")
+                        }
                       >
                         <span className="sr-only">Schedule slot for {emp.name}</span>
                       </div>
@@ -222,22 +284,30 @@ export function WorkCalendarNavBar() {
   );
 }
 
-export function WorkCalendarHeaderBar() {
+export function WorkCalendarHeaderBar({ viewMode, onChangeViewMode }) {
+  const [internalViewMode, setInternalViewMode] = React.useState("week");
+  const mode = viewMode ?? internalViewMode;
+  const handleChange = onChangeViewMode ?? setInternalViewMode;
+
   return (
     <div className="rounded-2xl bg-white p-4 space-y-4">
-      <WorkCalendarPrimaryControls />
-      <WorkCalendarNavBar />
+      <WorkCalendarPrimaryControls viewMode={mode} onChangeViewMode={handleChange} />
+      <WorkCalendarNavBar viewMode={mode} />
     </div>
   );
 }
 
-export default function WorkCalendarView() {
+export default function WorkCalendarView({ viewMode, onChangeViewMode }) {
+  const [internalViewMode, setInternalViewMode] = React.useState("week");
+  const mode = viewMode ?? internalViewMode;
+  const handleChange = onChangeViewMode ?? setInternalViewMode;
+
   return (
     <div className="space-y-6">
       <div className="lg:hidden sticky top-16 z-40 border-b border-slate-200 bg-white px-4 py-4">
         <div className="rounded-2xl bg-white p-4 space-y-4">
-          <WorkCalendarPrimaryControls />
-          <WorkCalendarNavBar />
+          <WorkCalendarPrimaryControls viewMode={mode} onChangeViewMode={handleChange} />
+          <WorkCalendarNavBar viewMode={mode} />
         </div>
       </div>
     </div>

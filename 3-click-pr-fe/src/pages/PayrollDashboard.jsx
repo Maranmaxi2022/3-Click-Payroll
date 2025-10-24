@@ -49,6 +49,7 @@ export default function PayrollDashboard() {
     return loadBrandingPreferences();
   });
   const [settingsTitleOverride, setSettingsTitleOverride] = useState("");
+  const [calendarViewMode, setCalendarViewMode] = useState("week");
 
   const TABS = ["dashboard", "employees", "work-calendar", "payruns", "settings"];
 
@@ -265,7 +266,7 @@ export default function PayrollDashboard() {
           ) : tab === "dashboard" ? (
             <div className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">Welcome Maran!</div>
           ) : tab === "work-calendar" ? (
-            <WorkCalendarHeaderBar />
+            <WorkCalendarHeaderBar viewMode={calendarViewMode} onChangeViewMode={setCalendarViewMode} />
           ) : null
         }
         inSettings={tab === "settings"}
@@ -349,7 +350,9 @@ export default function PayrollDashboard() {
               : <EmployeesView />
           )}
 
-          {tab === "work-calendar" && <WorkCalendarView />}
+          {tab === "work-calendar" && (
+            <WorkCalendarView viewMode={calendarViewMode} onChangeViewMode={setCalendarViewMode} />
+          )}
           {tab === "payruns" && <PayRunsView />}
           {tab === "settings" && (
             <SettingsView
