@@ -319,12 +319,10 @@ export default function WorkCalendarView({ viewMode, onChangeViewMode }) {
 	const handleChange = onChangeViewMode ?? setInternalViewMode;
 
 	return (
-		<div className="space-y-6">
-			<div className="lg:hidden sticky top-16 z-40 border-b border-slate-200 bg-white px-4 py-4">
-				<div className="rounded-2xl bg-white p-4 space-y-4">
-					<WorkCalendarPrimaryControls viewMode={mode} onChangeViewMode={handleChange} />
-					<WorkCalendarNavBar viewMode={mode} />
-				</div>
+		<div className="lg:hidden sticky top-16 z-40 border-b border-slate-200 bg-slate-50 px-4 py-4">
+			<div className="rounded-2xl bg-white p-4 space-y-4">
+				<WorkCalendarPrimaryControls viewMode={mode} onChangeViewMode={handleChange} />
+				<WorkCalendarNavBar viewMode={mode} />
 			</div>
 		</div>
 	);
