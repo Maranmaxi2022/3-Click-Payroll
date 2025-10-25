@@ -188,7 +188,7 @@ export default function PayrollDashboard() {
 
   return (
     // pt-16 makes room for the fixed header (h-16)
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-16">
+    <div className="min-h-screen bg-white text-slate-900 pt-16">
       <HeaderBar
         brand={BRAND}
         q={q}
