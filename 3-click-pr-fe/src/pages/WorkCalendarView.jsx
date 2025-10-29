@@ -83,6 +83,27 @@ const EMPLOYEES = [
 function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode, currentDate, onDateChange }) {
 	const isWeek = viewMode === "week";
 
+	// Check if we're viewing the current period
+	const isCurrentPeriod = () => {
+		const now = new Date();
+		const displayDate = currentDate || now;
+
+		if (isWeek) {
+			// Check if both dates are in the same week
+			const getWeekId = (date) => {
+				const dayOfWeek = date.getDay();
+				const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+				const monday = new Date(date);
+				monday.setDate(date.getDate() - daysToMonday);
+				return getLocalDateId(monday);
+			};
+			return getWeekId(now) === getWeekId(displayDate);
+		} else {
+			// Check if both dates are in the same month and year
+			return now.getMonth() === displayDate.getMonth() && now.getFullYear() === displayDate.getFullYear();
+		}
+	};
+
 	// Calculate current date range
 	const getDateRange = () => {
 		const today = currentDate || new Date();
@@ -140,13 +161,21 @@ function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode, currentDate, 
 		onDateChange(new Date());
 	};
 
+	const isTodayDisabled = isCurrentPeriod();
+
 	return (
 		<div className="flex w-full flex-wrap items-center justify-between gap-4">
 			<div className="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
 					onClick={handleToday}
-					className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-500"
+					disabled={isTodayDisabled}
+					className={
+						"rounded-xl border px-4 py-2 text-sm font-medium transition " +
+						(isTodayDisabled
+							? "border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed"
+							: "border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 hover:border-slate-300")
+					}
 				>
 					Today
 				</button>
