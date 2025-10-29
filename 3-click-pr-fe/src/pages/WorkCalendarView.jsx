@@ -9,8 +9,8 @@ const getLocalDateId = (date) => {
 };
 
 // Helper function to generate current week days (Monday to Sunday)
-const generateWeekDays = (currentDateId) => {
-	const today = new Date();
+const generateWeekDays = (currentDateId, referenceDate = null) => {
+	const today = referenceDate || new Date();
 	const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
 	// Calculate days to subtract to get to Monday
@@ -41,8 +41,8 @@ const generateWeekDays = (currentDateId) => {
 };
 
 // Helper function to generate current month days
-const generateMonthDays = (currentDateId) => {
-	const today = new Date();
+const generateMonthDays = (currentDateId, referenceDate = null) => {
+	const today = referenceDate || new Date();
 	const year = today.getFullYear();
 	const month = today.getMonth();
 	const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -80,17 +80,18 @@ const EMPLOYEES = [
 
 ];
 
-function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode }) {
+function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode, currentDate, onDateChange }) {
 	const isWeek = viewMode === "week";
 
 	// Calculate current date range
 	const getDateRange = () => {
-		const today = new Date();
-		const formatDate = (date) => {
-			return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-		};
+		const today = currentDate || new Date();
 
 		if (isWeek) {
+			const formatDate = (date) => {
+				return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+			};
+
 			// Get the week starting from Monday
 			const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
 			const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -103,12 +104,40 @@ function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode }) {
 
 			return `${formatDate(startOfWeek)} – ${formatDate(endOfWeek)}`;
 		} else {
-			// For month view, show the full month
-			const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-			const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-			return `${formatDate(startOfMonth)} – ${formatDate(endOfMonth)}`;
+			// For month view, show month name and year
+			return today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 		}
+	};
+
+	// Navigate to previous period
+	const handlePrevious = () => {
+		const newDate = new Date(currentDate || new Date());
+		if (isWeek) {
+			// Go back 7 days (one week)
+			newDate.setDate(newDate.getDate() - 7);
+		} else {
+			// Go back one month
+			newDate.setMonth(newDate.getMonth() - 1);
+		}
+		onDateChange(newDate);
+	};
+
+	// Navigate to next period
+	const handleNext = () => {
+		const newDate = new Date(currentDate || new Date());
+		if (isWeek) {
+			// Go forward 7 days (one week)
+			newDate.setDate(newDate.getDate() + 7);
+		} else {
+			// Go forward one month
+			newDate.setMonth(newDate.getMonth() + 1);
+		}
+		onDateChange(newDate);
+	};
+
+	// Navigate to today
+	const handleToday = () => {
+		onDateChange(new Date());
 	};
 
 	return (
@@ -116,12 +145,14 @@ function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode }) {
 			<div className="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
+					onClick={handleToday}
 					className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-500"
 				>
 					Today
 				</button>
 				<button
 					type="button"
+					onClick={handlePrevious}
 					aria-label="Previous period"
 					className="rounded-full border border-transparent p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
 				>
@@ -129,9 +160,10 @@ function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode }) {
 						<path d="M12 5l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
 					</svg>
 				</button>
-				<div className="min-w-[160px] text-sm font-semibold text-slate-700">{getDateRange()}</div>
+				<div className="min-w-[160px] text-center text-sm font-semibold text-slate-700">{getDateRange()}</div>
 				<button
 					type="button"
+					onClick={handleNext}
 					aria-label="Next period"
 					className="rounded-full border border-transparent p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
 				>
@@ -172,7 +204,7 @@ function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode }) {
 	);
 }
 
-export function WorkCalendarNavBar({ viewMode }) {
+export function WorkCalendarNavBar({ viewMode, currentDate }) {
 	const headerScrollRef = React.useRef(null);
 	const gridScrollRef = React.useRef(null);
 	const containerRef = React.useRef(null);
@@ -180,10 +212,11 @@ export function WorkCalendarNavBar({ viewMode }) {
 	const [currentDateId, setCurrentDateId] = React.useState(() => getLocalDateId(new Date()));
 
 	const isMonthView = viewMode === "month";
+	const displayDate = currentDate || new Date();
 
 	// Generate date items dynamically based on current date
-	const weekDays = React.useMemo(() => generateWeekDays(currentDateId), [currentDateId]);
-	const monthDays = React.useMemo(() => generateMonthDays(currentDateId), [currentDateId]);
+	const weekDays = React.useMemo(() => generateWeekDays(currentDateId, displayDate), [currentDateId, displayDate]);
+	const monthDays = React.useMemo(() => generateMonthDays(currentDateId, displayDate), [currentDateId, displayDate]);
 	const dateItems = React.useMemo(() => weekDays.filter((item) => !item.meta), [weekDays]);
 	const periodItems = isMonthView ? monthDays : dateItems;
 
@@ -403,27 +436,39 @@ export function WorkCalendarNavBar({ viewMode }) {
 
 export function WorkCalendarHeaderBar({ viewMode, onChangeViewMode }) {
 	const [internalViewMode, setInternalViewMode] = React.useState("week");
+	const [currentDate, setCurrentDate] = React.useState(new Date());
 	const mode = viewMode ?? internalViewMode;
 	const handleChange = onChangeViewMode ?? setInternalViewMode;
 
 	return (
 		<div className="space-y-4">
-			<WorkCalendarPrimaryControls viewMode={mode} onChangeViewMode={handleChange} />
-			<WorkCalendarNavBar viewMode={mode} />
+			<WorkCalendarPrimaryControls
+				viewMode={mode}
+				onChangeViewMode={handleChange}
+				currentDate={currentDate}
+				onDateChange={setCurrentDate}
+			/>
+			<WorkCalendarNavBar viewMode={mode} currentDate={currentDate} />
 		</div>
 	);
 }
 
 export default function WorkCalendarView({ viewMode, onChangeViewMode }) {
 	const [internalViewMode, setInternalViewMode] = React.useState("week");
+	const [currentDate, setCurrentDate] = React.useState(new Date());
 	const mode = viewMode ?? internalViewMode;
 	const handleChange = onChangeViewMode ?? setInternalViewMode;
 
 	return (
 		<div className="lg:hidden sticky top-16 z-40 border-b border-slate-200 bg-slate-50 px-4 py-4">
 			<div className="rounded-2xl bg-white p-4 space-y-4">
-				<WorkCalendarPrimaryControls viewMode={mode} onChangeViewMode={handleChange} />
-				<WorkCalendarNavBar viewMode={mode} />
+				<WorkCalendarPrimaryControls
+					viewMode={mode}
+					onChangeViewMode={handleChange}
+					currentDate={currentDate}
+					onDateChange={setCurrentDate}
+				/>
+				<WorkCalendarNavBar viewMode={mode} currentDate={currentDate} />
 			</div>
 		</div>
 	);
