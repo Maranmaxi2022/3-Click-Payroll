@@ -49,7 +49,7 @@ export default function HeaderBar({
 
   return (
     // Fixed to the viewport (no movement on vertical or horizontal scroll)
-    <header className="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur">
+    <header className="fixed inset-x-0 top-0 z-50 bg-white/90 backdrop-blur border-b border-slate-200">
       <div className="flex h-16 items-center gap-0 pl-0 pr-4">
         {/* Mobile menu */}
         <button
