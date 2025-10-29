@@ -1,15 +1,64 @@
 import React from "react";
 
-const WEEK_DAYS = [
-	{ id: "meta", label: "Employees (65)", meta: true },
-	{ id: "2024-10-20", day: "Monday", date: 20 },
-	{ id: "2024-10-21", day: "Tuesday", date: 21 },
-	{ id: "2024-10-22", day: "Wednesday", date: 22 },
-	{ id: "2024-10-23", day: "Thursday", date: 23, active: true },
-	{ id: "2024-10-24", day: "Friday", date: 24 },
-	{ id: "2024-10-25", day: "Saturday", date: 25 },
-	{ id: "2024-10-26", day: "Sunday", date: 26 },
-];
+// Helper to format date as YYYY-MM-DD in local timezone
+const getLocalDateId = (date) => {
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	return `${year}-${month}-${day}`;
+};
+
+// Helper function to generate current week days (Monday to Sunday)
+const generateWeekDays = (currentDateId) => {
+	const today = new Date();
+	const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+	// Calculate days to subtract to get to Monday
+	// If today is Sunday (0), go back 6 days; otherwise go back (dayOfWeek - 1) days
+	const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+	const startOfWeek = new Date(today);
+	startOfWeek.setDate(today.getDate() - daysToMonday);
+
+	const weekDays = [{ id: "meta", label: "Employees (65)", meta: true }];
+
+	for (let i = 0; i < 7; i++) {
+		// Create a new date for each day by adding milliseconds
+		const currentDay = new Date(startOfWeek.getTime() + (i * 24 * 60 * 60 * 1000));
+		const id = getLocalDateId(currentDay);
+		const day = currentDay.toLocaleDateString("en-US", { weekday: "long" });
+		const date = currentDay.getDate();
+
+		weekDays.push({
+			id,
+			day,
+			date,
+			active: id === currentDateId,
+		});
+	}
+
+	return weekDays;
+};
+
+// Helper function to generate current month days
+const generateMonthDays = (currentDateId) => {
+	const today = new Date();
+	const year = today.getFullYear();
+	const month = today.getMonth();
+	const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+	return Array.from({ length: daysInMonth }, (_, index) => {
+		const dateObj = new Date(year, month, index + 1);
+		const id = getLocalDateId(dateObj);
+		const weekday = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+		return {
+			id,
+			day: weekday,
+			date: index + 1,
+			active: id === currentDateId,
+		};
+	});
+};
 
 const EMPLOYEES = [
 	{ id: "emp-1", name: "Abernathy, Rex", title: "Account Manager", badgeClass: "bg-emerald-200 text-emerald-800", initials: "AR" },
@@ -20,27 +69,48 @@ const EMPLOYEES = [
 	{ id: "emp-6", name: "Garcia, Sofia", title: "Onboarding Coach", badgeClass: "bg-blue-200 text-blue-800", initials: "GS" },
 	{ id: "emp-7", name: "Hughes, Aaron", title: "Benefits Coordinator", badgeClass: "bg-teal-200 text-teal-800", initials: "HA" },
 	{ id: "emp-8", name: "Iyer, Kavya", title: "Compliance Advisor", badgeClass: "bg-slate-200 text-slate-800", initials: "KI" },
-  
+	{ id: "emp-1", name: "Abernathy, Rex", title: "Account Manager", badgeClass: "bg-emerald-200 text-emerald-800", initials: "AR" },
+	{ id: "emp-2", name: "Bhattacharya, Neha", title: "Payroll Specialist", badgeClass: "bg-sky-200 text-sky-800", initials: "BN" },
+	{ id: "emp-3", name: "Chen, Lian", title: "HR Business Partner", badgeClass: "bg-amber-200 text-amber-800", initials: "CL" },
+	{ id: "emp-4", name: "Diaz, Mateo", title: "Operations Lead", badgeClass: "bg-purple-200 text-purple-800", initials: "DM" },
+	{ id: "emp-5", name: "Elahi, Farah", title: "Finance Analyst", badgeClass: "bg-rose-200 text-rose-800", initials: "EF" },
+	{ id: "emp-6", name: "Garcia, Sofia", title: "Onboarding Coach", badgeClass: "bg-blue-200 text-blue-800", initials: "GS" },
+	{ id: "emp-7", name: "Hughes, Aaron", title: "Benefits Coordinator", badgeClass: "bg-teal-200 text-teal-800", initials: "HA" },
+	{ id: "emp-8", name: "Iyer, Kavya", title: "Compliance Advisor", badgeClass: "bg-slate-200 text-slate-800", initials: "KI" },
+
 ];
-
-const dateItems = WEEK_DAYS.filter((item) => !item.meta);
-
-const ACTIVE_DAY_ID = "2024-10-23";
-
-const MONTH_DAYS = Array.from({ length: 31 }, (_, index) => {
-	const dateObj = new Date(2024, 9, index + 1);
-	const id = dateObj.toISOString().slice(0, 10);
-	const weekday = dateObj.toLocaleDateString("en-US", { weekday: "long" });
-	return {
-		id,
-		day: weekday,
-		date: index + 1,
-		active: id === ACTIVE_DAY_ID,
-	};
-});
 
 function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode }) {
 	const isWeek = viewMode === "week";
+
+	// Calculate current date range
+	const getDateRange = () => {
+		const today = new Date();
+		const formatDate = (date) => {
+			return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+		};
+
+		if (isWeek) {
+			// Get the week starting from Monday
+			const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+			const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+			const startOfWeek = new Date(today);
+			startOfWeek.setDate(today.getDate() - daysToMonday);
+
+			const endOfWeek = new Date(startOfWeek);
+			endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+			return `${formatDate(startOfWeek)} – ${formatDate(endOfWeek)}`;
+		} else {
+			// For month view, show the full month
+			const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+			const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+			return `${formatDate(startOfMonth)} – ${formatDate(endOfMonth)}`;
+		}
+	};
+
 	return (
 		<div className="flex w-full flex-wrap items-center justify-between gap-4">
 			<div className="flex flex-wrap items-center gap-2">
@@ -59,7 +129,7 @@ function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode }) {
 						<path d="M12 5l-5 5 5 5" strokeLinecap="round" strokeLinejoin="round" />
 					</svg>
 				</button>
-				<div className="min-w-[160px] text-sm font-semibold text-slate-700">Oct 20 – Oct 26</div>
+				<div className="min-w-[160px] text-sm font-semibold text-slate-700">{getDateRange()}</div>
 				<button
 					type="button"
 					aria-label="Next period"
@@ -107,8 +177,38 @@ export function WorkCalendarNavBar({ viewMode }) {
 	const gridScrollRef = React.useRef(null);
 	const containerRef = React.useRef(null);
 	const [maxHeight, setMaxHeight] = React.useState(520);
+	const [currentDateId, setCurrentDateId] = React.useState(() => getLocalDateId(new Date()));
+
 	const isMonthView = viewMode === "month";
-	const periodItems = isMonthView ? MONTH_DAYS : dateItems;
+
+	// Generate date items dynamically based on current date
+	const weekDays = React.useMemo(() => generateWeekDays(currentDateId), [currentDateId]);
+	const monthDays = React.useMemo(() => generateMonthDays(currentDateId), [currentDateId]);
+	const dateItems = React.useMemo(() => weekDays.filter((item) => !item.meta), [weekDays]);
+	const periodItems = isMonthView ? monthDays : dateItems;
+
+	// Update current date at midnight
+	React.useEffect(() => {
+		const updateDate = () => {
+			const newDateId = getLocalDateId(new Date());
+			setCurrentDateId(newDateId);
+		};
+
+		// Calculate time until next midnight
+		const now = new Date();
+		const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+		const timeUntilMidnight = tomorrow.getTime() - now.getTime();
+
+		// Set timeout to update at midnight
+		const midnightTimeout = setTimeout(() => {
+			updateDate();
+			// Then set up interval to check every minute after midnight
+			const interval = setInterval(updateDate, 60000);
+			return () => clearInterval(interval);
+		}, timeUntilMidnight);
+
+		return () => clearTimeout(midnightTimeout);
+	}, []);
 	// Mirror the Tailwind row heights (week: h-[104px], month: h-14) so scroll window aligns with cells.
 	const rowHeight = isMonthView ? 56 : 104;
 	const visibleRowLimit = isMonthView ? 10 : 5;
@@ -194,15 +294,16 @@ export function WorkCalendarNavBar({ viewMode }) {
 			style={{ maxHeight }}
 		>
 			<div className="bg-white">
-				<div className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-					<div className="flex items-stretch">
+				<div className="sticky top-0 z-30 bg-white shadow-sm">
+					<div className="flex items-stretch border-b border-slate-200">
 						<div
 							className={
-								"flex w-[276px] shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600 " +
+								"flex w-[276px] shrink-0 items-center bg-slate-50 px-3 text-sm font-semibold text-slate-600 " +
 								(isMonthView ? "h-14" : "h-[68px]")
 							}
+							style={{ borderRight: "3px double rgb(226, 232, 240)" }}
 						>
-							{WEEK_DAYS[0].label}
+							Employees (65)
 						</div>
 						<div ref={headerScrollRef} className="flex-1 min-w-0 overflow-x-auto hide-scrollbar">
 							<div className="min-w-max bg-white">
@@ -242,7 +343,7 @@ export function WorkCalendarNavBar({ viewMode }) {
 				</div>
 				<div className="overflow-y-auto hide-scrollbar" style={bodyMaxHeight ? { height: `${bodyMaxHeight}px`, maxHeight: `${bodyMaxHeight}px` } : undefined}>
 					<div className="flex items-stretch">
-						<div className="w-[276px] shrink-0 border-r border-slate-200">
+						<div className="w-[276px] shrink-0" style={{ borderRight: "3px double rgb(226, 232, 240)" }}>
 							<div className="flex flex-col divide-y divide-slate-200">
 								{EMPLOYEES.map((emp) => (
 									<div
