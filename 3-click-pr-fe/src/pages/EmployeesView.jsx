@@ -24,13 +24,17 @@ export default function EmployeesView() {
   };
 
   const handleViewProfile = (employee) => {
-    console.log("View profile:", employee);
+    window.location.hash = `employees/${employee.id}`;
     setOpenMenuId(null);
   };
 
   const handleEditProfile = (employee) => {
     console.log("Edit profile:", employee);
     setOpenMenuId(null);
+  };
+
+  const handleCardClick = (employee) => {
+    window.location.hash = `employees/${employee.id}`;
   };
 
   return (
@@ -96,7 +100,8 @@ export default function EmployeesView() {
         {rows.map((r, i) => (
           <div
             key={i}
-            className="flex flex-col bg-white rounded-xl border border-slate-200/60 overflow-hidden hover:shadow-md hover:border-slate-300/60 transition-all duration-200"
+            className="flex flex-col bg-white rounded-xl border border-slate-200/60 overflow-hidden hover:shadow-md hover:border-slate-300/60 transition-all duration-200 cursor-pointer"
+            onClick={() => handleCardClick(r)}
           >
             {/* Top Row - Three Sections */}
             <div className="flex items-center gap-0">
@@ -167,7 +172,10 @@ export default function EmployeesView() {
                 </div>
                 <div className="relative">
                   <button
-                    onClick={() => toggleMenu(r.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMenu(r.id);
+                    }}
                     className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-lg transition-colors"
                   >
                     <svg
