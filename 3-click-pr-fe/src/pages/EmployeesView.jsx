@@ -1,16 +1,37 @@
-import React from "react";
+import { useState } from "react";
 
 export default function EmployeesView() {
+  const [openMenuId, setOpenMenuId] = useState(null);
+
   const rows = [
     {
-      name: "Thamilmaran Mohanarasa - 204212L",
-      title: "Front End Developer",
-      email: "thamilmaranmohanarasa@gmail.com",
-      dept: "Engineering",
+      id: 1,
+      name: "Abernathy, Rex",
+      title: "Account Manager (Full-Time)",
+      email: "rex_abernathy@sampleemployee.com",
+      phone: "+18579909723",
+      dept: "No department",
+      location: "US Entity | Boston, Massachusetts, United States | Boston HQ",
+      manager: "Greenholt, Eulah",
+      avatar: null, // Will show placeholder avatar
+      initial: "A",
       status: "Active",
-      initial: "T",
     },
   ];
+
+  const toggleMenu = (id) => {
+    setOpenMenuId(openMenuId === id ? null : id);
+  };
+
+  const handleViewProfile = (employee) => {
+    console.log("View profile:", employee);
+    setOpenMenuId(null);
+  };
+
+  const handleEditProfile = (employee) => {
+    console.log("Edit profile:", employee);
+    setOpenMenuId(null);
+  };
 
   return (
     <div className="py-4">
@@ -70,56 +91,131 @@ export default function EmployeesView() {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr className="[&>th]:px-3 [&>th]:py-2 [&>th]:text-left">
-              <th className="w-10">
-                <input type="checkbox" />
-              </th>
-              <th>Employee Name</th>
-              <th>Work Email</th>
-              <th>Department</th>
-              <th className="w-28">Employee Status</th>
-            </tr>
-          </thead>
-          <tbody className="text-slate-800">
-            {rows.map((r, i) => (
-              <tr
-                key={i}
-                className="border-t border-slate-200 hover:bg-slate-50/60"
-              >
-                <td className="px-3 py-3 align-top">
-                  <input type="checkbox" />
-                </td>
-                <td className="px-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="grid h-8 w-8 place-items-center rounded-full bg-amber-100 text-amber-800 font-semibold">
-                      {r.initial}
-                    </div>
-                    <div>
-                      <a
-                        href="#"
-                        className="font-medium text-blue-700 hover:underline"
-                      >
-                        {r.name}
-                      </a>
-                      <div className="text-xs text-slate-500">{r.title}</div>
-                    </div>
+      {/* Employee Cards */}
+      <div className="mt-3 space-y-3">
+        {rows.map((r, i) => (
+          <div
+            key={i}
+            className="flex flex-col bg-white rounded-xl border border-slate-200/60 overflow-hidden hover:shadow-md hover:border-slate-300/60 transition-all duration-200"
+          >
+            {/* Top Row - Three Sections */}
+            <div className="flex items-center gap-0">
+              {/* Left Section - Avatar and Name */}
+              <div className="flex flex-1 items-center gap-5 px-6 py-5 border-r border-slate-200/60">
+                {/* Avatar */}
+                <div className="flex-shrink-0">
+                  <div className="h-[72px] w-[72px] overflow-hidden rounded-full bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-500 shadow-md ring-2 ring-white">
+                    <img
+                      src="https://i.pravatar.cc/150?img=12"
+                      alt={r.name}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
-                </td>
-                <td className="px-3 py-3 align-top">{r.email}</td>
-                <td className="px-3 py-3 align-top">{r.dept}</td>
-                <td className="px-3 py-3 align-top">
-                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                    {r.status}
+                </div>
+
+                {/* Name */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold text-slate-900 tracking-tight">
+                    {r.name}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Middle Section - Contact Info */}
+              <div className="flex flex-col justify-center gap-3 px-6 py-5 min-w-[360px] border-r border-slate-200/60">
+                <div className="flex items-center gap-3 text-[15px] text-slate-700">
+                  <svg
+                    className="h-[18px] w-[18px] text-slate-400 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span className="font-medium">{r.email}</span>
+                </div>
+                <div className="flex items-center gap-3 text-[15px] text-slate-700">
+                  <svg
+                    className="h-[18px] w-[18px] text-slate-400 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                  <span className="font-medium">{r.phone}</span>
+                </div>
+              </div>
+
+              {/* Right Section - Reports To */}
+              <div className="flex items-center justify-between px-6 py-5 min-w-[300px]">
+                <div className="flex flex-col">
+                  <span className="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-1">
+                    Reports to
                   </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <span className="text-[15px] font-bold text-slate-800">{r.manager}</span>
+                </div>
+                <div className="relative">
+                  <button
+                    onClick={() => toggleMenu(r.id)}
+                    className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-lg transition-colors"
+                  >
+                    <svg
+                      className="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                    </svg>
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {openMenuId === r.id && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setOpenMenuId(null)}
+                      />
+
+                      {/* Menu */}
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-20">
+                        <button
+                          onClick={() => handleViewProfile(r)}
+                          className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          View profile
+                        </button>
+                        <button
+                          onClick={() => handleEditProfile(r)}
+                          className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          Edit profile
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Row - Title and Location */}
+            <div className="border-t border-slate-200/60 px-6 py-4 bg-gradient-to-r from-slate-50/80 to-slate-50/40">
+              <p className="text-sm text-slate-700 font-medium mb-2">{r.title}</p>
+              <p className="text-sm text-slate-600 leading-relaxed">{r.location}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
