@@ -15,6 +15,7 @@ import {
 
 import DashboardHome from "./DashboardHome";
 import EmployeesView from "./EmployeesView";
+import EmployeeDetailView from "./EmployeeDetailView";
 import WorkCalendarView, { WorkCalendarHeaderBar } from "./WorkCalendarView";
 import PayRunsView from "./PayRunsView";
 import SettingsView from "./SettingsView";
@@ -345,6 +346,13 @@ export default function PayrollDashboard() {
                 <EmployeeWizard
                   onCancel={() => (window.location.hash = "employees")}
                   // IMPORTANT: no onFinish redirect here, so the success screen in the wizard can show.
+                />
+              )
+              : subroute.startsWith("employees/") && subroute !== "employees"
+              ? (
+                <EmployeeDetailView
+                  employeeId={subroute.split("/")[1]}
+                  onBack={() => (window.location.hash = "employees")}
                 />
               )
               : <EmployeesView />
