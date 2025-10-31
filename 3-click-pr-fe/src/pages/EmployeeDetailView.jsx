@@ -95,107 +95,79 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
   };
 
   const renderPersonalTab = () => (
-    <div className="space-y-8">
+    <div className="space-y-12">
       {/* Basic Section */}
       <div>
         <h3 className="text-lg font-semibold text-slate-900 mb-6">Basic</h3>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Row 1 */}
-          <div className="bg-white rounded-lg px-0 py-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">First name</label>
-                  <p className="text-[15px] text-slate-900">{employee.firstName}</p>
-                </div>
-              </div>
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Middle name</label>
-                  <p className="text-[15px] text-slate-900">{employee.middleName}</p>
-                </div>
-              </div>
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Last name</label>
-                  <p className="text-[15px] text-slate-900">{employee.lastName}</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">First name</label>
+              <p className="text-[15px] text-slate-900">{employee.firstName}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Middle name</label>
+              <p className="text-[15px] text-slate-900">{employee.middleName}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Last name</label>
+              <p className="text-[15px] text-slate-900">{employee.lastName}</p>
             </div>
           </div>
 
           {/* Row 2 */}
-          <div className="bg-white rounded-lg px-0 py-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Preferred name</label>
-                  <p className="text-[15px] text-slate-900">{employee.preferredName}</p>
-                </div>
-              </div>
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Employee ID</label>
-                  <p className="text-[15px] text-slate-900">{employee.employeeId}</p>
-                </div>
-              </div>
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Status</label>
-                  <p className="text-[15px] text-slate-900">{employee.status}</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Preferred name</label>
+              <p className="text-[15px] text-slate-900">{employee.preferredName}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Employee ID</label>
+              <p className="text-[15px] text-slate-900">{employee.employeeId}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Status</label>
+              <p className="text-[15px] text-slate-900">{employee.status}</p>
             </div>
           </div>
 
           {/* Row 3 */}
-          <div className="bg-white rounded-lg px-0 py-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Country</label>
-                  <p className="text-[15px] text-slate-900">{employee.country}</p>
-                </div>
-              </div>
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Address</label>
-                  <p className="text-[15px] text-slate-900">{employee.address}</p>
-                </div>
-              </div>
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Gender</label>
-                  <p className="text-[15px] text-slate-900">{employee.gender}</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Country</label>
+              <p className="text-[15px] text-slate-900">{employee.country}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Address</label>
+              <p className="text-[15px] text-slate-900">{employee.address}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Gender</label>
+              <p className="text-[15px] text-slate-900">{employee.gender}</p>
             </div>
           </div>
 
           {/* Row 4 */}
-          <div className="bg-white rounded-lg px-0 py-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="flex">
-                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
-                  <label className="block text-sm text-slate-500 mb-1">Birthdate</label>
-                  <p className="text-[15px] text-slate-900">{employee.birthdate}</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Birthdate</label>
+              <p className="text-[15px] text-slate-900">{employee.birthdate}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Marital Status Section */}
-      <div className="pt-8 border-t border-slate-200">
+      <div className="border-t border-slate-200 pt-12">
         <h4 className="text-base font-semibold text-slate-900 mb-6 flex items-center gap-2">
           <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
           Marital status
         </h4>
-        <div className="bg-white rounded-lg px-0 py-6">
-          <div className="bg-[#FBFBFB] rounded px-3 py-2">
+        <div className="grid grid-cols-2 gap-6">
+          <div className="bg-[#FBFBFB] rounded px-4 py-3">
             <label className="block text-sm text-slate-500 mb-1">Status</label>
             <p className="text-[15px] text-slate-900">{employee.maritalStatus}</p>
           </div>
@@ -203,51 +175,39 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
       </div>
 
       {/* Contact Section */}
-      <div className="pt-8 border-t border-slate-200">
+      <div className="border-t border-slate-200 pt-12">
         <h3 className="text-lg font-semibold text-slate-900 mb-6">Contact</h3>
 
         {/* Phone */}
-        <div className="mb-4">
+        <div className="mb-8">
           <h4 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
             Phone
           </h4>
-          <div className="bg-white rounded-lg px-0 py-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <div className="bg-[#FBFBFB] rounded px-3 py-2">
-                  <label className="block text-sm text-slate-500 mb-1">Type</label>
-                  <p className="text-[15px] text-slate-900">{employee.phoneType}</p>
-                </div>
-              </div>
-              <div>
-                <div className="bg-[#FBFBFB] rounded px-3 py-2">
-                  <label className="block text-sm text-slate-500 mb-1">Phone</label>
-                  <p className="text-[15px] text-blue-600 font-medium">{employee.phone}</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Type</label>
+              <p className="text-[15px] text-slate-900">{employee.phoneType}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Phone</label>
+              <p className="text-[15px] text-blue-600 font-medium">{employee.phone}</p>
             </div>
           </div>
         </div>
 
         {/* Email */}
         <div>
-          <div className="bg-white rounded-lg px-0 py-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <div className="bg-[#FBFBFB] rounded px-3 py-2">
-                  <label className="block text-sm text-slate-500 mb-1">Work email</label>
-                  <p className="text-[15px] text-blue-600 font-medium">{employee.workEmail}</p>
-                </div>
-              </div>
-              <div>
-                <div className="bg-[#FBFBFB] rounded px-3 py-2">
-                  <label className="block text-sm text-slate-500 mb-1">Personal email</label>
-                  <p className="text-[15px] text-blue-600 font-medium">{employee.personalEmail}</p>
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Work email</label>
+              <p className="text-[15px] text-blue-600 font-medium">{employee.workEmail}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Personal email</label>
+              <p className="text-[15px] text-blue-600 font-medium">{employee.personalEmail}</p>
             </div>
           </div>
         </div>
