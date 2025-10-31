@@ -4,7 +4,6 @@ import { ChevronLeft } from "lucide-react";
 export default function EmployeeDetailView({ employeeId, onBack }) {
   const [activeTab, setActiveTab] = useState("information");
   const [activeSubTab, setActiveSubTab] = useState("personal");
-  const [showSensitiveData, setShowSensitiveData] = useState(false);
 
   // Mock employee data - in a real app, this would be fetched based on employeeId
   const employee = {
@@ -99,157 +98,156 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     <div className="space-y-8">
       {/* Basic Section */}
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Basic</h3>
+        <h3 className="text-lg font-semibold text-slate-900 mb-6">Basic</h3>
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <label className="text-sm text-slate-600">First name</label>
-              <p className="text-base text-slate-900">{employee.firstName}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Middle name</label>
-              <p className="text-base text-slate-900">{employee.middleName}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Last name</label>
-              <p className="text-base text-slate-900">{employee.lastName}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <label className="text-sm text-slate-600">Preferred name</label>
-              <p className="text-base text-slate-900">{employee.preferredName}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Employee ID</label>
-              <p className="text-base text-slate-900">{employee.employeeId}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Status</label>
-              <p className="text-base text-slate-900">{employee.status}</p>
+          {/* Row 1 */}
+          <div className="bg-white rounded-lg px-0 py-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">First name</label>
+                  <p className="text-[15px] text-slate-900">{employee.firstName}</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Middle name</label>
+                  <p className="text-[15px] text-slate-900">{employee.middleName}</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Last name</label>
+                  <p className="text-[15px] text-slate-900">{employee.lastName}</p>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <label className="text-sm text-slate-600">Country</label>
-              <p className="text-base text-slate-900">{employee.country}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Address</label>
-              <p className="text-base text-slate-900">{employee.address}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Gender</label>
-              <p className="text-base text-slate-900">{employee.gender}</p>
+
+          {/* Row 2 */}
+          <div className="bg-white rounded-lg px-0 py-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Preferred name</label>
+                  <p className="text-[15px] text-slate-900">{employee.preferredName}</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Employee ID</label>
+                  <p className="text-[15px] text-slate-900">{employee.employeeId}</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Status</label>
+                  <p className="text-[15px] text-slate-900">{employee.status}</p>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-6">
-            <div>
-              <label className="text-sm text-slate-600">Birthdate</label>
-              <p className="text-base text-slate-900">{employee.birthdate}</p>
+
+          {/* Row 3 */}
+          <div className="bg-white rounded-lg px-0 py-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Country</label>
+                  <p className="text-[15px] text-slate-900">{employee.country}</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Address</label>
+                  <p className="text-[15px] text-slate-900">{employee.address}</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Gender</label>
+                  <p className="text-[15px] text-slate-900">{employee.gender}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 4 */}
+          <div className="bg-white rounded-lg px-0 py-6">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="flex">
+                <div className="bg-[#FBFBFB] rounded px-3 py-2 flex-1">
+                  <label className="block text-sm text-slate-500 mb-1">Birthdate</label>
+                  <p className="text-[15px] text-slate-900">{employee.birthdate}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Marital Status Section */}
-      <div className="pt-6 border-t border-slate-200">
-        <h4 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+      <div className="pt-8 border-t border-slate-200">
+        <h4 className="text-base font-semibold text-slate-900 mb-6 flex items-center gap-2">
           <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
           Marital status
         </h4>
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <label className="text-sm text-slate-600">Status</label>
-            <p className="text-base text-slate-900">{employee.maritalStatus}</p>
-          </div>
-          <div>
-            <label className="text-sm text-slate-600">Certificate</label>
-            <p className="text-base text-slate-900">{employee.maritalCertificate}</p>
+        <div className="bg-white rounded-lg px-0 py-6">
+          <div className="bg-[#FBFBFB] rounded px-3 py-2">
+            <label className="block text-sm text-slate-500 mb-1">Status</label>
+            <p className="text-[15px] text-slate-900">{employee.maritalStatus}</p>
           </div>
         </div>
       </div>
 
       {/* Contact Section */}
-      <div className="pt-6 border-t border-slate-200">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Contact</h3>
+      <div className="pt-8 border-t border-slate-200">
+        <h3 className="text-lg font-semibold text-slate-900 mb-6">Contact</h3>
 
         {/* Phone */}
-        <div className="mb-6">
+        <div className="mb-4">
           <h4 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
             <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
             Phone
           </h4>
-          <div className="grid grid-cols-3 gap-6">
-            <div>
-              <label className="text-sm text-slate-600">Type</label>
-              <p className="text-base text-slate-900">{employee.phoneType}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Phone</label>
-              <p className="text-base text-blue-600 font-medium">{employee.phone}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Extension</label>
-              <p className="text-base text-slate-900">{employee.phoneExtension}</p>
+          <div className="bg-white rounded-lg px-0 py-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <div className="bg-[#FBFBFB] rounded px-3 py-2">
+                  <label className="block text-sm text-slate-500 mb-1">Type</label>
+                  <p className="text-[15px] text-slate-900">{employee.phoneType}</p>
+                </div>
+              </div>
+              <div>
+                <div className="bg-[#FBFBFB] rounded px-3 py-2">
+                  <label className="block text-sm text-slate-500 mb-1">Phone</label>
+                  <p className="text-[15px] text-blue-600 font-medium">{employee.phone}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Email */}
-        <div className="mb-6">
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="text-sm text-slate-600">Work email</label>
-              <p className="text-base text-blue-600 font-medium">{employee.workEmail}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Personal email</label>
-              <p className="text-base text-blue-600 font-medium">{employee.personalEmail}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Chat & video call */}
-        <div className="mb-6">
-          <h4 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-            Chat & video call
-          </h4>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="text-sm text-slate-600">Type</label>
-              <p className="text-base text-slate-900">{employee.chatType}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">Username</label>
-              <p className="text-base text-slate-900">{employee.chatUsername}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Social media */}
         <div>
-          <h4 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-            <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-            Social media
-          </h4>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="text-sm text-slate-600">Type</label>
-              <p className="text-base text-slate-900">{employee.socialMediaType}</p>
-            </div>
-            <div>
-              <label className="text-sm text-slate-600">URL</label>
-              <p className="text-base text-slate-900">{employee.socialMediaUrl}</p>
+          <div className="bg-white rounded-lg px-0 py-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <div className="bg-[#FBFBFB] rounded px-3 py-2">
+                  <label className="block text-sm text-slate-500 mb-1">Work email</label>
+                  <p className="text-[15px] text-blue-600 font-medium">{employee.workEmail}</p>
+                </div>
+              </div>
+              <div>
+                <div className="bg-[#FBFBFB] rounded px-3 py-2">
+                  <label className="block text-sm text-slate-500 mb-1">Personal email</label>
+                  <p className="text-[15px] text-blue-600 font-medium">{employee.personalEmail}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -371,35 +369,35 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
             <div className="grid grid-cols-3 gap-6">
               <div>
                 <label className="text-sm text-slate-600">Effective date</label>
-                <p className="text-base text-slate-900">{showSensitiveData ? employee.salaryEffectiveDate : "********"}</p>
+                <p className="text-base text-slate-900">********</p>
               </div>
               <div>
                 <label className="text-sm text-slate-600">Pay type</label>
-                <p className="text-base text-slate-900">{showSensitiveData ? employee.payType : "********"}</p>
+                <p className="text-base text-slate-900">********</p>
               </div>
               <div>
                 <label className="text-sm text-slate-600">Pay rate</label>
-                <p className="text-base text-slate-900">{showSensitiveData ? employee.payRate : "********"}</p>
+                <p className="text-base text-slate-900">********</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-6">
               <div>
                 <label className="text-sm text-slate-600">Pay schedule</label>
-                <p className="text-base text-slate-900">{showSensitiveData ? employee.paySchedule : "********"}</p>
+                <p className="text-base text-slate-900">********</p>
               </div>
               <div>
                 <label className="text-sm text-slate-600">Overtime status</label>
-                <p className="text-base text-slate-900">{showSensitiveData ? employee.overtimeStatus : "********"}</p>
+                <p className="text-base text-slate-900">********</p>
               </div>
               <div>
                 <label className="text-sm text-slate-600">Reason</label>
-                <p className="text-base text-slate-900">{showSensitiveData ? employee.reason : "********"}</p>
+                <p className="text-base text-slate-900">********</p>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="text-sm text-slate-600">Note</label>
-                <p className="text-base text-slate-900">{showSensitiveData ? employee.salaryNote : "********"}</p>
+                <p className="text-base text-slate-900">********</p>
               </div>
             </div>
           </div>
@@ -421,15 +419,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div>
               <label className="text-sm text-slate-600">Bank name</label>
-              <p className="text-base text-slate-900">{showSensitiveData ? employee.bankName : "********"}</p>
+              <p className="text-base text-slate-900">********</p>
             </div>
             <div>
               <label className="text-sm text-slate-600">IBAN</label>
-              <p className="text-base text-slate-900">{showSensitiveData ? employee.iban : "********"}</p>
+              <p className="text-base text-slate-900">********</p>
             </div>
             <div>
               <label className="text-sm text-slate-600">Account number</label>
-              <p className="text-base text-slate-900">{showSensitiveData ? employee.accountNumber : "********"}</p>
+              <p className="text-base text-slate-900">********</p>
             </div>
           </div>
         </div>
@@ -638,7 +636,7 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
       </button>
 
       {/* Employee Header */}
-      <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 rounded-xl border border-slate-200/60 overflow-hidden mb-6">
+      <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 border border-slate-200/60 overflow-hidden mb-6">
         <div className="px-8 py-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-6">
@@ -691,77 +689,56 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-slate-200 mb-6">
-        <div className="flex gap-6">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => {
-                setActiveTab(t.id);
-                if (t.id === "information") setActiveSubTab("personal");
-              }}
-              className={`pb-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === t.id
-                  ? "border-slate-900 text-slate-900"
-                  : "border-transparent text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+      {/* Tabs and Content Card */}
+      <div className="border border-slate-200 overflow-hidden">
+        {/* Tabs */}
+        <div className="bg-white px-8 py-4 border-b border-slate-200">
+          <div className="flex gap-2">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => {
+                  setActiveTab(t.id);
+                  if (t.id === "information") setActiveSubTab("personal");
+                }}
+                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                  activeTab === t.id
+                    ? "bg-slate-800 text-white"
+                    : "bg-transparent text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Sub-tabs and Content */}
-      <div className="bg-white">
+        {/* Sub-tabs and Content */}
+        <div className="bg-white">
         {activeTab === "information" && (
-          <div className="mb-6">
-            <div className="flex items-center justify-between border-b border-slate-200">
-              <div className="flex gap-6">
-                {subTabs.information.map((st) => (
-                  <button
-                    key={st.id}
-                    onClick={() => setActiveSubTab(st.id)}
-                    className={`pb-3 px-1 border-b-2 font-semibold text-xs tracking-wide transition-colors ${
-                      activeSubTab === st.id
-                        ? "border-slate-900 text-slate-900"
-                        : "border-transparent text-slate-500 hover:text-slate-900"
-                    }`}
-                  >
-                    {st.label}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 pb-3">
-                <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                  Show sensitive data
-                  <input
-                    type="checkbox"
-                    checked={showSensitiveData}
-                    onChange={(e) => setShowSensitiveData(e.target.checked)}
-                    className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
-                  />
-                </label>
-              </div>
+          <div className="border-b border-slate-200 px-8 pt-6">
+            <div className="flex gap-6">
+              {subTabs.information.map((st) => (
+                <button
+                  key={st.id}
+                  onClick={() => setActiveSubTab(st.id)}
+                  className={`pb-3 px-1 border-b-2 font-semibold text-xs tracking-wide transition-colors ${
+                    activeSubTab === st.id
+                      ? "border-slate-900 text-slate-900"
+                      : "border-transparent text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
         {/* Content Area */}
-        <div className="pb-8">
+        <div className="pb-8 px-8 pt-6">
           {renderContent()}
         </div>
-
-        {/* Updates Section */}
-        <div className="mt-8 pt-6 border-t border-slate-200">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-900">Updates (0)</h3>
-          </div>
         </div>
       </div>
     </div>
