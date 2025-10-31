@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft } from "lucide-react";
 
 export default function EmployeeDetailView({ employeeId, onBack }) {
   const [activeTab, setActiveTab] = useState("information");
   const [activeSubTab, setActiveSubTab] = useState("personal");
+  const [isScrolled, setIsScrolled] = useState(false);
+  const headerRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
   // Mock employee data - in a real app, this would be fetched based on employeeId
   const employee = {
@@ -74,6 +77,24 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     emergencyContactCountry: "-",
     emergencyContactAddress: "-",
   };
+
+  // Scroll handler for sticky header
+  useEffect(() => {
+    const handleScroll = () => {
+      if (headerRef.current) {
+        const rect = headerRef.current.getBoundingClientRect();
+        // Trigger sticky header when the header has scrolled past the top of the viewport
+        // We add a small buffer (64px for the fixed HeaderBar) to account for the fixed header
+        setIsScrolled(rect.bottom <= 64);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    // Check initial state
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const tabs = [
     { id: "information", label: "Information" },
@@ -549,6 +570,70 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
 
   return (
     <div className="py-4">
+      {/* Sticky Header - Appears on Scroll */}
+      <div
+        className={`fixed left-0 md:left-[var(--sidebar-w)] right-0 z-40 bg-white shadow-md transition-all duration-300 ${
+          isScrolled ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+        }`}
+        style={{ top: '64px' }}
+      >
+        {/* Top bar with employee info and actions */}
+        <div className="px-8 py-3 border-b border-slate-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {/* Compact Avatar */}
+              <div className="h-10 w-10 overflow-hidden rounded-full bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-500 shadow ring-2 ring-white">
+                <img
+                  src="https://i.pravatar.cc/150?img=12"
+                  alt={`${employee.lastName}, ${employee.firstName}`}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+
+              {/* Compact Info */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900">{employee.lastName}, {employee.firstName}</h2>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                    SAMPLE
+                  </span>
+                </div>
+                <p className="text-sm text-slate-600">{employee.jobTitle}</p>
+              </div>
+            </div>
+
+            {/* Compact Actions */}
+            <button className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-teal-600 text-white shadow-sm hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60">
+              Actions
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation tabs */}
+        <div className="bg-white px-8">
+          {activeTab === "information" && (
+            <div className="flex gap-6">
+              {subTabs.information.map((st) => (
+                <button
+                  key={st.id}
+                  onClick={() => setActiveSubTab(st.id)}
+                  className={`pb-3 pt-2 px-1 border-b-2 font-semibold text-xs tracking-wide transition-colors ${
+                    activeSubTab === st.id
+                      ? "border-slate-900 text-slate-900"
+                      : "border-transparent text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Back Button */}
       <button
         onClick={onBack}
@@ -559,7 +644,7 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
       </button>
 
       {/* Employee Header */}
-      <div className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 border border-slate-200/60 overflow-hidden mb-6">
+      <div ref={headerRef} className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 border border-slate-200/60 overflow-hidden mb-6">
         <div className="px-8 py-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-6">
