@@ -3,7 +3,7 @@ const ACCENT_PRESETS = {
     id: "blue",
     label: "Blue",
     swatchClass: "bg-blue-500",
-    activeClass: "bg-blue-600",
+    activeClass: "bg-blue-500",
     ringClass: "ring-blue-200",
     softClass: "bg-blue-50",
     textClass: "text-blue-600",
