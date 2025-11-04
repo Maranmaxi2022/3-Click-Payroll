@@ -40,9 +40,19 @@ const stepData = [
 ];
 
 export default function PayrollDashboard() {
+  const TABS = ["dashboard", "employees", "work-calendar", "payruns", "settings"];
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [tab, setTab] = useState("dashboard"); // 'dashboard' | 'employees' | 'work-calendar' | 'payruns' | 'settings'
+  const [tab, setTab] = useState(() => {
+    // Initialize tab from URL hash if present
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash.replace("#", "");
+      const [maybeTab] = hash.split("/");
+      if (TABS.includes(maybeTab)) return maybeTab;
+    }
+    return "dashboard";
+  });
   const [subroute, setSubroute] = useState(""); // e.g., 'employees/new'
   const [settingsActive, setSettingsActive] = useState("org.profile");
   const [branding, setBranding] = useState(() => {
@@ -51,8 +61,6 @@ export default function PayrollDashboard() {
   });
   const [settingsTitleOverride, setSettingsTitleOverride] = useState("");
   const [calendarViewMode, setCalendarViewMode] = useState("week");
-
-  const TABS = ["dashboard", "employees", "work-calendar", "payruns", "settings"];
 
   // Read current hash on load + on change
   useEffect(() => {
