@@ -602,19 +602,20 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
         </div>
       </div>
 
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium mb-4"
-      >
-        <ChevronLeft className="h-5 w-5" />
-        Back
-      </button>
+      <div className="px-8">
+        {/* Back Button */}
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium mb-4"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          Back
+        </button>
 
-      {/* Employee Header */}
-      <div ref={headerRef} className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 border border-slate-200/60 overflow-hidden mb-6">
-        <div className="px-8 py-6">
-          <div className="flex items-start justify-between">
+        {/* Employee Header */}
+        <div ref={headerRef} className="bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 border border-slate-200/60 overflow-hidden mb-6">
+          <div className="px-8 py-6">
+            <div className="flex items-start justify-between">
             <div className="flex items-center gap-6">
               {/* Avatar */}
               <div className="h-24 w-24 overflow-hidden rounded-full bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-500 shadow-lg ring-4 ring-white">
@@ -665,56 +666,57 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
         </div>
       </div>
 
-      {/* Tabs and Content Card */}
-      <div className="border border-slate-200 overflow-hidden">
-        {/* Tabs */}
-        <div className="bg-white px-8 py-4 border-b border-slate-200">
-          <div className="flex gap-2">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => {
-                  setActiveTab(t.id);
-                  if (t.id === "information") setActiveSubTab("personal");
-                }}
-                className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
-                  activeTab === t.id
-                    ? "bg-slate-800 text-white"
-                    : "bg-transparent text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Sub-tabs and Content */}
-        <div className="bg-white">
-        {activeTab === "information" && (
-          <div className="border-b border-slate-200 px-8 pt-6">
-            <div className="flex gap-6">
-              {subTabs.information.map((st) => (
+        {/* Tabs and Content Card */}
+        <div className="border border-slate-200 overflow-hidden">
+          {/* Tabs */}
+          <div className="bg-white px-8 py-4 border-b border-slate-200">
+            <div className="flex gap-2">
+              {tabs.map((t) => (
                 <button
-                  key={st.id}
-                  onClick={() => setActiveSubTab(st.id)}
-                  className={`pb-3 px-1 border-b-2 font-semibold text-xs tracking-wide transition-colors ${
-                    activeSubTab === st.id
-                      ? "border-slate-900 text-slate-900"
-                      : "border-transparent text-slate-500 hover:text-slate-900"
+                  key={t.id}
+                  onClick={() => {
+                    setActiveTab(t.id);
+                    if (t.id === "information") setActiveSubTab("personal");
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                    activeTab === t.id
+                      ? "bg-slate-800 text-white"
+                      : "bg-transparent text-slate-600 hover:bg-slate-100"
                   }`}
                 >
-                  {st.label}
+                  {t.label}
                 </button>
               ))}
             </div>
           </div>
-        )}
 
-        {/* Content Area */}
-        <div className="pb-8 px-8 pt-6">
-          {renderContent()}
-        </div>
+          {/* Sub-tabs and Content */}
+          <div className="bg-white">
+          {activeTab === "information" && (
+            <div className="border-b border-slate-200 px-8 pt-6">
+              <div className="flex gap-6">
+                {subTabs.information.map((st) => (
+                  <button
+                    key={st.id}
+                    onClick={() => setActiveSubTab(st.id)}
+                    className={`pb-3 px-1 border-b-2 font-semibold text-xs tracking-wide transition-colors ${
+                      activeSubTab === st.id
+                        ? "border-slate-900 text-slate-900"
+                        : "border-transparent text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Content Area */}
+          <div className="pb-8 px-8 pt-6">
+            {renderContent()}
+          </div>
+          </div>
         </div>
       </div>
     </div>
