@@ -6,7 +6,6 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
   const [activeSubTab, setActiveSubTab] = useState("personal");
   const [isScrolled, setIsScrolled] = useState(false);
   const headerRef = useRef(null);
-  const scrollContainerRef = useRef(null);
 
   // Mock employee data - in a real app, this would be fetched based on employeeId
   const employee = {
@@ -51,6 +50,51 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     chatUsername: "-",
     socialMediaType: "-",
     socialMediaUrl: "-",
+    // Salary Details from Wizard
+    annualGrossSalary: "********",
+    payFrequency: "********",
+    periodsPerYear: "********",
+    earnings: {
+      overtime: "********",
+      vacation: "********",
+      bonus: "********",
+      commissions: "********",
+      taxableBenefits: "********",
+      benefitPensionable: "********",
+      benefitInsurable: "********",
+    },
+    td1: {
+      federalMode: "********",
+      federalTotal: "********",
+      federalCode: "********",
+      federalIndexing: "********",
+      provincialMode: "********",
+      provincialTotal: "********",
+      provincialCode: "********",
+      additionalTaxPerPay: "********",
+    },
+    ytd: {
+      cpp: "********",
+      cpp2: "********",
+      qpp: "********",
+      qpp2: "********",
+      ei: "********",
+      qpip: "********",
+      tax: "********",
+      nonPeriodic: "********",
+    },
+    credits: {
+      rrsp: "********",
+      rrspYtd: "********",
+      rpp: "********",
+      rppYtd: "********",
+      unionDues: "********",
+      alimony: "********",
+      northernDeduction: "********",
+      lcf: "********",
+      lcp: "********",
+      commissionEmployee: "********",
+    },
     salaryEffectiveDate: "********",
     payType: "********",
     payRate: "********",
@@ -58,9 +102,47 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     overtimeStatus: "********",
     reason: "********",
     salaryNote: "********",
+    // Bank Details from Wizard
     bankName: "********",
     iban: "********",
     accountNumber: "********",
+    accountHolder: "********",
+    ifsc: "********",
+    accountType: "********",
+    // Basic Details from Wizard
+    provinceEmployment: "Ontario",
+    quebecEmployee: "No",
+    locationCity: "Toronto",
+    locationProvince: "ON",
+    locationPostal: "M5H 2N2",
+    portalAccess: "Enabled",
+    statutory: {
+      cppEnabled: "Yes",
+      cpp2Enabled: "Yes",
+      eiEnabled: "Yes",
+      qpipEnabled: "No",
+      exemptions: {
+        cpp: "-",
+        cpp2: "-",
+        ei: "-",
+        qpip: "-",
+      },
+    },
+    // Personal Details from Wizard
+    sin: "XXX XXX 789",
+    dob: "-",
+    age: "-",
+    residentialAddress: {
+      addr1: "51 Melcher Street",
+      addr2: "Apt 4B",
+      city: "Boston",
+      province: "MA",
+      postal: "02210",
+      country: "United States",
+    },
+    consentEslips: "Yes",
+    // Payment Information from Wizard
+    paymentMethod: "Bank Transfer (Manual Process)",
     educationStartDate: "-",
     educationEndDate: "-",
     degree: "-",
@@ -160,12 +242,12 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           {/* Row 3 */}
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Country</label>
-              <p className="text-[15px] text-slate-900">{employee.country}</p>
+              <label className="block text-sm text-slate-500 mb-1">Date of Birth</label>
+              <p className="text-[15px] text-slate-900">{employee.dob}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Address</label>
-              <p className="text-[15px] text-slate-900">{employee.address}</p>
+              <label className="block text-sm text-slate-500 mb-1">Age</label>
+              <p className="text-[15px] text-slate-900">{employee.age}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Gender</label>
@@ -176,8 +258,8 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           {/* Row 4 */}
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Birthdate</label>
-              <p className="text-[15px] text-slate-900">{employee.birthdate}</p>
+              <label className="block text-sm text-slate-500 mb-1">SIN (Social Insurance Number)</label>
+              <p className="text-[15px] text-slate-900">{employee.sin}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Marital Status</label>
@@ -195,13 +277,52 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
               <label className="block text-sm text-slate-500 mb-1">Language Preference</label>
               <p className="text-[15px] text-slate-900">{employee.languagePreference}</p>
             </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Consent to Electronic T4/RL-1</label>
+              <p className="text-[15px] text-slate-900">{employee.consentEslips}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Residential Address Section */}
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Residential Address</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Address Line 1</label>
+              <p className="text-[15px] text-slate-900">{employee.residentialAddress.addr1}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Address Line 2</label>
+              <p className="text-[15px] text-slate-900">{employee.residentialAddress.addr2}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">City</label>
+              <p className="text-[15px] text-slate-900">{employee.residentialAddress.city}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Province</label>
+              <p className="text-[15px] text-slate-900">{employee.residentialAddress.province}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Postal Code</label>
+              <p className="text-[15px] text-slate-900">{employee.residentialAddress.postal}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Country</label>
+              <p className="text-[15px] text-slate-900">{employee.residentialAddress.country}</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Contact Section */}
       <div className="border-t border-slate-200 pt-8">
-        {/* Phone and Email */}
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Contact Information</h3>
         <div className="grid grid-cols-3 gap-6">
           <div className="bg-[#FBFBFB] rounded px-4 py-3">
             <label className="block text-sm text-slate-500 mb-1">Phone</label>
@@ -275,6 +396,76 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
         </div>
       </div>
 
+      {/* Work Location Section */}
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Work Location</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">City</label>
+              <p className="text-[15px] text-slate-900">{employee.locationCity}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Province</label>
+              <p className="text-[15px] text-slate-900">{employee.locationProvince}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Postal Code</label>
+              <p className="text-[15px] text-slate-900">{employee.locationPostal}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Province/Territory of Employment</label>
+              <p className="text-[15px] text-slate-900">{employee.provinceEmployment}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Quebec Employee</label>
+              <p className="text-[15px] text-slate-900">{employee.quebecEmployee}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Portal Access</label>
+              <p className="text-[15px] text-slate-900">{employee.portalAccess}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Statutory Components Section */}
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Statutory Components (Canada)</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">CPP/QPP Enabled</label>
+              <p className="text-[15px] text-slate-900">{employee.statutory.cppEnabled}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">CPP2 Enabled</label>
+              <p className="text-[15px] text-slate-900">{employee.statutory.cpp2Enabled}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">EI Enabled</label>
+              <p className="text-[15px] text-slate-900">{employee.statutory.eiEnabled}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">QPIP Enabled</label>
+              <p className="text-[15px] text-slate-900">{employee.statutory.qpipEnabled}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">CPP Exemption Reason</label>
+              <p className="text-[15px] text-slate-900">{employee.statutory.exemptions.cpp}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">EI Exemption Reason</label>
+              <p className="text-[15px] text-slate-900">{employee.statutory.exemptions.ei}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Employment Section */}
       <div className="border-t border-slate-200 pt-8">
         <h3 className="text-lg font-semibold text-slate-900 mb-4">Employment</h3>
@@ -327,68 +518,256 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
 
   const renderCompensationTab = () => (
     <div className="space-y-8">
-      {/* Salary Section */}
+      {/* Annual Compensation Section */}
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Salary</h3>
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Annual Compensation</h3>
         <div className="space-y-4">
-          {/* Row 1 */}
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Effective date</label>
-              <p className="text-[15px] text-slate-900">********</p>
+              <label className="block text-sm text-slate-500 mb-1">Annual Gross Salary (CAD)</label>
+              <p className="text-[15px] text-slate-900">{employee.annualGrossSalary}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Pay type</label>
-              <p className="text-[15px] text-slate-900">********</p>
+              <label className="block text-sm text-slate-500 mb-1">Pay Frequency</label>
+              <p className="text-[15px] text-slate-900">{employee.payFrequency}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Pay rate</label>
-              <p className="text-[15px] text-slate-900">********</p>
-            </div>
-          </div>
-
-          {/* Row 2 */}
-          <div className="grid grid-cols-3 gap-6">
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Pay schedule</label>
-              <p className="text-[15px] text-slate-900">********</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Overtime status</label>
-              <p className="text-[15px] text-slate-900">********</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Reason</label>
-              <p className="text-[15px] text-slate-900">********</p>
-            </div>
-          </div>
-
-          {/* Row 3 */}
-          <div className="grid grid-cols-3 gap-6">
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Note</label>
-              <p className="text-[15px] text-slate-900">********</p>
+              <label className="block text-sm text-slate-500 mb-1">Periods Per Year</label>
+              <p className="text-[15px] text-slate-900">{employee.periodsPerYear}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bank account Section */}
+      {/* Earnings Components Section */}
       <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Bank account</h3>
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Earnings Components</h3>
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Bank name</label>
-              <p className="text-[15px] text-slate-900">********</p>
+              <label className="block text-sm text-slate-500 mb-1">Overtime</label>
+              <p className="text-[15px] text-slate-900">{employee.earnings.overtime}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">IBAN</label>
-              <p className="text-[15px] text-slate-900">********</p>
+              <label className="block text-sm text-slate-500 mb-1">Vacation Pay</label>
+              <p className="text-[15px] text-slate-900">{employee.earnings.vacation}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Bonus</label>
+              <p className="text-[15px] text-slate-900">{employee.earnings.bonus}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Commissions</label>
+              <p className="text-[15px] text-slate-900">{employee.earnings.commissions}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Taxable Benefits</label>
+              <p className="text-[15px] text-slate-900">{employee.earnings.taxableBenefits}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Benefit Pensionable</label>
+              <p className="text-[15px] text-slate-900">{employee.earnings.benefitPensionable}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Benefit Insurable</label>
+              <p className="text-[15px] text-slate-900">{employee.earnings.benefitInsurable}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* TD1 Tax Details Section */}
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">TD1 Tax Details</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Federal TD1 Mode</label>
+              <p className="text-[15px] text-slate-900">{employee.td1.federalMode}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Federal TD1 Total</label>
+              <p className="text-[15px] text-slate-900">{employee.td1.federalTotal}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Federal TD1 Code</label>
+              <p className="text-[15px] text-slate-900">{employee.td1.federalCode}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Federal Indexing</label>
+              <p className="text-[15px] text-slate-900">{employee.td1.federalIndexing}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Provincial TD1 Mode</label>
+              <p className="text-[15px] text-slate-900">{employee.td1.provincialMode}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Provincial TD1 Total</label>
+              <p className="text-[15px] text-slate-900">{employee.td1.provincialTotal}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Provincial TD1 Code</label>
+              <p className="text-[15px] text-slate-900">{employee.td1.provincialCode}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Additional Tax Per Pay</label>
+              <p className="text-[15px] text-slate-900">{employee.td1.additionalTaxPerPay}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* YTD (Year-to-Date) Section */}
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Year-to-Date (YTD) Carry-ins</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">CPP YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.ytd.cpp}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">CPP2 YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.ytd.cpp2}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">QPP YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.ytd.qpp}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">QPP2 YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.ytd.qpp2}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">EI YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.ytd.ei}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">QPIP YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.ytd.qpip}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Tax YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.ytd.tax}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Non-Periodic YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.ytd.nonPeriodic}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tax Credits Section */}
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Tax Credits & Deductions</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">RRSP</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.rrsp}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">RRSP YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.rrspYtd}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">RPP</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.rpp}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">RPP YTD</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.rppYtd}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Union Dues</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.unionDues}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Alimony</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.alimony}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Northern Deduction</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.northernDeduction}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Limited Charitable (Federal)</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.lcf}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Limited Charitable (Provincial)</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.lcp}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Commission Employee</label>
+              <p className="text-[15px] text-slate-900">{employee.credits.commissionEmployee}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Information Section */}
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Payment Information</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Payment Method</label>
+              <p className="text-[15px] text-slate-900">{employee.paymentMethod}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bank Account Section */}
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-4">Bank Account</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Account Holder Name</label>
+              <p className="text-[15px] text-slate-900">{employee.accountHolder}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Bank name</label>
+              <p className="text-[15px] text-slate-900">{employee.bankName}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Account number</label>
-              <p className="text-[15px] text-slate-900">********</p>
+              <p className="text-[15px] text-slate-900">{employee.accountNumber}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">IFSC Code</label>
+              <p className="text-[15px] text-slate-900">{employee.ifsc}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Account Type</label>
+              <p className="text-[15px] text-slate-900">{employee.accountType}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">IBAN</label>
+              <p className="text-[15px] text-slate-900">{employee.iban}</p>
             </div>
           </div>
         </div>
