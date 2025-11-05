@@ -140,6 +140,7 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
     lastName: "",
     employeeId: "",
     doj: "",
+    startDate: "", // Actual work start date
     workEmail: "",
     mobile: "",
     gender: "",
@@ -154,6 +155,16 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
     location: "Head Office",
     designation: "",
     department: "",
+    division: "",
+    employmentType: "", // Full-time, Part-time, Contract, etc.
+    employmentStatus: "Active", // Active, Inactive, On Leave, Terminated
+    manager: "", // Reporting manager
+    probationEndDate: "", // Probation period end date
+    contractEndDate: "", // Contract expiry date (if applicable)
+    jobLevel: "", // Junior, Senior, Manager, etc.
+    workSchedule: "", // Standard hours, Shift work, Flexible
+    workplace: "", // Office, Remote, Hybrid
+    jobNote: "", // Additional notes
     enablePortal: false,
     // Canada – statutory programs
     cppEnabled: true,
