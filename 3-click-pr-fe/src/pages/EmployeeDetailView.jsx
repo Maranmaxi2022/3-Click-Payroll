@@ -27,14 +27,19 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     directReports: "-",
     effectiveDate: "08 October 2021",
     employmentType: "Full-Time",
+    jobLevel: "Senior",
     workplace: "-",
     expiryDate: "-",
+    contractEndDate: "-",
+    probationEndDate: "-",
     note: "-",
     workSchedule: "Full time | 9:00 AM - 6:00 PM | 5 days, 40 hours",
     country: "United States of America (the)",
     address: "51 Melcher Street, Boston, Massachusetts, United States, 02210",
     gender: "-",
     birthdate: "-",
+    nationality: "Canadian",
+    languagePreference: "English",
     maritalStatus: "Married",
     maritalCertificate: "-",
     phoneType: "Mobile",
@@ -174,6 +179,22 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
               <label className="block text-sm text-slate-500 mb-1">Birthdate</label>
               <p className="text-[15px] text-slate-900">{employee.birthdate}</p>
             </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Marital Status</label>
+              <p className="text-[15px] text-slate-900">{employee.maritalStatus}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Nationality</label>
+              <p className="text-[15px] text-slate-900">{employee.nationality}</p>
+            </div>
+          </div>
+
+          {/* Row 5 */}
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Language Preference</label>
+              <p className="text-[15px] text-slate-900">{employee.languagePreference}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -243,6 +264,10 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
               <p className="text-[15px] text-blue-600 font-medium">{employee.manager}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Job Level</label>
+              <p className="text-[15px] text-slate-900">{employee.jobLevel}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Direct reports</label>
               <p className="text-[15px] text-slate-900">{employee.directReports}</p>
             </div>
@@ -274,6 +299,14 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
 
           {/* Row 2 */}
           <div className="grid grid-cols-3 gap-6">
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Probation End Date</label>
+              <p className="text-[15px] text-slate-900">{employee.probationEndDate}</p>
+            </div>
+            <div className="bg-[#FBFBFB] rounded px-4 py-3">
+              <label className="block text-sm text-slate-500 mb-1">Contract End Date</label>
+              <p className="text-[15px] text-slate-900">{employee.contractEndDate}</p>
+            </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Expiry date</label>
               <p className="text-[15px] text-slate-900">{employee.expiryDate}</p>
