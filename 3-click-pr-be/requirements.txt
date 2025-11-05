@@ -1,0 +1,35 @@
+# FastAPI Core
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+pydantic==2.9.2
+pydantic-settings==2.6.0
+
+# MongoDB
+motor==3.6.0
+pymongo==4.10.1
+beanie==1.27.0
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.12
+
+# CORS & Middleware
+python-dotenv==1.0.1
+
+# Date & Time
+python-dateutil==2.9.0
+
+# Validation
+email-validator==2.2.0
+
+# Report Generation
+reportlab==4.2.5
+openpyxl==3.1.5
+xlsxwriter==3.2.0
+
+# PDF Generation (alternative)
+fpdf2==2.8.1
+
+# Utilities
+pytz==2024.2
