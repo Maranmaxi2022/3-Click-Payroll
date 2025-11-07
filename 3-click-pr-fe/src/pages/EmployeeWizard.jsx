@@ -1491,9 +1491,9 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
 /* Tiny utility styles (Tailwind v4) */
 const css = `
 .input{ @apply h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200; }
-.btn-primary{ @apply h-9 rounded-md bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700; }
+.btn-primary{ @apply h-9 rounded-md bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600; }
 .btn-secondary{ @apply h-9 rounded-md border border-slate-200 bg-white px-3 text-sm hover:bg-slate-50; }
-.btn-ghost{ @apply h-9 rounded-md px-3 text-sm text-slate-700 hover:bg-slate-100; }
+.btn-ghost{ @apply h-9 rounded-md px-3 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent; }
 .btn-outline{ @apply h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-800 hover:bg-slate-50; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("emp-wiz-css")) {
