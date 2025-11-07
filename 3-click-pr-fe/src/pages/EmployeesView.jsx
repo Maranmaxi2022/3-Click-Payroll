@@ -151,9 +151,65 @@ export default function EmployeesView() {
         </button>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="mt-8 flex flex-col items-center justify-center py-12">
+          <svg className="animate-spin h-10 w-10 text-blue-600" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p className="mt-4 text-sm text-slate-600">Loading employees...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {!loading && error && (
+        <div className="mt-8 rounded-lg border border-red-200 bg-red-50 p-6">
+          <div className="flex items-start gap-3">
+            <div className="text-red-600">
+              <svg className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-red-800">Failed to load employees</h3>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
+              <button
+                onClick={fetchEmployees}
+                className="mt-3 text-sm font-medium text-red-600 hover:text-red-800 underline"
+              >
+                Try again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && !error && filteredRows.length === 0 && (
+        <div className="mt-8 flex flex-col items-center justify-center py-12 text-center">
+          <svg className="h-16 w-16 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <h3 className="mt-4 text-lg font-medium text-slate-800">No employees found</h3>
+          <p className="mt-2 text-sm text-slate-600">
+            {searchTerm ? "Try adjusting your search criteria" : "Get started by adding your first employee"}
+          </p>
+          {!searchTerm && (
+            <button
+              onClick={() => { window.location.hash = "employees/new"; }}
+              className="mt-4 inline-flex items-center justify-center gap-2 h-9 px-4 rounded-full text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Add Employee
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Employee Cards */}
-      <div className="mt-3 space-y-3">
-        {rows.map((r, i) => (
+      {!loading && !error && filteredRows.length > 0 && (
+        <div className="mt-3 space-y-3">
+          {filteredRows.map((r, i) => (
           <div
             key={i}
             className="flex flex-col bg-white rounded-xl border border-slate-200/60 overflow-hidden hover:shadow-md hover:border-slate-300/60 transition-all duration-200 cursor-pointer"
