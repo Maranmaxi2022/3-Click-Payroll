@@ -843,9 +843,6 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                   addressLines.push(cityProvince + (location.postal_code ? " " + location.postal_code : ""));
                 }
 
-                // Find province label
-                const provinceLabel = CANADIAN_PROVINCES.find(p => p.value === location.province)?.label || location.province;
-
                 return (
                   <article
                     key={location.id}
