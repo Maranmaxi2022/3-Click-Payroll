@@ -497,10 +497,20 @@ function OrgProfile() {
     { value: ".", label: ".", icon: "·" },
   ];
 
-  const INDIAN_STATES = [
-    { value: "TN", label: "Tamil Nadu", icon: "🗺️" },
-    { value: "KA", label: "Karnataka", icon: "🗺️" },
-    { value: "MH", label: "Maharashtra", icon: "🗺️" },
+  const CANADIAN_PROVINCES = [
+    { value: "AB", label: "Alberta", icon: "🗺️" },
+    { value: "BC", label: "British Columbia", icon: "🗺️" },
+    { value: "MB", label: "Manitoba", icon: "🗺️" },
+    { value: "NB", label: "New Brunswick", icon: "🗺️" },
+    { value: "NL", label: "Newfoundland and Labrador", icon: "🗺️" },
+    { value: "NS", label: "Nova Scotia", icon: "🗺️" },
+    { value: "NT", label: "Northwest Territories", icon: "🗺️" },
+    { value: "NU", label: "Nunavut", icon: "🗺️" },
+    { value: "ON", label: "Ontario", icon: "🗺️" },
+    { value: "PE", label: "Prince Edward Island", icon: "🗺️" },
+    { value: "QC", label: "Quebec", icon: "🗺️" },
+    { value: "SK", label: "Saskatchewan", icon: "🗺️" },
+    { value: "YT", label: "Yukon", icon: "🗺️" },
   ];
 
   return (
