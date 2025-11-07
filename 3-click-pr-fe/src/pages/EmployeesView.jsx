@@ -336,7 +336,8 @@ export default function EmployeesView() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
