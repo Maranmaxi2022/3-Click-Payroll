@@ -406,6 +406,40 @@ function OrgProfile() {
   const [fieldSep, setFieldSep] = useState("");
   const [stateName, setStateName] = useState("");
 
+  // Filing address modal state
+  const [isFilingModalOpen, setIsFilingModalOpen] = useState(false);
+  const [workLocations, setWorkLocations] = useState([]);
+  const [loadingLocations, setLoadingLocations] = useState(false);
+  const [selectedFilingLocation, setSelectedFilingLocation] = useState(null);
+  const [filingLocationId, setFilingLocationId] = useState("");
+
+  // Fetch work locations when modal opens
+  React.useEffect(() => {
+    if (isFilingModalOpen) {
+      fetchWorkLocations();
+    }
+  }, [isFilingModalOpen]);
+
+  const fetchWorkLocations = async () => {
+    try {
+      setLoadingLocations(true);
+      const data = await workLocationAPI.getAll({ is_active: true });
+      setWorkLocations(data);
+    } catch (err) {
+      console.error("Error fetching work locations:", err);
+      alert("Failed to load work locations: " + (err.message || "Unknown error"));
+    } finally {
+      setLoadingLocations(false);
+    }
+  };
+
+  const handleFilingSave = () => {
+    const selected = workLocations.find(loc => loc.id === filingLocationId);
+    setSelectedFilingLocation(selected);
+    setIsFilingModalOpen(false);
+    // TODO: Save to backend/organization settings
+  };
+
   const BUSINESS_LOCATIONS = [
     { value: "chennai", label: "Head Office – Chennai", icon: "🏢" },
     { value: "blr", label: "Bengaluru", icon: "🏙️" },
