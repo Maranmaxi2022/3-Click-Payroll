@@ -7,7 +7,7 @@ and personal information.
 """
 
 from beanie import Document, Indexed
-from pydantic import EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import datetime, date
 from enum import Enum
