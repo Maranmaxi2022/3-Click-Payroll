@@ -5,9 +5,59 @@ Endpoints for managing payroll settings, salary components,
 statutory settings, and organization configuration.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
+from typing import List, Optional
+from pydantic import BaseModel
+from datetime import datetime
+
+from src.schemas.organization import WorkLocation
 
 router = APIRouter()
+
+
+# Work Location Schemas
+class WorkLocationCreate(BaseModel):
+    """Schema for creating a work location"""
+    name: str
+    code: Optional[str] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: str = "Canada"
+    phone: Optional[str] = None
+
+
+class WorkLocationUpdate(BaseModel):
+    """Schema for updating a work location"""
+    name: Optional[str] = None
+    code: Optional[str] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+class WorkLocationResponse(BaseModel):
+    """Schema for work location response"""
+    id: str
+    name: str
+    code: Optional[str] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: str
+    phone: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 @router.get("/salary-components")
