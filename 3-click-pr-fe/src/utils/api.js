@@ -135,4 +135,62 @@ export const employeeAPI = {
     }),
 };
 
+// Work Location API endpoints
+export const workLocationAPI = {
+  /**
+   * Get all work locations
+   * @param {Object} params - Query parameters (e.g., { is_active: true })
+   * @returns {Promise<Array>} List of work locations
+   */
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v != null)
+    ).toString();
+    const endpoint = queryString
+      ? `/api/v1/settings/work-locations?${queryString}`
+      : '/api/v1/settings/work-locations';
+    return request(endpoint);
+  },
+
+  /**
+   * Get a single work location by ID
+   * @param {string} locationId - MongoDB ObjectId as string
+   * @returns {Promise<Object>} Work location details
+   */
+  getById: (locationId) => request(`/api/v1/settings/work-locations/${locationId}`),
+
+  /**
+   * Create a new work location
+   * @param {Object} locationData - Work location data
+   * @returns {Promise<Object>} Created work location
+   */
+  create: (locationData) =>
+    request('/api/v1/settings/work-locations', {
+      method: 'POST',
+      body: JSON.stringify(locationData),
+    }),
+
+  /**
+   * Update a work location
+   * @param {string} locationId - Work location ID
+   * @param {Object} updateData - Partial work location data to update
+   * @returns {Promise<Object>} Updated work location
+   */
+  update: (locationId, updateData) =>
+    request(`/api/v1/settings/work-locations/${locationId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    }),
+
+  /**
+   * Delete a work location
+   * @param {string} locationId - Work location ID
+   * @returns {Promise<null>} No content on success
+   */
+  delete: (locationId) =>
+    request(`/api/v1/settings/work-locations/${locationId}`, {
+      method: 'DELETE',
+    }),
+};
+
 export { APIError };
