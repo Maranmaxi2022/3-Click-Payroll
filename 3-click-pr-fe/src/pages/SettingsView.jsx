@@ -598,7 +598,18 @@ function OrgProfile() {
 
 function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
   const [isFormOpen, setIsFormOpen] = useState(initialOpen);
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  // Form fields
+  const [name, setName] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
   const [province, setProvince] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
 
   React.useEffect(() => {
     // keep state in sync if route-driven open state changes
@@ -621,18 +632,87 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
     { value: "YT", label: "Yukon", icon: "🗺️" },
   ];
 
-  const locations = [
-    {
-      id: "head-office",
-      name: "Head Office",
-      addressLines: [
-        "No. 15, 2nd Cross Street, Raja Annamalaipuram (RA Puram)",
-        "Chennai, Tamil Nadu 600028",
-      ],
-      employees: 2,
-      tag: "Filing Address",
-    },
-  ];
+  // Fetch work locations on mount
+  React.useEffect(() => {
+    fetchWorkLocations();
+  }, []);
+
+  const fetchWorkLocations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await workLocationAPI.getAll();
+      setLocations(data);
+    } catch (err) {
+      console.error("Error fetching work locations:", err);
+      setError(err.message || "Failed to load work locations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setName("");
+    setAddressLine1("");
+    setAddressLine2("");
+    setProvince("");
+    setCity("");
+    setPostalCode("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validation
+    if (!name.trim()) {
+      alert("Please enter a work location name");
+      return;
+    }
+
+    if (!addressLine1.trim()) {
+      alert("Please enter address line 1");
+      return;
+    }
+
+    if (!province) {
+      alert("Please select a province/territory");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      const locationData = {
+        name: name.trim(),
+        street: addressLine1.trim() + (addressLine2.trim() ? "\n" + addressLine2.trim() : ""),
+        city: city.trim() || null,
+        province: province,
+        postal_code: postalCode.trim() || null,
+        country: "Canada",
+      };
+
+      await workLocationAPI.create(locationData);
+
+      // Reset form and close
+      resetForm();
+      setIsFormOpen(false);
+
+      // Refresh locations list
+      await fetchWorkLocations();
+
+      // Navigate back to locations list
+      if (typeof navigate === "function") {
+        navigate("org.locations");
+      }
+    } catch (err) {
+      console.error("Error creating work location:", err);
+      setError(err.message || "Failed to save work location");
+      alert("Failed to save work location: " + (err.message || "Unknown error"));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Update the main header title when the inline form is open
   React.useEffect(() => {
