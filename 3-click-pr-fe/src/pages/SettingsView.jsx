@@ -4,6 +4,7 @@ import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
 import SalaryComponents from "./SalaryComponents";
 import PaySchedule from "./PaySchedule";
 import SearchSelect from "../components/SearchSelect";
+import Modal from "../components/Modal";
 import { loadPayrollSettings, savePayrollSettings } from "../utils/payrollStore";
 import { workLocationAPI } from "../utils/api";
 
