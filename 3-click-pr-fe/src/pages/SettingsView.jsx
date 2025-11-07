@@ -953,6 +953,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                   options={CANADIAN_PROVINCES}
                   searchInMenu={true}
                   searchPlaceholder="Search province/territory"
+                  floatingLabel={false}
                 />
                 <input
                   className="input"
