@@ -665,15 +665,16 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
               <input className="input" placeholder="Address Line 1" />
               <input className="input" placeholder="Address Line 2" />
               <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.2fr_1fr_1fr]">
-                <select className="input" defaultValue="">
-                  <option value="" disabled>
-                    Select a state
-                  </option>
-                  <option>Tamil Nadu</option>
-                  <option>Karnataka</option>
-                </select>
+                <SearchSelect
+                  value={province}
+                  onChange={(opt) => setProvince(opt?.value || "")}
+                  placeholder="Select Province/Territory"
+                  options={CANADIAN_PROVINCES}
+                  searchInMenu={true}
+                  searchPlaceholder="Search province/territory"
+                />
                 <input className="input" placeholder="City" />
-                <input className="input" placeholder="PIN Code" />
+                <input className="input" placeholder="Postal Code" />
               </div>
             </div>
 
