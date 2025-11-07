@@ -682,7 +682,10 @@ function OrgProfile() {
       {/* Filing Address Modal */}
       <Modal
         isOpen={isFilingModalOpen}
-        onClose={() => setIsFilingModalOpen(false)}
+        onClose={() => {
+          setIsFilingModalOpen(false);
+          setFilingLocationId("");
+        }}
         title="Update Filing Address"
         maxWidth="max-w-3xl"
       >
@@ -691,18 +694,31 @@ function OrgProfile() {
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Select Filing Address<span className="text-red-500">*</span>
             </label>
-            <select
-              className="input w-full"
-              value={filingLocationId}
-              onChange={(e) => setFilingLocationId(e.target.value)}
-            >
-              <option value="">Select a work location</option>
-              {workLocations.map((location) => (
-                <option key={location.id} value={location.id}>
-                  {location.name}
-                </option>
-              ))}
-            </select>
+            {loadingLocations ? (
+              <div className="w-full h-12 px-4 flex items-center rounded-lg border-2 border-slate-300 bg-slate-50 text-slate-400">
+                Loading locations...
+              </div>
+            ) : (
+              <div className="relative">
+                <select
+                  className="w-full h-12 px-4 pr-10 text-base rounded-lg border-2 border-blue-500 bg-white text-slate-900 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  value={filingLocationId}
+                  onChange={(e) => setFilingLocationId(e.target.value)}
+                >
+                  <option value="" disabled>Select</option>
+                  {workLocations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Display selected location details */}
