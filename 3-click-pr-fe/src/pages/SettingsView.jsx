@@ -1,10 +1,11 @@
 // src/pages/SettingsView.jsx
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
 import SalaryComponents from "./SalaryComponents";
 import PaySchedule from "./PaySchedule";
 import SearchSelect from "../components/SearchSelect";
 import { loadPayrollSettings, savePayrollSettings } from "../utils/payrollStore";
+import { workLocationAPI } from "../utils/api";
 
 import {
   ACCENT_LIST,
