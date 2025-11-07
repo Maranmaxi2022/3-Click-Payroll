@@ -558,6 +558,7 @@ function OrgProfile() {
                 onChange={(opt) => setBusinessLocation(opt?.value || "")}
                 placeholder="Select business location"
                 options={BUSINESS_LOCATIONS}
+                floatingLabel={false}
               />
             </div>
             <div>
@@ -568,6 +569,7 @@ function OrgProfile() {
                 onChange={(opt) => setIndustry(opt?.value || "")}
                 placeholder="Select industry"
                 options={INDUSTRIES}
+                floatingLabel={false}
               />
             </div>
           </div>
