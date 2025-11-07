@@ -1,23 +1,77 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { employeeAPI } from "../utils/api";
 
 export default function EmployeesView() {
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const rows = [
-    {
-      id: 1,
-      name: "Abernathy, Rex",
-      title: "Account Manager (Full-Time)",
-      email: "rex_abernathy@sampleemployee.com",
-      phone: "+18579909723",
-      dept: "No department",
-      location: "US Entity | Boston, Massachusetts, United States | Boston HQ",
-      manager: "Greenholt, Eulah",
-      avatar: null, // Will show placeholder avatar
-      initial: "A",
-      status: "Active",
-    },
-  ];
+  // Fetch employees on component mount
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await employeeAPI.getAll({
+        status: "active",
+        page: 1,
+        page_size: 100,
+      });
+      setEmployees(response.employees || []);
+    } catch (err) {
+      console.error("Failed to fetch employees:", err);
+      setError(err.message || "Failed to load employees");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transform backend employee data to display format
+  const transformEmployee = (emp) => {
+    const fullName = `${emp.last_name}, ${emp.first_name}`;
+    const jobTitle = emp.job_title || "No Title";
+    const employmentType = emp.employment_type?.replace(/_/g, "-") || "Full-Time";
+    const title = `${jobTitle} (${employmentType.charAt(0).toUpperCase() + employmentType.slice(1)})`;
+
+    // Format location
+    const province = emp.province_of_employment || "";
+    const location = emp.work_location_name
+      ? `${emp.work_location_name} | ${province}`
+      : province || "No location";
+
+    return {
+      id: emp.id,
+      name: fullName,
+      title: title,
+      email: emp.email || "",
+      phone: emp.phone || "",
+      dept: emp.department_name || "No department",
+      location: location,
+      manager: emp.manager_name || "No manager",
+      avatar: null,
+      initial: emp.first_name?.[0]?.toUpperCase() || "?",
+      status: emp.status || "Active",
+    };
+  };
+
+  const rows = employees.map(transformEmployee);
+
+  // Filter employees based on search term
+  const filteredRows = rows.filter((r) => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      r.name.toLowerCase().includes(search) ||
+      r.email.toLowerCase().includes(search) ||
+      r.phone.includes(search) ||
+      r.dept.toLowerCase().includes(search)
+    );
+  });
 
   const toggleMenu = (id) => {
     setOpenMenuId(openMenuId === id ? null : id);
