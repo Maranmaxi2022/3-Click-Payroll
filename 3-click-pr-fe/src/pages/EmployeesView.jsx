@@ -121,6 +121,8 @@ export default function EmployeesView() {
           <input
             className="h-9 w-72 rounded-md border border-slate-200 bg-white px-8 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="Search in Employee"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
           <svg
             viewBox="0 0 24 24"
