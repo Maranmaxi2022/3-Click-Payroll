@@ -108,6 +108,10 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
   const [compactHeader, setCompactHeader] = useState(false);
   // Smooth progress value (0 at top, 1 after a threshold of scroll)
   const [scrollY, setScrollY] = useState(0);
+  // API states
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [createdEmployeeId, setCreatedEmployeeId] = useState(null);
   useEffect(() => {
     const onScroll = () => {
       if (typeof window === "undefined") return;
