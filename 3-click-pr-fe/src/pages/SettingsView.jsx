@@ -614,6 +614,7 @@ function OrgProfile() {
                 options={CANADIAN_PROVINCES}
                 searchInMenu={true}
                 searchPlaceholder="Search province/territory"
+                floatingLabel={false}
               />
               <input className="input" placeholder="City" />
               <input className="input" placeholder="Postal Code" />
