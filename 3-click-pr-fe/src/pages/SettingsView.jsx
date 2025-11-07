@@ -597,10 +597,29 @@ function OrgProfile() {
 
 function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
   const [isFormOpen, setIsFormOpen] = useState(initialOpen);
+  const [province, setProvince] = useState("");
+
   React.useEffect(() => {
     // keep state in sync if route-driven open state changes
     setIsFormOpen(initialOpen);
   }, [initialOpen]);
+
+  const CANADIAN_PROVINCES = [
+    { value: "AB", label: "Alberta", icon: "🗺️" },
+    { value: "BC", label: "British Columbia", icon: "🗺️" },
+    { value: "MB", label: "Manitoba", icon: "🗺️" },
+    { value: "NB", label: "New Brunswick", icon: "🗺️" },
+    { value: "NL", label: "Newfoundland and Labrador", icon: "🗺️" },
+    { value: "NS", label: "Nova Scotia", icon: "🗺️" },
+    { value: "NT", label: "Northwest Territories", icon: "🗺️" },
+    { value: "NU", label: "Nunavut", icon: "🗺️" },
+    { value: "ON", label: "Ontario", icon: "🗺️" },
+    { value: "PE", label: "Prince Edward Island", icon: "🗺️" },
+    { value: "QC", label: "Quebec", icon: "🗺️" },
+    { value: "SK", label: "Saskatchewan", icon: "🗺️" },
+    { value: "YT", label: "Yukon", icon: "🗺️" },
+  ];
+
   const locations = [
     {
       id: "head-office",
