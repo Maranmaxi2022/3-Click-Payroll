@@ -699,25 +699,17 @@ function OrgProfile() {
                 Loading locations...
               </div>
             ) : (
-              <div className="relative">
-                <select
-                  className="w-full h-12 px-4 pr-10 text-base rounded-lg border-2 border-blue-500 bg-white text-slate-900 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  value={filingLocationId}
-                  onChange={(e) => setFilingLocationId(e.target.value)}
-                >
-                  <option value="" disabled>Select</option>
-                  {workLocations.map((location) => (
-                    <option key={location.id} value={location.id}>
-                      {location.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
+              <SearchSelect
+                value={filingLocationId}
+                onChange={(opt) => setFilingLocationId(opt?.value || "")}
+                placeholder="Select"
+                options={workLocations.map(loc => ({
+                  value: loc.id,
+                  label: loc.name
+                }))}
+                floatingLabel={false}
+                inputClassName="h-12 border-2 border-blue-500 text-base"
+              />
             )}
           </div>
 
