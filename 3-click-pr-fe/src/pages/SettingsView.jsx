@@ -583,6 +583,7 @@ function OrgProfile() {
                 onChange={(opt) => setDateFormat(opt?.value || "")}
                 placeholder="Select date format"
                 options={DATE_FORMATS}
+                floatingLabel={false}
               />
             </div>
             <div>
@@ -593,6 +594,7 @@ function OrgProfile() {
                 onChange={(opt) => setFieldSep(opt?.value || "")}
                 placeholder="Select separator"
                 options={FIELD_SEPARATORS}
+                floatingLabel={false}
               />
             </div>
           </div>
