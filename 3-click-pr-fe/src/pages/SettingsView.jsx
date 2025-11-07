@@ -666,6 +666,91 @@ function OrgProfile() {
         {/* Right empty space (desktop only) */}
         <div className="hidden lg:block" aria-hidden />
       </div>
+
+      {/* Filing Address Modal */}
+      <Modal
+        isOpen={isFilingModalOpen}
+        onClose={() => setIsFilingModalOpen(false)}
+        title="Update Filing Address"
+        maxWidth="max-w-3xl"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Select Filing Address<span className="text-red-500">*</span>
+            </label>
+            <select
+              className="input w-full"
+              value={filingLocationId}
+              onChange={(e) => setFilingLocationId(e.target.value)}
+            >
+              <option value="">Select a work location</option>
+              {workLocations.map((location) => (
+                <option key={location.id} value={location.id}>
+                  {location.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Display selected location details */}
+          {filingLocationId && workLocations.find(loc => loc.id === filingLocationId) && (
+            <div className="rounded-xl bg-slate-50 p-6 border border-slate-200">
+              {(() => {
+                const location = workLocations.find(loc => loc.id === filingLocationId);
+                return (
+                  <>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">
+                      {location.name}
+                    </h3>
+                    <div className="space-y-1 text-sm text-slate-700">
+                      {location.street && <p>{location.street}</p>}
+                      <p>
+                        {[location.city, location.province, location.postal_code]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Note */}
+          <div className="rounded-lg bg-blue-50 p-4 text-sm text-slate-700">
+            <p>
+              <span className="font-semibold">Note:</span> Your filing address can only be one of your work locations.
+              To set a new address as your filing address, add that address as a work location in{" "}
+              <a href="#settings" className="text-blue-600 hover:underline font-medium">
+                Settings &gt; Work Locations
+              </a>.
+            </p>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={handleFilingSave}
+              disabled={!filingLocationId}
+              className="inline-flex h-10 items-center rounded-lg bg-blue-600 px-6 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsFilingModalOpen(false);
+                setFilingLocationId("");
+              }}
+              className="inline-flex h-10 items-center rounded-lg border border-slate-200 bg-white px-6 text-sm font-medium text-slate-600 hover:bg-slate-100"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
