@@ -461,7 +461,58 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
   const next = () => setStep((s) => Math.min(5, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
 
-  const finishWizard = () => setStep(5);
+  const finishWizard = async () => {
+    setIsSubmitting(true);
+    setApiError(null);
+
+    try {
+      // Prepare the complete wizard data
+      const wizardData = {
+        form,
+        compensation: {
+          annualGross: annualCTC,
+          payFrequency,
+          periodsPerYear: caComp.P,
+          earnings,
+          td1: {
+            federal: { mode: td1FedMode, total: td1FedTotal, code: td1FedCode, indexing: td1UseIndexing },
+            provincial: { mode: td1ProvMode, total: td1ProvTotal, code: td1ProvCode },
+            additionalTaxPerPay,
+          },
+          ytd,
+          credits,
+        },
+        personal,
+        paymentMethod,
+        bank: paymentMethod === "bank" ? bank : undefined,
+      };
+
+      // Map to backend payload
+      const { createPayload, updatePayload } = mapWizardDataToTwoStepPayload(wizardData);
+
+      // Step 1: Create the employee with basic info
+      const createdEmployee = await employeeAPI.create(createPayload);
+      setCreatedEmployeeId(createdEmployee.id);
+
+      // Step 2: Update with full details (personal, payment, etc.)
+      await employeeAPI.update(createdEmployee.id, updatePayload);
+
+      // Call the onFinish callback if provided (for parent component)
+      onFinish?.(wizardData);
+
+      // Move to success screen
+      setStep(5);
+    } catch (error) {
+      console.error("Failed to create employee:", error);
+      if (error instanceof APIError) {
+        setApiError(error.data?.detail || error.message || "Failed to create employee");
+      } else {
+        setApiError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const saveAndContinue = () => {
     if (step === 4) {
