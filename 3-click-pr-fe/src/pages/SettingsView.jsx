@@ -1696,6 +1696,7 @@ function TaxDetailsView() {
                   onChange={setEmpField("province")}
                   placeholder="Select province"
                   options={PROVINCES.map((p) => ({ value: p, label: p }))}
+                  floatingLabel={false}
                 />
                 <div className="mt-1 text-[12px] text-slate-500">Quebec income tax uses Revenu Québec tables; CRA T4127 covers non‑Quebec.</div>
               </div>
