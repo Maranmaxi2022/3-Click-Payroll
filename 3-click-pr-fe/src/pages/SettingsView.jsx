@@ -815,55 +815,78 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
           </form>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {locations.map((location) => (
-            <article
-              key={location.id}
-              className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
-            >
-              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div className="space-y-3">
-                  <header>
-                    <h3 className="text-base font-semibold text-slate-900">
-                      {location.name}
-                    </h3>
-                  </header>
-                  <div className="space-y-1 text-sm text-slate-600">
-                    {location.addressLines.map((line) => (
-                      <p key={line}>{line}</p>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                    <Users className="h-4 w-4" />
-                    <span>{location.employees} Employees</span>
-                  </div>
-                </div>
+        <div>
+          {loading && (
+            <div className="text-center py-8 text-slate-500">Loading work locations...</div>
+          )}
 
-                <div className="flex items-center gap-2 self-start">
-                  <button
-                    type="button"
-                    className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-                    aria-label="Edit work location"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-                    aria-label="More actions"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
+          {error && (
+            <div className="text-center py-8 text-red-500">Error: {error}</div>
+          )}
 
-              {location.tag && (
-                <span className="absolute bottom-0 right-0 rounded-tl-lg bg-emerald-500 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-                  {location.tag}
-                </span>
-              )}
-            </article>
-          ))}
+          {!loading && !error && locations.length === 0 && (
+            <div className="text-center py-8 text-slate-500">
+              No work locations yet. Click "Add Work Location" to create one.
+            </div>
+          )}
+
+          {!loading && !error && locations.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {locations.map((location) => {
+                // Format address lines
+                const addressLines = [];
+                if (location.street) {
+                  addressLines.push(location.street);
+                }
+                const cityProvince = [location.city, location.province].filter(Boolean).join(", ");
+                if (cityProvince) {
+                  addressLines.push(cityProvince + (location.postal_code ? " " + location.postal_code : ""));
+                }
+
+                // Find province label
+                const provinceLabel = CANADIAN_PROVINCES.find(p => p.value === location.province)?.label || location.province;
+
+                return (
+                  <article
+                    key={location.id}
+                    className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div className="space-y-3">
+                        <header>
+                          <h3 className="text-base font-semibold text-slate-900">
+                            {location.name}
+                          </h3>
+                        </header>
+                        <div className="space-y-1 text-sm text-slate-600">
+                          {addressLines.map((line, idx) => (
+                            <p key={idx}>{line}</p>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-start">
+                        <button
+                          type="button"
+                          className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                          aria-label="Edit work location"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                          aria-label="More actions"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </>
