@@ -606,11 +606,13 @@ function OrgProfile() {
               <SearchSelect
                 value={stateName}
                 onChange={(opt) => setStateName(opt?.value || "")}
-                placeholder="Select state"
-                options={INDIAN_STATES}
+                placeholder="Select Province/Territory"
+                options={CANADIAN_PROVINCES}
+                searchInMenu={true}
+                searchPlaceholder="Search province/territory"
               />
               <input className="input" placeholder="City" />
-              <input className="input" placeholder="PIN Code" />
+              <input className="input" placeholder="Postal Code" />
             </div>
 
             <div className="mt-2">
