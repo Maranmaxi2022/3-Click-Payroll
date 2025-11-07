@@ -731,20 +731,36 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
 
       {isFormOpen ? (
         <div>
-          <form className="max-w-[720px] space-y-6">
+          <form className="max-w-[720px] space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-700">
                 Work Location Name<span className="text-red-500">*</span>
               </label>
-              <input className="input" placeholder="" autoFocus />
+              <input
+                className="input"
+                placeholder=""
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
 
             <div className="space-y-3">
               <label className="block text-sm font-medium text-slate-700">
                 Address<span className="text-red-500">*</span>
               </label>
-              <input className="input" placeholder="Address Line 1" />
-              <input className="input" placeholder="Address Line 2" />
+              <input
+                className="input"
+                placeholder="Address Line 1"
+                value={addressLine1}
+                onChange={(e) => setAddressLine1(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Address Line 2"
+                value={addressLine2}
+                onChange={(e) => setAddressLine2(e.target.value)}
+              />
               <div className="grid grid-cols-1 gap-3 md:grid-cols-[1.2fr_1fr_1fr]">
                 <SearchSelect
                   value={province}
@@ -754,8 +770,18 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                   searchInMenu={true}
                   searchPlaceholder="Search province/territory"
                 />
-                <input className="input" placeholder="City" />
-                <input className="input" placeholder="Postal Code" />
+                <input
+                  className="input"
+                  placeholder="City"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
+                <input
+                  className="input"
+                  placeholder="Postal Code"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                />
               </div>
             </div>
 
@@ -763,14 +789,16 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <button
-                    type="button"
-                    className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Save
+                    {saving ? "Saving..." : "Save"}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
+                      resetForm();
                       setIsFormOpen(false);
                       if (typeof navigate === "function") navigate("org.locations");
                     }}
