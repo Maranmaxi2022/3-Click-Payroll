@@ -6,7 +6,7 @@ for the FastAPI application.
 """
 
 from pydantic_settings import BaseSettings
-from typing import List
+from typing import List, Union
 
 
 class Settings(BaseSettings):
@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
 
-    # CORS Settings
-    CORS_ORIGINS: List[str] = ["http://localhost:5173", "http://localhost:3000"]
+    # CORS Settings (can be string or list)
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
     # Security
     SECRET_KEY: str = "dev-secret-key-change-in-production"
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
-        """Parse CORS origins from comma-separated string if needed"""
+        """Parse CORS origins from comma-separated string"""
         if isinstance(self.CORS_ORIGINS, str):
             return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
         return self.CORS_ORIGINS
