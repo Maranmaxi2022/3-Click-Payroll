@@ -1748,6 +1748,7 @@ function TaxDetailsView() {
                     onChange={setEmpField("claimCode")}
                     placeholder="Select code (0–10)"
                     options={Array.from({ length: 11 }, (_, i) => ({ value: String(i), label: String(i) }))}
+                    floatingLabel={false}
                   />
               </div>
             </div>
