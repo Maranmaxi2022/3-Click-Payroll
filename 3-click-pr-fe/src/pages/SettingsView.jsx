@@ -609,11 +609,50 @@ function OrgProfile() {
                 This registered address will be used across all Forms and Payslips.
               </div>
               <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="mb-1 flex items-center justify-between text-sm font-semibold text-slate-800">
-                  <span className="text-slate-600">No filing address selected</span>
-                  <a href="#" className="text-blue-600 hover:underline">Set</a>
-                </div>
-                <div className="text-sm text-slate-500">Select a work location to set filing address.</div>
+                {selectedFilingLocation ? (
+                  <>
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="text-sm font-semibold text-slate-900">
+                        {selectedFilingLocation.name}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setIsFilingModalOpen(true)}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Change
+                      </button>
+                    </div>
+                    <div className="space-y-1 text-sm text-slate-600">
+                      {selectedFilingLocation.street && (
+                        <p>{selectedFilingLocation.street}</p>
+                      )}
+                      <p>
+                        {[
+                          selectedFilingLocation.city,
+                          selectedFilingLocation.province,
+                          selectedFilingLocation.postal_code
+                        ].filter(Boolean).join(", ")}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-1 flex items-center justify-between text-sm font-semibold text-slate-800">
+                      <span className="text-slate-600">No filing address selected</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsFilingModalOpen(true)}
+                        className="text-blue-600 hover:underline"
+                      >
+                        Set
+                      </button>
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      Select a work location to set filing address.
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
