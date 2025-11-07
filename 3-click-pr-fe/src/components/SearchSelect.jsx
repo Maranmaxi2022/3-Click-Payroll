@@ -193,13 +193,14 @@ export default function SearchSelect({
                 onClick={() => pick(opt)}
                 className={cx(
                   "mx-2 my-1 flex w-[calc(100%-1rem)] items-center gap-3 rounded-xl px-4 py-2.5 text-left text-[14px]",
-                  selected ? "bg-blue-600 text-white" : active ? "bg-blue-50" : "",
+                  selected ? "text-white" : active ? "bg-blue-50" : "",
                 )}
+                style={selected ? { backgroundColor: '#408dfb' } : undefined}
                 role="option"
                 aria-selected={selected}
               >
                 <span className={cx("flex-1 font-medium", selected ? "text-white" : "text-slate-800")}>{opt.label}</span>
-                {selected && <Check className={cx("h-4 w-4", selected ? "text-white" : "text-blue-600")} />}
+                {selected && <Check className={cx("h-4 w-4", selected ? "text-white" : "")} style={selected ? undefined : { color: '#408dfb' }} />}
               </button>
             );
           })}

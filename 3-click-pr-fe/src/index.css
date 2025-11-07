@@ -7,14 +7,24 @@ body { overflow-x: hidden; }
 /* Layout variables */
 :root {
   --sidebar-w: 240px; /* desktop sidebar width */
+  --custom-blue: #408dfb; /* custom brand blue */
+  --custom-blue-hover: #3678e0; /* custom brand blue hover (slightly darker) */
+  --custom-blue-light: rgba(64, 141, 251, 0.1); /* custom brand blue light */
+  --custom-blue-ring: rgba(64, 141, 251, 0.6); /* custom brand blue ring */
 }
 
 /* Component-level utilities */
 @layer components {
   .input {
     @apply h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm
-           placeholder:text-slate-400 focus:border-blue-500 focus:outline-none
-           focus:ring-2 focus:ring-blue-200;
+           placeholder:text-slate-400 focus:outline-none;
+
+    /* Custom blue focus styles */
+    &:focus {
+      border-color: var(--custom-blue);
+      ring: 2px;
+      ring-color: var(--custom-blue-light);
+    }
   }
 
   /* Normalize label height so inputs align across columns */
@@ -25,28 +35,48 @@ body { overflow-x: hidden; }
   /* Buttons */
   .btn {
     @apply inline-flex items-center justify-center rounded-lg px-4 h-10 text-[14px] font-medium
-           transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60;
+           transition focus-visible:outline-none;
+  }
+  .btn:focus-visible {
+    ring: 2px;
+    ring-color: var(--custom-blue-ring);
   }
 
   /* Note: do NOT @apply .btn here (Tailwind can't apply custom classes). */
   .btn-primary {
     @apply inline-flex items-center justify-center rounded-lg px-4 h-10 text-[14px] font-medium
-           transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
-           bg-blue-600 text-white shadow-sm hover:bg-blue-700 active:translate-y-px;
+           transition focus-visible:outline-none
+           text-white shadow-sm active:translate-y-px;
+    background-color: var(--custom-blue);
+  }
+  .btn-primary:hover {
+    background-color: var(--custom-blue-hover);
+  }
+  .btn-primary:focus-visible {
+    ring: 2px;
+    ring-color: var(--custom-blue-ring);
   }
 
   .btn-secondary {
     /* used for Back */
     @apply inline-flex items-center justify-center rounded-lg px-4 h-10 text-[14px] font-medium
-           transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
+           transition focus-visible:outline-none
            border border-slate-200 bg-white text-slate-900 hover:bg-slate-50;
+  }
+  .btn-secondary:focus-visible {
+    ring: 2px;
+    ring-color: var(--custom-blue-ring);
   }
 
   .btn-ghost {
     /* outline/white Cancel */
     @apply inline-flex items-center justify-center rounded-lg px-4 h-10 text-[14px] font-medium
-           transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
+           transition focus-visible:outline-none
            border border-slate-300 bg-white text-slate-900 hover:bg-slate-50;
+  }
+  .btn-ghost:focus-visible {
+    ring: 2px;
+    ring-color: var(--custom-blue-ring);
   }
 
   .btn-primary:disabled,

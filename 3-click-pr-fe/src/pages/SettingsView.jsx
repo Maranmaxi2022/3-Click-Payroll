@@ -48,9 +48,10 @@ function LeftItem({ id, label, active, onClick }) {
       className={cx(
         "w-full rounded-lg px-4 py-2 text-left text-[14px] font-medium",
         active
-          ? "bg-blue-600 text-white shadow-[0_12px_24px_-18px_rgba(15,23,42,0.4)]"
+          ? "text-white shadow-[0_12px_24px_-18px_rgba(15,23,42,0.4)]"
           : "text-slate-700 hover:bg-white"
       )}
+      style={active ? { backgroundColor: '#408dfb' } : undefined}
     >
       {label}
     </button>
@@ -675,7 +676,12 @@ function OrgProfile() {
           </div>
 
           <div className="mt-2 flex items-center justify-between pt-2">
-            <button className="h-9 rounded-md bg-blue-600 px-3 text-sm font-medium text-white hover:bg-blue-700">Save</button>
+            <button
+              className="h-9 rounded-md px-3 text-sm font-medium text-white hover:opacity-90"
+              style={{ backgroundColor: '#408dfb' }}
+            >
+              Save
+            </button>
             <div className="text-xs font-medium text-red-500">* indicates mandatory fields</div>
           </div>
         </div>
@@ -759,7 +765,8 @@ function OrgProfile() {
               type="button"
               onClick={handleFilingSave}
               disabled={!filingLocationId}
-              className="inline-flex h-10 items-center rounded-lg bg-blue-600 px-6 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex h-10 items-center rounded-lg px-6 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: '#408dfb' }}
             >
               Save
             </button>
@@ -976,7 +983,8 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex h-9 items-center rounded-lg px-5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: '#408dfb' }}
                   >
                     {saving ? "Saving..." : "Save"}
                   </button>
@@ -1211,7 +1219,8 @@ function DepartmentDialog({ onClose }) {
             <div className="flex items-center gap-3">
               <button
                 type="submit"
-                className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+                className="inline-flex h-9 items-center rounded-lg px-5 text-sm font-medium text-white hover:opacity-90"
+                style={{ backgroundColor: '#408dfb' }}
               >
                 Save
               </button>
@@ -1344,7 +1353,8 @@ function DesignationDialog({ onClose }) {
             <div className="flex items-center gap-3">
               <button
                 type="submit"
-                className="inline-flex h-9 items-center rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+                className="inline-flex h-9 items-center rounded-lg px-5 text-sm font-medium text-white hover:opacity-90"
+                style={{ backgroundColor: '#408dfb' }}
               >
                 Save
               </button>
@@ -1869,7 +1879,12 @@ function TaxDetailsView() {
 
           {/* Actions */}
           <div className="mt-6 border-t border-slate-200 pt-4 flex items-center justify-between">
-            <button className="h-9 rounded-md bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700">Save</button>
+            <button
+              className="h-9 rounded-md px-4 text-sm font-medium text-white hover:opacity-90"
+              style={{ backgroundColor: '#408dfb' }}
+            >
+              Save
+            </button>
             <div className="text-xs font-medium text-red-500">* indicates mandatory fields</div>
           </div>
         </section>

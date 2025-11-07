@@ -213,7 +213,8 @@ export default function PayrollDashboard() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    className="inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: '#408dfb' }}
                     onClick={() => setSettingsActive("org.locations.new")}
                   >
                     Add Work Location
@@ -230,7 +231,8 @@ export default function PayrollDashboard() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    className="inline-flex h-10 items-center gap-2 rounded-lg px-5 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: '#408dfb' }}
                     onClick={() => {
                       try {
                         window.dispatchEvent(new CustomEvent("department:new"));
@@ -252,7 +254,8 @@ export default function PayrollDashboard() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    className="inline-flex h-10 items-center gap-2 rounded-lg px-5 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
+                    style={{ backgroundColor: '#408dfb' }}
                     onClick={() => {
                       try {
                         window.dispatchEvent(new CustomEvent("designation:new"));

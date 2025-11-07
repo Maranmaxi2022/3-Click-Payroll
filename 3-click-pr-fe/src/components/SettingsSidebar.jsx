@@ -33,9 +33,10 @@ function LeftItem({ id, label, active, onClick }) {
       className={cx(
         "w-full rounded-lg px-4 py-2 text-left text-[14px] font-medium",
         active
-          ? "bg-blue-600 text-white shadow-[0_12px_24px_-18px_rgba(15,23,42,0.4)]"
+          ? "text-white shadow-[0_12px_24px_-18px_rgba(15,23,42,0.4)]"
           : "text-slate-700 hover:bg-white"
       )}
+      style={active ? { backgroundColor: '#408dfb' } : undefined}
     >
       {label}
     </button>
