@@ -1614,6 +1614,7 @@ function TaxDetailsView() {
                 onChange={setEmployerField("province")}
                 placeholder="Select province"
                 options={PROVINCES.map((p) => ({ value: p, label: p }))}
+                floatingLabel={false}
               />
             </div>
             <div>
@@ -1624,6 +1625,7 @@ function TaxDetailsView() {
                 onChange={setEmployerField("payFreq")}
                 placeholder="Select frequency"
                 options={PAY_FREQS.map((f) => ({ value: f, label: f }))}
+                floatingLabel={false}
               />
               <div className="mt-1 text-[12px] text-slate-500">Used as factor P in CRA formulas.</div>
             </div>
@@ -1636,6 +1638,7 @@ function TaxDetailsView() {
                 onChange={setEmployerField("remitter")}
                 placeholder="Select cadence"
                 options={REMITTERS.map((r) => ({ value: r, label: r }))}
+                floatingLabel={false}
               />
               <div className="mt-1 text-[12px] text-slate-500">For your workflow; CRA remittance thresholds handled outside.</div>
             </div>
