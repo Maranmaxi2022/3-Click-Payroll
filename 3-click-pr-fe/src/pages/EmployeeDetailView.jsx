@@ -150,7 +150,6 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
       { id: "personal", label: "PERSONAL" },
       { id: "job", label: "JOB" },
       { id: "compensation", label: "COMPENSATION & BENEFITS" },
-      { id: "legal", label: "LEGAL DOCUMENTS" },
       { id: "experience", label: "EXPERIENCE" },
       { id: "emergency", label: "EMERGENCY" },
     ],
