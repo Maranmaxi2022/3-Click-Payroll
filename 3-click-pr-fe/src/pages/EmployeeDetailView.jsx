@@ -304,15 +304,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Job title</label>
-              <p className="text-[15px] text-slate-900">{employee.jobTitle}</p>
+              <p className="text-[15px] text-slate-900">{getField("job_title")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Hire date</label>
-              <p className="text-[15px] text-slate-900">{employee.hireDate}</p>
+              <p className="text-[15px] text-slate-900">{getField("hire_date")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Start date</label>
-              <p className="text-[15px] text-slate-900">{employee.startDate}</p>
+              <p className="text-[15px] text-slate-900">{getField("start_date")}</p>
             </div>
           </div>
 
@@ -320,15 +320,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Entity</label>
-              <p className="text-[15px] text-slate-900">{employee.entity}</p>
+              <p className="text-[15px] text-slate-900">{getField("entity_name")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Department</label>
-              <p className="text-[15px] text-slate-900">{employee.department}</p>
+              <p className="text-[15px] text-slate-900">{getField("department_name")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Division</label>
-              <p className="text-[15px] text-slate-900">{employee.division}</p>
+              <p className="text-[15px] text-slate-900">{getField("division")}</p>
             </div>
           </div>
 
@@ -336,15 +336,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Manager</label>
-              <p className="text-[15px] text-blue-600 font-medium">{employee.manager}</p>
+              <p className="text-[15px] text-blue-600 font-medium">{getField("manager_name")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Job Level</label>
-              <p className="text-[15px] text-slate-900">{employee.jobLevel}</p>
+              <p className="text-[15px] text-slate-900">{getField("job_level")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Direct reports</label>
-              <p className="text-[15px] text-slate-900">{employee.directReports}</p>
+              <p className="text-[15px] text-slate-900">{getField("direct_reports_count", "0")}</p>
             </div>
           </div>
         </div>
@@ -356,30 +356,16 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">City</label>
-              <p className="text-[15px] text-slate-900">{employee.locationCity}</p>
+              <label className="block text-sm text-slate-500 mb-1">Work Location</label>
+              <p className="text-[15px] text-slate-900">{getField("work_location_name")}</p>
             </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Province</label>
-              <p className="text-[15px] text-slate-900">{employee.locationProvince}</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Postal Code</label>
-              <p className="text-[15px] text-slate-900">{employee.locationPostal}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Province/Territory of Employment</label>
-              <p className="text-[15px] text-slate-900">{employee.provinceEmployment}</p>
+              <p className="text-[15px] text-slate-900">{getField("province_of_employment")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Quebec Employee</label>
-              <p className="text-[15px] text-slate-900">{employee.quebecEmployee}</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Portal Access</label>
-              <p className="text-[15px] text-slate-900">{employee.portalAccess}</p>
+              <p className="text-[15px] text-slate-900">{getField("is_quebec_employee") ? "Yes" : "No"}</p>
             </div>
           </div>
         </div>
@@ -392,29 +378,29 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">CPP/QPP Enabled</label>
-              <p className="text-[15px] text-slate-900">{employee.statutory.cppEnabled}</p>
+              <p className="text-[15px] text-slate-900">{getField("cpp_enabled") ? "Yes" : "No"}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">CPP2 Enabled</label>
-              <p className="text-[15px] text-slate-900">{employee.statutory.cpp2Enabled}</p>
+              <p className="text-[15px] text-slate-900">{getField("cpp2_enabled") ? "Yes" : "No"}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">EI Enabled</label>
-              <p className="text-[15px] text-slate-900">{employee.statutory.eiEnabled}</p>
+              <p className="text-[15px] text-slate-900">{getField("ei_enabled") ? "Yes" : "No"}</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">QPIP Enabled</label>
-              <p className="text-[15px] text-slate-900">{employee.statutory.qpipEnabled}</p>
+              <p className="text-[15px] text-slate-900">{getField("qpip_enabled") ? "Yes" : "No"}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">CPP Exemption Reason</label>
-              <p className="text-[15px] text-slate-900">{employee.statutory.exemptions.cpp}</p>
+              <p className="text-[15px] text-slate-900">{getField("cpp_exemption_code")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">EI Exemption Reason</label>
-              <p className="text-[15px] text-slate-900">{employee.statutory.exemptions.ei}</p>
+              <p className="text-[15px] text-slate-900">{getField("ei_exemption_code")}</p>
             </div>
           </div>
         </div>
@@ -429,40 +415,16 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           {/* Row 1 */}
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Effective date</label>
-              <p className="text-[15px] text-slate-900">{employee.effectiveDate}</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Employment type</label>
-              <p className="text-[15px] text-slate-900">{employee.employmentType}</p>
+              <p className="text-[15px] text-slate-900">{getField("employment_type")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Workplace</label>
-              <p className="text-[15px] text-slate-900">{employee.workplace}</p>
-            </div>
-          </div>
-
-          {/* Row 2 */}
-          <div className="grid grid-cols-3 gap-6">
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Probation End Date</label>
-              <p className="text-[15px] text-slate-900">{employee.probationEndDate}</p>
+              <label className="block text-sm text-slate-500 mb-1">Employment status</label>
+              <p className="text-[15px] text-slate-900">{getField("status")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Contract End Date</label>
-              <p className="text-[15px] text-slate-900">{employee.contractEndDate}</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Expiry date</label>
-              <p className="text-[15px] text-slate-900">{employee.expiryDate}</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Note</label>
-              <p className="text-[15px] text-slate-900">{employee.note}</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Work schedule</label>
-              <p className="text-[15px] text-blue-600 font-medium">{employee.workSchedule}</p>
+              <label className="block text-sm text-slate-500 mb-1">Termination date</label>
+              <p className="text-[15px] text-slate-900">{getField("termination_date")}</p>
             </div>
           </div>
         </div>
