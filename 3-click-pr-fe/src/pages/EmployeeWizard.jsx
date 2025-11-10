@@ -238,6 +238,73 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
   const [settingsAll, setSettingsAll] = useState(() => loadPayrollSettings());
   useEffect(() => subscribePayrollSettings((next) => setSettingsAll(next)), []);
 
+  // Fetch employee data in edit mode
+  useEffect(() => {
+    if (mode === "edit" && employeeId) {
+      const fetchEmployeeData = async () => {
+        try {
+          setIsLoadingEmployee(true);
+          setLoadError(null);
+          const data = await employeeAPI.getById(employeeId);
+
+          // Populate form with existing employee data
+          setForm({
+            firstName: data.first_name || "",
+            middleName: data.middle_name || "",
+            lastName: data.last_name || "",
+            employeeId: data.employee_number || "",
+            doj: data.hire_date || "",
+            startDate: data.start_date || "",
+            workEmail: data.email || "",
+            mobile: data.phone || "",
+            gender: data.gender || "",
+            provinceEmployment: data.province_of_employment || "",
+            quebecEmployee: data.is_quebec_employee || false,
+            locationCity: data.city || "",
+            locationProvince: data.province || "",
+            locationPostal: data.postal_code || "",
+            location: data.work_location_name || "Head Office",
+            designation: data.job_title || "",
+            department: data.department_name || "",
+            division: data.division || "",
+            employmentType: data.employment_type || "",
+            employmentStatus: data.status || "Active",
+            manager: data.manager_name || "",
+            probationEndDate: data.probation_end_date || "",
+            contractEndDate: data.contract_end_date || "",
+            jobLevel: data.job_level || "",
+            workSchedule: data.work_schedule || "",
+            workplace: data.workplace || "",
+            jobNote: data.notes || "",
+            enablePortal: data.portal_access_enabled || false,
+            cppEnabled: data.cpp_enabled !== false,
+            cpp2Enabled: data.cpp2_enabled !== false,
+            eiEnabled: data.ei_enabled !== false,
+            qpipEnabled: data.qpip_enabled || false,
+            exemptions: {
+              cpp: data.cpp_exemption_code || "",
+              cpp2: data.cpp2_exemption_code || "",
+              ei: data.ei_exemption_code || "",
+              qpip: data.qpip_exemption_code || "",
+            },
+          });
+
+          // Populate compensation data if available
+          if (data.annual_salary) setAnnualCTC(data.annual_salary);
+          if (data.pay_frequency) setPayFrequency(data.pay_frequency);
+
+          setIsLoadingEmployee(false);
+        } catch (err) {
+          console.error("Error fetching employee:", err);
+          setLoadError(err.message || "Failed to load employee data");
+          setIsLoadingEmployee(false);
+        }
+      };
+
+      fetchEmployeeData();
+    }
+  }, [mode, employeeId]);
+
   // Map of per-pay amounts for earnings components (by id)
   const [compAmounts, setCompAmounts] = useState({});
   const setCompAmt = (id) => (e) => setCompAmounts((m) => ({ ...m, [id]: e.target.value }));
