@@ -9,7 +9,9 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
   const headerRef = useRef(null);
+  const actionsMenuRef = useRef(null);
 
   // Fetch employee data when component mounts or employeeId changes
   useEffect(() => {
