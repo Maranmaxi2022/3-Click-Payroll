@@ -516,8 +516,6 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           return renderJobTab();
         case "compensation":
           return renderCompensationTab();
-        case "legal":
-          return <div className="text-slate-600 py-8">Legal documents content coming soon...</div>;
         case "experience":
           return renderExperienceTab();
         case "emergency":
