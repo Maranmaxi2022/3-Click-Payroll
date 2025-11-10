@@ -441,15 +441,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Annual Gross Salary (CAD)</label>
-              <p className="text-[15px] text-slate-900">{employee.annualGrossSalary}</p>
+              <p className="text-[15px] text-slate-900">{getField("annual_salary", "********")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Pay Frequency</label>
-              <p className="text-[15px] text-slate-900">{employee.payFrequency}</p>
+              <p className="text-[15px] text-slate-900">{getField("pay_frequency", "********")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Periods Per Year</label>
-              <p className="text-[15px] text-slate-900">{employee.periodsPerYear}</p>
+              <label className="block text-sm text-slate-500 mb-1">Pay Schedule</label>
+              <p className="text-[15px] text-slate-900">{getField("pay_schedule", "********")}</p>
             </div>
           </div>
         </div>
