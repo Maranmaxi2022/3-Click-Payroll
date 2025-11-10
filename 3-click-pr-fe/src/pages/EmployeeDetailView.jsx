@@ -1,169 +1,36 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft } from "lucide-react";
+import { employeeAPI } from "../utils/api";
 
 export default function EmployeeDetailView({ employeeId, onBack }) {
   const [activeTab, setActiveTab] = useState("information");
   const [activeSubTab, setActiveSubTab] = useState("personal");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [employee, setEmployee] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const headerRef = useRef(null);
 
-  // Mock employee data - in a real app, this would be fetched based on employeeId
-  const employee = {
-    id: employeeId,
-    firstName: "Rex",
-    middleName: "-",
-    lastName: "Abernathy",
-    preferredName: "-",
-    employeeId: "5",
-    status: "Active",
-    jobTitle: "Account Manager",
-    hireDate: "01 October 2021",
-    startDate: "17 December 2021",
-    entity: "US Entity | Boston, Massachusetts, United States | Boston HQ",
-    department: "-",
-    division: "-",
-    manager: "Greenholt, Eulah",
-    directReports: "-",
-    effectiveDate: "08 October 2021",
-    employmentType: "Full-Time",
-    jobLevel: "Senior",
-    workplace: "-",
-    expiryDate: "-",
-    contractEndDate: "-",
-    probationEndDate: "-",
-    note: "-",
-    workSchedule: "Full time | 9:00 AM - 6:00 PM | 5 days, 40 hours",
-    country: "United States of America (the)",
-    address: "51 Melcher Street, Boston, Massachusetts, United States, 02210",
-    gender: "-",
-    birthdate: "-",
-    nationality: "Canadian",
-    languagePreference: "English",
-    maritalStatus: "Married",
-    maritalCertificate: "-",
-    phoneType: "Mobile",
-    phone: "+18579909723",
-    phoneExtension: "-",
-    workEmail: "rex_abernathy@sampleemployee.com",
-    personalEmail: "rex_abernathy@samplecandidate.com",
-    chatType: "-",
-    chatUsername: "-",
-    socialMediaType: "-",
-    socialMediaUrl: "-",
-    // Salary Details from Wizard
-    annualGrossSalary: "********",
-    payFrequency: "********",
-    periodsPerYear: "********",
-    earnings: {
-      overtime: "********",
-      vacation: "********",
-      bonus: "********",
-      commissions: "********",
-      taxableBenefits: "********",
-      benefitPensionable: "********",
-      benefitInsurable: "********",
-    },
-    td1: {
-      federalMode: "********",
-      federalTotal: "********",
-      federalCode: "********",
-      federalIndexing: "********",
-      provincialMode: "********",
-      provincialTotal: "********",
-      provincialCode: "********",
-      additionalTaxPerPay: "********",
-    },
-    ytd: {
-      cpp: "********",
-      cpp2: "********",
-      qpp: "********",
-      qpp2: "********",
-      ei: "********",
-      qpip: "********",
-      tax: "********",
-      nonPeriodic: "********",
-    },
-    credits: {
-      rrsp: "********",
-      rrspYtd: "********",
-      rpp: "********",
-      rppYtd: "********",
-      unionDues: "********",
-      alimony: "********",
-      northernDeduction: "********",
-      lcf: "********",
-      lcp: "********",
-      commissionEmployee: "********",
-    },
-    salaryEffectiveDate: "********",
-    payType: "********",
-    payRate: "********",
-    paySchedule: "********",
-    overtimeStatus: "********",
-    reason: "********",
-    salaryNote: "********",
-    // Bank Details from Wizard
-    bankName: "********",
-    iban: "********",
-    accountNumber: "********",
-    accountHolder: "********",
-    ifsc: "********",
-    accountType: "********",
-    // Basic Details from Wizard
-    provinceEmployment: "Ontario",
-    quebecEmployee: "No",
-    locationCity: "Toronto",
-    locationProvince: "ON",
-    locationPostal: "M5H 2N2",
-    portalAccess: "Enabled",
-    statutory: {
-      cppEnabled: "Yes",
-      cpp2Enabled: "Yes",
-      eiEnabled: "Yes",
-      qpipEnabled: "No",
-      exemptions: {
-        cpp: "-",
-        cpp2: "-",
-        ei: "-",
-        qpip: "-",
-      },
-    },
-    // Personal Details from Wizard
-    sin: "XXX XXX 789",
-    dob: "-",
-    age: "-",
-    residentialAddress: {
-      addr1: "51 Melcher Street",
-      addr2: "Apt 4B",
-      city: "Boston",
-      province: "MA",
-      postal: "02210",
-      country: "United States",
-    },
-    consentEslips: "Yes",
-    // Payment Information from Wizard
-    paymentMethod: "Bank Transfer (Manual Process)",
-    educationStartDate: "-",
-    educationEndDate: "-",
-    degree: "-",
-    fieldOfStudy: "-",
-    school: "-",
-    workExpStartDate: "-",
-    workExpEndDate: "-",
-    workExpJobTitle: "-",
-    workExpCompany: "-",
-    workExpSummary: "-",
-    workExpPresent: "-",
-    skill: "-",
-    language: "-",
-    resumeFile: "-",
-    emergencyContactName: "-",
-    emergencyContactRelationship: "-",
-    emergencyContactPhone: "-",
-    emergencyContactEmail: "-",
-    emergencyContactCountry: "-",
-    emergencyContactAddress: "-",
-  };
+  // Fetch employee data when component mounts or employeeId changes
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await employeeAPI.getById(employeeId);
+        setEmployee(data);
+      } catch (err) {
+        console.error("Error fetching employee:", err);
+        setError(err.message || "Failed to load employee data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (employeeId) {
+      fetchEmployeeData();
+    }
+  }, [employeeId]);
 
   // Scroll handler for sticky header
   useEffect(() => {
@@ -182,6 +49,93 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="py-4 px-8">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium mb-4"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          Back
+        </button>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-teal-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+            <p className="mt-4 text-slate-600">Loading employee details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="py-4 px-8">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium mb-4"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          Back
+        </button>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Error Loading Employee</h3>
+            <p className="text-slate-600 mb-4">{error}</p>
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if no employee data
+  if (!employee) {
+    return (
+      <div className="py-4 px-8">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium mb-4"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          Back
+        </button>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-slate-600">No employee data found</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Helper function to safely get nested properties with fallback
+  const getField = (path, fallback = "-") => {
+    const keys = path.split(".");
+    let value = employee;
+    for (const key of keys) {
+      if (value && typeof value === "object" && key in value) {
+        value = value[key];
+      } else {
+        return fallback;
+      }
+    }
+    return value || fallback;
+  };
 
   const tabs = [
     { id: "information", label: "Information" },
@@ -211,15 +165,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">First name</label>
-              <p className="text-[15px] text-slate-900">{employee.firstName}</p>
+              <p className="text-[15px] text-slate-900">{getField("first_name")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Middle name</label>
-              <p className="text-[15px] text-slate-900">{employee.middleName}</p>
+              <p className="text-[15px] text-slate-900">{getField("middle_name")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Last name</label>
-              <p className="text-[15px] text-slate-900">{employee.lastName}</p>
+              <p className="text-[15px] text-slate-900">{getField("last_name")}</p>
             </div>
           </div>
 
@@ -227,15 +181,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Preferred name</label>
-              <p className="text-[15px] text-slate-900">{employee.preferredName}</p>
+              <p className="text-[15px] text-slate-900">{getField("preferred_name")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Employee ID</label>
-              <p className="text-[15px] text-slate-900">{employee.employeeId}</p>
+              <p className="text-[15px] text-slate-900">{getField("employee_number")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Status</label>
-              <p className="text-[15px] text-slate-900">{employee.status}</p>
+              <p className="text-[15px] text-slate-900">{getField("status", "Active")}</p>
             </div>
           </div>
 
@@ -243,15 +197,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Date of Birth</label>
-              <p className="text-[15px] text-slate-900">{employee.dob}</p>
+              <p className="text-[15px] text-slate-900">{getField("date_of_birth")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Age</label>
-              <p className="text-[15px] text-slate-900">{employee.age}</p>
+              <p className="text-[15px] text-slate-900">{getField("age")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Gender</label>
-              <p className="text-[15px] text-slate-900">{employee.gender}</p>
+              <p className="text-[15px] text-slate-900">{getField("gender")}</p>
             </div>
           </div>
 
@@ -259,15 +213,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">SIN (Social Insurance Number)</label>
-              <p className="text-[15px] text-slate-900">{employee.sin}</p>
+              <p className="text-[15px] text-slate-900">{getField("sin")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Marital Status</label>
-              <p className="text-[15px] text-slate-900">{employee.maritalStatus}</p>
+              <p className="text-[15px] text-slate-900">{getField("marital_status")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Nationality</label>
-              <p className="text-[15px] text-slate-900">{employee.nationality}</p>
+              <p className="text-[15px] text-slate-900">{getField("nationality")}</p>
             </div>
           </div>
 
@@ -275,11 +229,11 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Language Preference</label>
-              <p className="text-[15px] text-slate-900">{employee.languagePreference}</p>
+              <p className="text-[15px] text-slate-900">{getField("language_preference")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Consent to Electronic T4/RL-1</label>
-              <p className="text-[15px] text-slate-900">{employee.consentEslips}</p>
+              <p className="text-[15px] text-slate-900">{getField("consent_to_electronic_slips")}</p>
             </div>
           </div>
         </div>
@@ -292,29 +246,29 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Address Line 1</label>
-              <p className="text-[15px] text-slate-900">{employee.residentialAddress.addr1}</p>
+              <p className="text-[15px] text-slate-900">{getField("address_line_1")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Address Line 2</label>
-              <p className="text-[15px] text-slate-900">{employee.residentialAddress.addr2}</p>
+              <p className="text-[15px] text-slate-900">{getField("address_line_2")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">City</label>
-              <p className="text-[15px] text-slate-900">{employee.residentialAddress.city}</p>
+              <p className="text-[15px] text-slate-900">{getField("city")}</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Province</label>
-              <p className="text-[15px] text-slate-900">{employee.residentialAddress.province}</p>
+              <p className="text-[15px] text-slate-900">{getField("province")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Postal Code</label>
-              <p className="text-[15px] text-slate-900">{employee.residentialAddress.postal}</p>
+              <p className="text-[15px] text-slate-900">{getField("postal_code")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Country</label>
-              <p className="text-[15px] text-slate-900">{employee.residentialAddress.country}</p>
+              <p className="text-[15px] text-slate-900">{getField("country")}</p>
             </div>
           </div>
         </div>
@@ -326,15 +280,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
         <div className="grid grid-cols-3 gap-6">
           <div className="bg-[#FBFBFB] rounded px-4 py-3">
             <label className="block text-sm text-slate-500 mb-1">Phone</label>
-            <p className="text-[15px] text-blue-600 font-medium">{employee.phone}</p>
+            <p className="text-[15px] text-blue-600 font-medium">{getField("phone")}</p>
           </div>
           <div className="bg-[#FBFBFB] rounded px-4 py-3">
             <label className="block text-sm text-slate-500 mb-1">Work email</label>
-            <p className="text-[15px] text-blue-600 font-medium">{employee.workEmail}</p>
+            <p className="text-[15px] text-blue-600 font-medium">{getField("email")}</p>
           </div>
           <div className="bg-[#FBFBFB] rounded px-4 py-3">
             <label className="block text-sm text-slate-500 mb-1">Personal email</label>
-            <p className="text-[15px] text-blue-600 font-medium">{employee.personalEmail}</p>
+            <p className="text-[15px] text-blue-600 font-medium">{getField("personal_email")}</p>
           </div>
         </div>
       </div>
@@ -973,12 +927,14 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
               {/* Compact Info */}
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-base font-bold text-slate-900">{employee.lastName}, {employee.firstName}</h2>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                    SAMPLE
-                  </span>
+                  <h2 className="text-base font-bold text-slate-900">{getField("last_name")}, {getField("first_name")}</h2>
+                  {employee?.is_sample && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                      SAMPLE
+                    </span>
+                  )}
                 </div>
-                <p className="text-sm text-slate-600">{employee.jobTitle}</p>
+                <p className="text-sm text-slate-600">{getField("job_title")}</p>
               </div>
             </div>
 
@@ -1041,25 +997,27 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
               {/* Info */}
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-slate-900">{employee.lastName}, {employee.firstName}</h1>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                    SAMPLE
-                  </span>
+                  <h1 className="text-2xl font-bold text-slate-900">{getField("last_name")}, {getField("first_name")}</h1>
+                  {employee?.is_sample && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                      SAMPLE
+                    </span>
+                  )}
                 </div>
-                <p className="text-base text-slate-700 font-medium mt-1">{employee.jobTitle} ({employee.employmentType})</p>
-                <p className="text-sm text-slate-600 mt-1">{employee.entity}</p>
+                <p className="text-base text-slate-700 font-medium mt-1">{getField("job_title")} ({getField("employment_type", "Full-Time")})</p>
+                <p className="text-sm text-slate-600 mt-1">{getField("work_location_name") || getField("province_of_employment")}</p>
                 <div className="flex items-center gap-6 mt-3">
                   <div className="flex items-center gap-2 text-sm text-slate-600">
                     <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    <span className="font-medium">{employee.workEmail}</span>
+                    <span className="font-medium">{getField("email")}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-slate-600">
                     <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    <span className="font-medium">{employee.phone}</span>
+                    <span className="font-medium">{getField("phone")}</span>
                   </div>
                 </div>
               </div>
