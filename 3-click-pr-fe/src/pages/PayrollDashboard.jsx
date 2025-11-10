@@ -66,6 +66,7 @@ export default function PayrollDashboard() {
   useEffect(() => {
     const syncFromHash = () => {
       const hash = window.location.hash.replace("#", "");
+      console.log("PayrollDashboard - subroute:", hash);
       setSubroute(hash);
       const [maybeTab] = hash.split("/");
       if (TABS.includes(maybeTab)) setTab(maybeTab);
@@ -351,31 +352,46 @@ export default function PayrollDashboard() {
         <div className="mx-auto max-w-none">
           {tab === "dashboard" && <DashboardHome />}
 
-          {tab === "employees" && (
-            subroute === "employees/new"
-              ? (
+          {tab === "employees" && (() => {
+            console.log("Routing - subroute:", subroute);
+            console.log("Match new:", subroute === "/employees/new" || subroute === "employees/new");
+            console.log("Match edit:", subroute.match(/^\/employees\/[^/]+\/edit$/) || subroute.match(/^employees\/[^/]+\/edit$/));
+            console.log("Match detail:", (subroute.startsWith("/employees/") || subroute.startsWith("employees/")) && subroute !== "/employees" && subroute !== "employees");
+
+            if (subroute === "/employees/new" || subroute === "employees/new") {
+              console.log("Rendering: EmployeeWizard (new)");
+              return (
                 <EmployeeWizard
                   onCancel={() => (window.location.hash = "employees")}
                   // IMPORTANT: no onFinish redirect here, so the success screen in the wizard can show.
                 />
-              )
-              : subroute.match(/^employees\/[^/]+\/edit$/)
-              ? (
+              );
+            } else if (subroute.match(/^\/employees\/[^/]+\/edit$/) || subroute.match(/^employees\/[^/]+\/edit$/)) {
+              console.log("Rendering: EmployeeWizard (edit)");
+              const employeeId = subroute.startsWith("/") ? subroute.split("/")[2] : subroute.split("/")[1];
+              return (
                 <EmployeeWizard
                   mode="edit"
-                  employeeId={subroute.split("/")[1]}
-                  onCancel={() => (window.location.hash = `employees/${subroute.split("/")[1]}`)}
+                  employeeId={employeeId}
+                  onCancel={() => (window.location.hash = `employees/${employeeId}`)}
                 />
-              )
-              : subroute.startsWith("employees/") && subroute !== "employees"
-              ? (
+              );
+            } else if ((subroute.startsWith("/employees/") || subroute.startsWith("employees/")) &&
+                       subroute !== "/employees" &&
+                       subroute !== "employees" &&
+                       !subroute.endsWith("/edit")) {
+              console.log("Rendering: EmployeeDetailView");
+              return (
                 <EmployeeDetailView
-                  employeeId={subroute.split("/")[1]}
+                  employeeId={subroute.startsWith("/") ? subroute.split("/")[2] : subroute.split("/")[1]}
                   onBack={() => (window.location.hash = "employees")}
                 />
-              )
-              : <EmployeesView />
-          )}
+              );
+            } else {
+              console.log("Rendering: EmployeesView");
+              return <EmployeesView />;
+            }
+          })()}
 
           {tab === "work-calendar" && (
             <WorkCalendarView viewMode={calendarViewMode} onChangeViewMode={setCalendarViewMode} />

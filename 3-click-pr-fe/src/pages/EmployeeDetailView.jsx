@@ -10,8 +10,10 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [showStickyActionsMenu, setShowStickyActionsMenu] = useState(false);
   const headerRef = useRef(null);
   const actionsMenuRef = useRef(null);
+  const stickyActionsMenuRef = useRef(null);
 
   // Fetch employee data when component mounts or employeeId changes
   useEffect(() => {
@@ -52,7 +54,7 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close actions menu when clicking outside
+  // Close main actions menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target)) {
@@ -69,10 +71,29 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     };
   }, [showActionsMenu]);
 
+  // Close sticky actions menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (stickyActionsMenuRef.current && !stickyActionsMenuRef.current.contains(event.target)) {
+        setShowStickyActionsMenu(false);
+      }
+    };
+
+    if (showStickyActionsMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showStickyActionsMenu]);
+
   // Handle edit profile
   const handleEditProfile = () => {
+    console.log('handleEditProfile called - navigating to:', `employees/${employeeId}/edit`);
     window.location.hash = `employees/${employeeId}/edit`;
     setShowActionsMenu(false);
+    setShowStickyActionsMenu(false);
   };
 
   // Show loading state
@@ -590,9 +611,9 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
             </div>
 
             {/* Compact Actions */}
-            <div className="relative" ref={actionsMenuRef}>
+            <div className="relative" ref={stickyActionsMenuRef}>
               <button
-                onClick={() => setShowActionsMenu(!showActionsMenu)}
+                onClick={() => setShowStickyActionsMenu(!showStickyActionsMenu)}
                 className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-teal-600 text-white shadow-sm hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60"
               >
                 Actions
@@ -602,11 +623,11 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
               </button>
 
               {/* Dropdown Menu */}
-              {showActionsMenu && (
+              {showStickyActionsMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50">
                   <button
                     onClick={() => {
-                      setShowActionsMenu(false);
+                      setShowStickyActionsMenu(false);
                       // Scroll to top to show full profile
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }}
@@ -702,7 +723,7 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
             </div>
 
             {/* Actions */}
-            <div className="relative">
+            <div className="relative" ref={actionsMenuRef}>
               <button
                 onClick={() => setShowActionsMenu(!showActionsMenu)}
                 className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-teal-600 text-white shadow-sm hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60"
