@@ -52,6 +52,29 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close actions menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target)) {
+        setShowActionsMenu(false);
+      }
+    };
+
+    if (showActionsMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showActionsMenu]);
+
+  // Handle edit profile
+  const handleEditProfile = () => {
+    window.location.hash = `employees/${employeeId}/edit`;
+    setShowActionsMenu(false);
+  };
+
   // Show loading state
   if (loading) {
     return (
