@@ -484,15 +484,15 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Name</label>
-              <p className="text-[15px] text-slate-900">{employee.emergencyContactName}</p>
+              <p className="text-[15px] text-slate-900">{getField("emergency_contact_name")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Relationship</label>
-              <p className="text-[15px] text-slate-900">{employee.emergencyContactRelationship}</p>
+              <p className="text-[15px] text-slate-900">{getField("emergency_contact_relationship")}</p>
             </div>
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Phone</label>
-              <p className="text-[15px] text-slate-900">{employee.emergencyContactPhone}</p>
+              <p className="text-[15px] text-slate-900">{getField("emergency_contact_phone")}</p>
             </div>
           </div>
 
@@ -500,15 +500,7 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           <div className="grid grid-cols-3 gap-6">
             <div className="bg-[#FBFBFB] rounded px-4 py-3">
               <label className="block text-sm text-slate-500 mb-1">Email</label>
-              <p className="text-[15px] text-slate-900">{employee.emergencyContactEmail}</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Country</label>
-              <p className="text-[15px] text-slate-900">{employee.emergencyContactCountry}</p>
-            </div>
-            <div className="bg-[#FBFBFB] rounded px-4 py-3">
-              <label className="block text-sm text-slate-500 mb-1">Address</label>
-              <p className="text-[15px] text-slate-900">{employee.emergencyContactAddress}</p>
+              <p className="text-[15px] text-slate-900">{getField("emergency_contact_email")}</p>
             </div>
           </div>
         </div>
