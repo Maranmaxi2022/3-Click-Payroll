@@ -560,22 +560,34 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
       // Map to backend payload
       const { createPayload, updatePayload } = mapWizardDataToTwoStepPayload(wizardData);
 
-      // Step 1: Create the employee with basic info
-      const createdEmployee = await employeeAPI.create(createPayload);
-      setCreatedEmployeeId(createdEmployee.id);
+      if (mode === "edit" && employeeId) {
+        // Edit mode: Update existing employee
+        await employeeAPI.update(employeeId, { ...createPayload, ...updatePayload });
 
-      // Step 2: Update with full details (personal, payment, etc.)
-      await employeeAPI.update(createdEmployee.id, updatePayload);
+        // Call the onFinish callback if provided (for parent component)
+        onFinish?.(wizardData);
 
-      // Call the onFinish callback if provided (for parent component)
-      onFinish?.(wizardData);
+        // Redirect back to employee detail view
+        window.location.hash = `employees/${employeeId}`;
+      } else {
+        // Create mode: Create new employee
+        // Step 1: Create the employee with basic info
+        const createdEmployee = await employeeAPI.create(createPayload);
+        setCreatedEmployeeId(createdEmployee.id);
 
-      // Move to success screen
-      setStep(5);
+        // Step 2: Update with full details (personal, payment, etc.)
+        await employeeAPI.update(createdEmployee.id, updatePayload);
+
+        // Call the onFinish callback if provided (for parent component)
+        onFinish?.(wizardData);
+
+        // Move to success screen
+        setStep(5);
+      }
     } catch (error) {
-      console.error("Failed to create employee:", error);
+      console.error(`Failed to ${mode === "edit" ? "update" : "create"} employee:`, error);
       if (error instanceof APIError) {
-        setApiError(error.data?.detail || error.message || "Failed to create employee");
+        setApiError(error.data?.detail || error.message || `Failed to ${mode === "edit" ? "update" : "create"} employee`);
       } else {
         setApiError("An unexpected error occurred. Please try again.");
       }
