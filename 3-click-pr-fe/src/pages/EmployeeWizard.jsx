@@ -101,7 +101,7 @@ function StatutoryToggle({ label, subLabel, checked, onChange, reason, onReason 
   );
 }
 
-export default function EmployeeWizard({ onCancel, onFinish }) {
+export default function EmployeeWizard({ onCancel, onFinish, mode = "create", employeeId = null }) {
   // steps: 1..4 = forms, 5 = success
   const [step, setStep] = useState(1);
   // Shrinking sticky header on scroll
@@ -112,6 +112,9 @@ export default function EmployeeWizard({ onCancel, onFinish }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState(null);
   const [createdEmployeeId, setCreatedEmployeeId] = useState(null);
+  // Edit mode states
+  const [isLoadingEmployee, setIsLoadingEmployee] = useState(mode === "edit");
+  const [loadError, setLoadError] = useState(null);
   useEffect(() => {
     const onScroll = () => {
       if (typeof window === "undefined") return;
