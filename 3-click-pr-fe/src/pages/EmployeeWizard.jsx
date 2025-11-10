@@ -682,7 +682,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
               className={cx("font-semibold text-slate-800 text-center")}
               style={{ fontSize: `${titleSize}px` }}
             >
-              {step === 5 ? "Priya's Profile" : "Add Employee"}
+              {step === 5 ? "Priya's Profile" : (mode === "edit" ? "Edit Employee" : "Add Employee")}
             </h1>
           </div>
           <div className="mt-2 flex justify-center">
