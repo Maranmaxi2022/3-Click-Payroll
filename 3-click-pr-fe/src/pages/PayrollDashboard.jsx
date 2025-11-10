@@ -359,6 +359,14 @@ export default function PayrollDashboard() {
                   // IMPORTANT: no onFinish redirect here, so the success screen in the wizard can show.
                 />
               )
+              : subroute.match(/^employees\/[^/]+\/edit$/)
+              ? (
+                <EmployeeWizard
+                  mode="edit"
+                  employeeId={subroute.split("/")[1]}
+                  onCancel={() => (window.location.hash = `employees/${subroute.split("/")[1]}`)}
+                />
+              )
               : subroute.startsWith("employees/") && subroute !== "employees"
               ? (
                 <EmployeeDetailView
