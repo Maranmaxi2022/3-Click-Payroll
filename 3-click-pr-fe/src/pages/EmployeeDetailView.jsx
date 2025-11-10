@@ -590,12 +590,39 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
             </div>
 
             {/* Compact Actions */}
-            <button className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-teal-600 text-white shadow-sm hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60">
-              Actions
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+            <div className="relative" ref={actionsMenuRef}>
+              <button
+                onClick={() => setShowActionsMenu(!showActionsMenu)}
+                className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-teal-600 text-white shadow-sm hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60"
+              >
+                Actions
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Dropdown Menu */}
+              {showActionsMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50">
+                  <button
+                    onClick={() => {
+                      setShowActionsMenu(false);
+                      // Scroll to top to show full profile
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    View profile
+                  </button>
+                  <button
+                    onClick={handleEditProfile}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Edit profile
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -675,13 +702,38 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2">
-              <button className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-teal-600 text-white shadow-sm hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60">
+            <div className="relative">
+              <button
+                onClick={() => setShowActionsMenu(!showActionsMenu)}
+                className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg text-sm font-medium bg-teal-600 text-white shadow-sm hover:bg-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/60"
+              >
                 Actions
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
+
+              {/* Dropdown Menu */}
+              {showActionsMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50">
+                  <button
+                    onClick={() => {
+                      setShowActionsMenu(false);
+                      // Scroll to top to show full profile
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    View profile
+                  </button>
+                  <button
+                    onClick={handleEditProfile}
+                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    Edit profile
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
