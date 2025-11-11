@@ -83,7 +83,10 @@ export default function EmployeesView() {
   };
 
   const handleEditProfile = (employee) => {
-    console.log("Edit profile:", employee);
+    console.log('EmployeesView - handleEditProfile called for employee:', employee.id);
+    const newHash = `employees/${employee.id}/edit`;
+    console.log('EmployeesView - Setting hash to:', newHash);
+    window.location.hash = newHash;
     setOpenMenuId(null);
   };
 
@@ -311,13 +314,19 @@ export default function EmployeesView() {
                       {/* Menu */}
                       <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-20">
                         <button
-                          onClick={() => handleViewProfile(r)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewProfile(r);
+                          }}
                           className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                         >
                           View profile
                         </button>
                         <button
-                          onClick={() => handleEditProfile(r)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditProfile(r);
+                          }}
                           className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                         >
                           Edit profile
