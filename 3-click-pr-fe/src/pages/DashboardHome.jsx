@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ResponsiveContainer, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Bar } from "recharts";
 import { getAccentPreset, loadBrandingPreferences } from "../utils/branding";
+import { dashboardAPI } from "../utils/api";
 
 // Simple building blocks for cards and stats
 const cx = (...xs) => xs.filter(Boolean).join(" ");
@@ -336,13 +337,34 @@ const cardActionButton =
   "inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-4 text-sm font-semibold text-blue-600 transition hover:border-blue-200 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500";
 
 export default function DashboardHome() {
+  // State for dashboard data
+  const [activeEmployees, setActiveEmployees] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch dashboard stats on mount
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true);
+        const stats = await dashboardAPI.getStats();
+        setActiveEmployees(stats.active_employees || 0);
+      } catch (err) {
+        console.error("Error fetching dashboard stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
   // Mock data (replace with real data later)
   const payRun = {
     period: "July 01, 2024 - July 15, 2024",
     status: "Approved",
     netPay: "$19,200.00",
     dateISO: "2024-07-13",
-    employees: 30,
+    employees: activeEmployees,
   };
 
   const liabilities = [
@@ -529,12 +551,19 @@ export default function DashboardHome() {
                   <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
                     Active Employees
                   </div>
-                  <div className="text-[42px] font-semibold leading-none text-slate-700">
-                    30
-                  </div>
+                  {loading ? (
+                    <div className="text-[42px] font-semibold leading-none text-slate-400">
+                      ...
+                    </div>
+                  ) : (
+                    <div className="text-[42px] font-semibold leading-none text-slate-700">
+                      {activeEmployees}
+                    </div>
+                  )}
                   <button
                     type="button"
                     className="inline-flex w-fit text-sm font-semibold text-blue-600 transition hover:text-blue-700 focus-visible:underline focus-visible:outline-none"
+                    onClick={() => (window.location.hash = "employees")}
                   >
                     View Employees
                   </button>

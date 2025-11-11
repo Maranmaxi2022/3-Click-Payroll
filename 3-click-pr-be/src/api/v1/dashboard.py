@@ -5,6 +5,7 @@ Endpoints for dashboard statistics and summary data.
 """
 
 from fastapi import APIRouter
+from src.schemas.employee import Employee
 
 router = APIRouter()
 
@@ -12,9 +13,13 @@ router = APIRouter()
 @router.get("/stats")
 async def get_dashboard_stats():
     """Get dashboard statistics"""
+    # Fetch real employee counts from database
+    total_employees = await Employee.find().count()
+    active_employees = await Employee.find({"status": "active"}).count()
+
     return {
-        "total_employees": 0,
-        "active_employees": 0,
+        "total_employees": total_employees,
+        "active_employees": active_employees,
         "total_pay_runs": 0,
         "total_gross_earnings_ytd": 0.0,
         "total_net_pay_ytd": 0.0,

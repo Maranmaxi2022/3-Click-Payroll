@@ -135,6 +135,27 @@ export const employeeAPI = {
     }),
 };
 
+// Dashboard API endpoints
+export const dashboardAPI = {
+  /**
+   * Get dashboard statistics
+   * @returns {Promise<Object>} Dashboard stats including employee counts
+   */
+  getStats: () => request('/api/v1/dashboard/stats'),
+
+  /**
+   * Get recent pay runs
+   * @returns {Promise<Object>} Recent pay runs
+   */
+  getRecentPayruns: () => request('/api/v1/dashboard/recent-payruns'),
+
+  /**
+   * Get liabilities summary
+   * @returns {Promise<Object>} Tax and statutory liabilities
+   */
+  getLiabilities: () => request('/api/v1/dashboard/liabilities'),
+};
+
 // Work Location API endpoints
 export const workLocationAPI = {
   /**
