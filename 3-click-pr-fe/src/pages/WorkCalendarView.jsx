@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { employeeAPI } from "../utils/api";
 
 // Helper to format date as YYYY-MM-DD in local timezone
 const getLocalDateId = (date) => {
@@ -7,6 +8,39 @@ const getLocalDateId = (date) => {
 	const day = String(date.getDate()).padStart(2, '0');
 	return `${year}-${month}-${day}`;
 };
+
+// Helper to generate badge color classes based on index
+const getBadgeClass = (index) => {
+	const colors = [
+		"bg-emerald-200 text-emerald-800",
+		"bg-sky-200 text-sky-800",
+		"bg-amber-200 text-amber-800",
+		"bg-purple-200 text-purple-800",
+		"bg-rose-200 text-rose-800",
+		"bg-blue-200 text-blue-800",
+		"bg-teal-200 text-teal-800",
+		"bg-slate-200 text-slate-800",
+		"bg-indigo-200 text-indigo-800",
+		"bg-pink-200 text-pink-800",
+	];
+	return colors[index % colors.length];
+};
+
+// Helper to generate initials from name
+const getInitials = (firstName, lastName) => {
+	const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+	const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+	return first + last;
+};
+
+// Transform employee from API to display format
+const transformEmployee = (emp, index) => ({
+	id: emp.id,
+	name: `${emp.last_name}, ${emp.first_name}`,
+	title: emp.job_title || 'Employee',
+	badgeClass: getBadgeClass(index),
+	initials: getInitials(emp.first_name, emp.last_name),
+});
 
 // Helper function to generate current week days (Monday to Sunday)
 const generateWeekDays = (currentDateId, referenceDate = null) => {
@@ -59,26 +93,6 @@ const generateMonthDays = (currentDateId, referenceDate = null) => {
 		};
 	});
 };
-
-const EMPLOYEES = [
-	{ id: "emp-1", name: "Abernathy, Rex", title: "Account Manager", badgeClass: "bg-emerald-200 text-emerald-800", initials: "AR" },
-	{ id: "emp-2", name: "Bhattacharya, Neha", title: "Payroll Specialist", badgeClass: "bg-sky-200 text-sky-800", initials: "BN" },
-	{ id: "emp-3", name: "Chen, Lian", title: "HR Business Partner", badgeClass: "bg-amber-200 text-amber-800", initials: "CL" },
-	{ id: "emp-4", name: "Diaz, Mateo", title: "Operations Lead", badgeClass: "bg-purple-200 text-purple-800", initials: "DM" },
-	{ id: "emp-5", name: "Elahi, Farah", title: "Finance Analyst", badgeClass: "bg-rose-200 text-rose-800", initials: "EF" },
-	{ id: "emp-6", name: "Garcia, Sofia", title: "Onboarding Coach", badgeClass: "bg-blue-200 text-blue-800", initials: "GS" },
-	{ id: "emp-7", name: "Hughes, Aaron", title: "Benefits Coordinator", badgeClass: "bg-teal-200 text-teal-800", initials: "HA" },
-	{ id: "emp-8", name: "Iyer, Kavya", title: "Compliance Advisor", badgeClass: "bg-slate-200 text-slate-800", initials: "KI" },
-	{ id: "emp-1", name: "Abernathy, Rex", title: "Account Manager", badgeClass: "bg-emerald-200 text-emerald-800", initials: "AR" },
-	{ id: "emp-2", name: "Bhattacharya, Neha", title: "Payroll Specialist", badgeClass: "bg-sky-200 text-sky-800", initials: "BN" },
-	{ id: "emp-3", name: "Chen, Lian", title: "HR Business Partner", badgeClass: "bg-amber-200 text-amber-800", initials: "CL" },
-	{ id: "emp-4", name: "Diaz, Mateo", title: "Operations Lead", badgeClass: "bg-purple-200 text-purple-800", initials: "DM" },
-	{ id: "emp-5", name: "Elahi, Farah", title: "Finance Analyst", badgeClass: "bg-rose-200 text-rose-800", initials: "EF" },
-	{ id: "emp-6", name: "Garcia, Sofia", title: "Onboarding Coach", badgeClass: "bg-blue-200 text-blue-800", initials: "GS" },
-	{ id: "emp-7", name: "Hughes, Aaron", title: "Benefits Coordinator", badgeClass: "bg-teal-200 text-teal-800", initials: "HA" },
-	{ id: "emp-8", name: "Iyer, Kavya", title: "Compliance Advisor", badgeClass: "bg-slate-200 text-slate-800", initials: "KI" },
-
-];
 
 function WorkCalendarPrimaryControls({ viewMode, onChangeViewMode, currentDate, onDateChange }) {
 	const isWeek = viewMode === "week";
@@ -239,9 +253,36 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 	const containerRef = React.useRef(null);
 	const [maxHeight, setMaxHeight] = React.useState(520);
 	const [currentDateId, setCurrentDateId] = React.useState(() => getLocalDateId(new Date()));
+	const [employees, setEmployees] = useState([]);
+	const [loading, setLoading] = useState(true);
 
 	const isMonthView = viewMode === "month";
 	const displayDate = currentDate || new Date();
+
+	// Fetch employees on mount
+	useEffect(() => {
+		const fetchEmployees = async () => {
+			try {
+				setLoading(true);
+				const response = await employeeAPI.getAll({
+					status: "active",
+					page: 1,
+					page_size: 100,
+				});
+				const transformedEmployees = (response.employees || []).map((emp, index) =>
+					transformEmployee(emp, index)
+				);
+				setEmployees(transformedEmployees);
+			} catch (err) {
+				console.error("Error fetching employees:", err);
+				setEmployees([]);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchEmployees();
+	}, []);
 
 	// Generate date items dynamically based on current date
 	const weekDays = React.useMemo(() => generateWeekDays(currentDateId, displayDate), [currentDateId, displayDate]);
@@ -274,7 +315,7 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 	// Mirror the Tailwind row heights (week: h-[104px], month: h-14) so scroll window aligns with cells.
 	const rowHeight = isMonthView ? 56 : 104;
 	const visibleRowLimit = isMonthView ? 10 : 5;
-	const totalEmployees = EMPLOYEES.length;
+	const totalEmployees = employees.length;
 	const visibleRowCount = Math.min(totalEmployees, visibleRowLimit);
 	// Tailwind sets box-sizing to border-box, so divider borders do not change total row height.
 	const bodyMaxHeight = visibleRowCount > 0 ? visibleRowCount * rowHeight : null;
@@ -365,7 +406,7 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 							}
 							style={{ borderRight: "3px double rgb(226, 232, 240)" }}
 						>
-							Employees (65)
+							Employees ({loading ? "..." : totalEmployees})
 						</div>
 						<div ref={headerScrollRef} className="flex-1 min-w-0 overflow-x-auto hide-scrollbar">
 							<div className="min-w-max bg-white">
@@ -407,30 +448,40 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 					<div className="flex items-stretch">
 						<div className="w-[276px] shrink-0" style={{ borderRight: "3px double rgb(226, 232, 240)" }}>
 							<div className="flex flex-col divide-y divide-slate-200">
-								{EMPLOYEES.map((emp) => (
-									<div
-										key={emp.id}
-										className={
-											"flex w-full items-center gap-3 px-3 text-left text-sm text-slate-600 transition hover:bg-slate-50 " +
-											(isMonthView ? "h-14" : "h-[104px]")
-										}
-									>
-										<div className={`grid h-9 w-9 place-items-center rounded-full text-[13px] font-semibold ${emp.badgeClass}`}>
-											{emp.initials}
-										</div>
-										<div>
-											<div className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 hover:underline">
-												{emp.name}
-											</div>
-											<div className="text-xs text-slate-500">{emp.title}</div>
-										</div>
+								{loading ? (
+									<div className="flex items-center justify-center h-32 text-slate-500">
+										Loading employees...
 									</div>
-								))}
+								) : employees.length === 0 ? (
+									<div className="flex items-center justify-center h-32 text-slate-500">
+										No employees found
+									</div>
+								) : (
+									employees.map((emp) => (
+										<div
+											key={emp.id}
+											className={
+												"flex w-full items-center gap-3 px-3 text-left text-sm text-slate-600 transition hover:bg-slate-50 " +
+												(isMonthView ? "h-14" : "h-[104px]")
+											}
+										>
+											<div className={`grid h-9 w-9 place-items-center rounded-full text-[13px] font-semibold ${emp.badgeClass}`}>
+												{emp.initials}
+											</div>
+											<div>
+												<div className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 hover:underline">
+													{emp.name}
+												</div>
+												<div className="text-xs text-slate-500">{emp.title}</div>
+											</div>
+										</div>
+									))
+								)}
 							</div>
 						</div>
 						<div ref={gridScrollRef} className="flex-1 min-w-0 overflow-x-auto hide-scrollbar">
 							<div className="flex min-w-max">
-								{periodItems.map((item, itemIndex) => (
+								{!loading && employees.length > 0 && periodItems.map((item, itemIndex) => (
 									<div
 										key={item.id}
 										className={
@@ -438,12 +489,12 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 											" flex flex-col"
 										}
 									>
-										{EMPLOYEES.map((emp, empIndex) => (
+										{employees.map((emp, empIndex) => (
 											<div
 												key={`${item.id}-${emp.id}`}
 												className={
 													"flex items-center justify-center w-full bg-white text-xs font-medium text-slate-400 transition hover:bg-slate-50 cursor-pointer " +
-													(empIndex < EMPLOYEES.length - 1 ? "border-b " : "") +
+													(empIndex < employees.length - 1 ? "border-b " : "") +
 													(itemIndex < periodItems.length - 1 ? "border-r " : "") +
 													"border-slate-200 " +
 													(isMonthView ? "h-14" : "h-[104px]")
