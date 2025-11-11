@@ -11,6 +11,7 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
   const [error, setError] = useState(null);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showStickyActionsMenu, setShowStickyActionsMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const headerRef = useRef(null);
   const actionsMenuRef = useRef(null);
   const stickyActionsMenuRef = useRef(null);
@@ -94,6 +95,26 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
     window.location.hash = `employees/${employeeId}/edit`;
     setShowActionsMenu(false);
     setShowStickyActionsMenu(false);
+  };
+
+  // Handle delete employee
+  const handleDeleteEmployee = async () => {
+    try {
+      await employeeAPI.delete(employeeId);
+      setShowDeleteConfirm(false);
+      // Navigate back after successful deletion
+      onBack();
+    } catch (err) {
+      console.error("Error deleting employee:", err);
+      alert("Failed to delete employee. Please try again.");
+    }
+  };
+
+  // Open delete confirmation dialog
+  const handleDeleteClick = () => {
+    setShowActionsMenu(false);
+    setShowStickyActionsMenu(false);
+    setShowDeleteConfirm(true);
   };
 
   // Show loading state
@@ -626,20 +647,16 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
               {showStickyActionsMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50">
                   <button
-                    onClick={() => {
-                      setShowStickyActionsMenu(false);
-                      // Scroll to top to show full profile
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    View profile
-                  </button>
-                  <button
                     onClick={handleEditProfile}
                     className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     Edit profile
+                  </button>
+                  <button
+                    onClick={handleDeleteClick}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Delete
                   </button>
                 </div>
               )}
@@ -738,20 +755,16 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
               {showActionsMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-50">
                   <button
-                    onClick={() => {
-                      setShowActionsMenu(false);
-                      // Scroll to top to show full profile
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                  >
-                    View profile
-                  </button>
-                  <button
                     onClick={handleEditProfile}
                     className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     Edit profile
+                  </button>
+                  <button
+                    onClick={handleDeleteClick}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    Delete
                   </button>
                 </div>
               )}
@@ -813,6 +826,46 @@ export default function EmployeeDetailView({ employeeId, onBack }) {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">Delete Employee</h3>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Are you sure you want to delete {getField("first_name")} {getField("last_name")}?
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-slate-600 mb-6">
+                This action cannot be undone. All employee data will be permanently removed from the system.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteEmployee}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Delete Employee
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
