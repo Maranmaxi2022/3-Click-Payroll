@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 from src.schemas.organization import Department
+from src.schemas.employee import Employee
 
 router = APIRouter()
 
@@ -63,10 +64,13 @@ async def get_departments(
 
     departments = await Department.find(query).to_list()
 
-    # TODO: Calculate total_employees by querying Employee collection
-    # For now, returning 0 as placeholder
-    return [
-        DepartmentResponse(
+    # Calculate total_employees for each department
+    result = []
+    for dept in departments:
+        # Count employees with this department_id
+        employee_count = await Employee.find({"department_id": str(dept.id)}).count()
+
+        result.append(DepartmentResponse(
             id=str(dept.id),
             name=dept.name,
             code=dept.code,
@@ -76,10 +80,10 @@ async def get_departments(
             is_active=dept.is_active,
             created_at=dept.created_at,
             updated_at=dept.updated_at,
-            total_employees=0
-        )
-        for dept in departments
-    ]
+            total_employees=employee_count
+        ))
+
+    return result
 
 
 @router.get("/{department_id}", response_model=DepartmentResponse)
@@ -93,6 +97,9 @@ async def get_department(department_id: str):
             detail=f"Department with ID {department_id} not found"
         )
 
+    # Count employees in this department
+    employee_count = await Employee.find({"department_id": str(department.id)}).count()
+
     return DepartmentResponse(
         id=str(department.id),
         name=department.name,
@@ -103,7 +110,7 @@ async def get_department(department_id: str):
         is_active=department.is_active,
         created_at=department.created_at,
         updated_at=department.updated_at,
-        total_employees=0
+        total_employees=employee_count
     )
 
 

@@ -65,7 +65,8 @@ export function mapWizardDataToEmployeeCreate(wizardData) {
 
     // Job details
     job_title: form.designation?.trim() || null,
-    department_name: form.department?.trim() || null,
+    department_id: form.department?.trim() || null,
+    department_name: form.departmentName?.trim() || null,
 
     // Dates
     hire_date: form.doj || null,

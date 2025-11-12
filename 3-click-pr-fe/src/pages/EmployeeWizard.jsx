@@ -163,7 +163,8 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
     // legacy text field replaced by city/province/postal
     location: "Head Office",
     designation: "",
-    department: "",
+    department: "", // department ID
+    departmentName: "", // department name for display
     division: "",
     employmentType: "", // Full-time, Part-time, Contract, etc.
     employmentStatus: "Active", // Active, Inactive, On Leave, Terminated
@@ -279,7 +280,8 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
             locationPostal: data.postal_code || "",
             location: data.work_location_name || "Head Office",
             designation: data.job_title || "",
-            department: data.department_name || "",
+            department: data.department_id || "",
+            departmentName: data.department_name || "",
             division: data.division || "",
             employmentType: data.employment_type || "",
             employmentStatus: data.status || "Active",
@@ -1160,7 +1162,13 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                     <SearchSelect
                       className="mt-1"
                       value={form.department}
-                      onChange={(opt) => setForm((s) => ({ ...s, department: opt?.label || "" }))}
+                      onChange={(opt) => {
+                        setForm((s) => ({
+                          ...s,
+                          department: opt?.value || "",
+                          departmentName: opt?.label || ""
+                        }));
+                      }}
                       placeholder="Select Department"
                       options={departments.map(dept => ({
                         value: dept.id,
