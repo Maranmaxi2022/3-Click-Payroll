@@ -105,13 +105,9 @@ export default function EmployeesView() {
             onClick={() => {
               window.location.hash = "employees/new";
             }}
-            aria-label="Add Employee"
-            className="inline-flex items-center justify-center gap-2
-             h-9 px-4 rounded-full text-[14px] font-medium
-             bg-blue-600 text-white shadow-sm
-             hover:bg-blue-700 active:translate-y-px
-             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
-             cursor-pointer"
+            type="button"
+            className="inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
+            style={{ backgroundColor: '#408dfb' }}
           >
             Add Employee
           </button>
@@ -201,7 +197,9 @@ export default function EmployeesView() {
           {!searchTerm && (
             <button
               onClick={() => { window.location.hash = "employees/new"; }}
-              className="mt-4 inline-flex items-center justify-center gap-2 h-9 px-4 rounded-full text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+              type="button"
+              className="mt-4 inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
+              style={{ backgroundColor: '#408dfb' }}
             >
               Add Employee
             </button>
