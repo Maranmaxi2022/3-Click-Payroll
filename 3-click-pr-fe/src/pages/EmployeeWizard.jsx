@@ -433,6 +433,9 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
   const [paymentMethod, setPaymentMethod] = useState("bank");
   const [payError, setPayError] = useState(false);
 
+  /* ---------- Validation errors ---------- */
+  const [validationErrors, setValidationErrors] = useState({});
+
   const [bank, setBank] = useState({
     holder: "Priya Raman",
     bankName: "",
@@ -531,6 +534,97 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
   const next = () => setStep((s) => Math.min(5, s + 1));
   const prev = () => setStep((s) => Math.max(1, s - 1));
 
+  /* ---------- Validation functions ---------- */
+  const validateStep1 = () => {
+    const errors = {};
+
+    // Required fields
+    if (!form.firstName?.trim()) errors.firstName = "First name is required";
+    if (!form.lastName?.trim()) errors.lastName = "Last name is required";
+    if (!form.employeeId?.trim()) errors.employeeId = "Employee ID is required";
+    if (!form.doj?.trim()) errors.doj = "Date of joining is required";
+    if (!form.workEmail?.trim()) errors.workEmail = "Work email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.workEmail)) errors.workEmail = "Invalid email format";
+    if (!form.gender?.trim()) errors.gender = "Gender is required";
+    if (!form.provinceEmployment?.trim()) errors.provinceEmployment = "Province/Territory of employment is required";
+    if (!form.designation?.trim()) errors.designation = "Designation is required";
+    if (!form.department?.trim()) errors.department = "Department is required";
+
+    // Work location
+    if (!form.locationCity?.trim()) errors.locationCity = "City is required";
+    if (!form.locationProvince?.trim()) errors.locationProvince = "Province is required";
+    if (!form.locationPostal?.trim()) errors.locationPostal = "Postal code is required";
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const errors = {};
+
+    // Annual gross salary
+    const grossAmount = Number(annualCTC);
+    if (!annualCTC || isNaN(grossAmount) || grossAmount <= 0) {
+      errors.annualCTC = "Annual gross salary is required and must be greater than 0";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const errors = {};
+
+    // Date of birth
+    if (!personal.dob?.trim()) errors.dob = "Date of birth is required";
+
+    // SIN validation (if provided)
+    if (personal.sinDigits) {
+      if (isObviousInvalidSIN(personal.sinDigits)) {
+        errors.sin = "Please enter a valid 9-digit SIN";
+      } else if (!luhnCheck(personal.sinDigits)) {
+        errors.sin = "Invalid SIN - checksum verification failed";
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep4 = () => {
+    const errors = {};
+
+    if (!paymentMethod) {
+      errors.paymentMethod = "Please select a payment method";
+      setPayError(true);
+    } else if (paymentMethod === "bank") {
+      const required = [
+        { field: "holder", value: bank.holder, label: "Account holder name" },
+        { field: "bankName", value: bank.bankName, label: "Bank name" },
+        { field: "acc", value: bank.acc, label: "Account number" },
+        { field: "acc2", value: bank.acc2, label: "Re-enter account number" },
+        { field: "ifsc", value: bank.ifsc, label: "IFSC" },
+      ];
+
+      required.forEach(({ field, value, label }) => {
+        if (!String(value).trim()) {
+          errors[`bank.${field}`] = `${label} is required`;
+        }
+      });
+
+      if (bank.acc && bank.acc2 && bank.acc !== bank.acc2) {
+        errors["bank.acc2"] = "Account numbers do not match";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setPayError(true);
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const finishWizard = async () => {
     setIsSubmitting(true);
     setApiError(null);
@@ -597,28 +691,39 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
   };
 
   const saveAndContinue = () => {
-    if (step === 4) {
-      if (!paymentMethod) {
-        setPayError(true);
-        return;
-      }
-      if (paymentMethod === "bank") {
-        const required = [
-          bank.holder,
-          bank.bankName,
-          bank.acc,
-          bank.acc2,
-          bank.ifsc,
-          bank.type,
-        ];
-        if (required.some((v) => !String(v).trim()) || bank.acc !== bank.acc2) {
-          setPayError(true);
-          return;
+    // Clear previous errors
+    setValidationErrors({});
+    setPayError(false);
+
+    // Validate current step
+    let isValid = false;
+    switch (step) {
+      case 1:
+        isValid = validateStep1();
+        break;
+      case 2:
+        isValid = validateStep2();
+        break;
+      case 3:
+        isValid = validateStep3();
+        break;
+      case 4:
+        isValid = validateStep4();
+        if (isValid) {
+          return finishWizard();
         }
-      }
-      return finishWizard();
+        return;
+      default:
+        isValid = true;
     }
-    if (step < 4) next();
+
+    // Only proceed to next step if validation passed
+    if (isValid && step < 4) {
+      next();
+    } else if (!isValid) {
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   /* ---------- UI ---------- */
@@ -839,6 +944,35 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
         ) : (
           /* Steps 1–4 */
           <div className="rounded-xl border border-slate-200 bg-white p-4 md:p-6">
+            {/* Validation Error Summary */}
+            {Object.keys(validationErrors).length > 0 && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="text-red-600">
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-red-800">Please fix the following errors:</h3>
+                    <ul className="mt-2 list-disc list-inside text-sm text-red-700 space-y-1">
+                      {Object.values(validationErrors).map((error, idx) => (
+                        <li key={idx}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <button
+                    onClick={() => setValidationErrors({})}
+                    className="text-red-400 hover:text-red-600"
+                  >
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* STEP 1 */}
             {step === 1 && (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -848,7 +982,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                   </label>
                   <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <input
-                      className="input"
+                      className={cx("input", validationErrors.firstName && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                       placeholder="First Name"
                       value={form.firstName}
                       onChange={set("firstName")}
@@ -860,7 +994,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                       onChange={set("middleName")}
                     />
                     <input
-                      className="input"
+                      className={cx("input", validationErrors.lastName && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                       placeholder="Last Name"
                       value={form.lastName}
                       onChange={set("lastName")}
@@ -873,7 +1007,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                     Employee ID *
                   </label>
                   <input
-                    className="input mt-1"
+                    className={cx("input mt-1", validationErrors.employeeId && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                     value={form.employeeId}
                     onChange={set("employeeId")}
                     placeholder="e.g. EMP-001"
@@ -886,7 +1020,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                   </label>
                   <input
                     type={dojInputType}
-                    className="input mt-1"
+                    className={cx("input mt-1", validationErrors.doj && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                     value={form.doj}
                     onChange={set("doj")}
                     placeholder="yyyy-mm-dd"
@@ -903,7 +1037,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                   </label>
                   <input
                     type="email"
-                    className="input mt-1"
+                    className={cx("input mt-1", validationErrors.workEmail && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                     value={form.workEmail}
                     onChange={set("workEmail")}
                     placeholder="abc@xyz.com"
@@ -953,7 +1087,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                       value={form.gender}
                       onChange={(opt) => setForm((f) => ({ ...f, gender: opt?.value || "" }))}
                       placeholder="Select"
-                      inputClassName="h-9 rounded-md px-3"
+                      inputClassName={cx("h-9 rounded-md px-3", validationErrors.gender && "border-red-300")}
                       menuClassName="rounded-md"
                       floatingLabel={false}
                     />
@@ -999,7 +1133,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                       Designation *
                     </label>
                     <input
-                      className="input mt-1"
+                      className={cx("input mt-1", validationErrors.designation && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                       value={form.designation}
                       onChange={set("designation")}
                       placeholder="e.g. Frontend Developer"
@@ -1010,7 +1144,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                       Department *
                     </label>
                     <input
-                      className="input mt-1"
+                      className={cx("input mt-1", validationErrors.department && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                       value={form.department}
                       onChange={set("department")}
                       placeholder="Department"
@@ -1038,7 +1172,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                     <div className="text-sm font-medium text-slate-800">Work Location *</div>
                     <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
                       <input
-                        className="input"
+                        className={cx("input", validationErrors.locationCity && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                         placeholder="City"
                         value={form.locationCity}
                         onChange={set("locationCity")}
@@ -1059,7 +1193,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                         }
                       />
                       <input
-                        className="input"
+                        className={cx("input", validationErrors.locationPostal && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                         placeholder="Postal Code (A1A 1A1)"
                         value={form.locationPostal}
                         onChange={(e) => {
@@ -1130,12 +1264,18 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
             {/* STEP 2 – Canada salary + tax inputs */}
             {step === 2 && (
               <div className="space-y-4">
-                <div className="rounded-lg border border-slate-200">
+                <div className={cx("rounded-lg border", validationErrors.annualCTC ? "border-red-300" : "border-slate-200")}>
                   <div className="grid items-center gap-3 p-4 sm:grid-cols-[1fr_auto_auto_1fr]">
                     <label className="text-sm text-slate-700">Annual gross salary <span className="text-red-500">*</span></label>
                     <div className="grid grid-cols-[40px_1fr] gap-2">
                       <span className="grid place-items-center rounded-md border border-slate-200 bg-slate-50 text-slate-600">$</span>
-                      <input className="input" inputMode="numeric" value={annualCTC} onChange={(e) => setAnnualCTC(e.target.value)} placeholder="0" />
+                      <input
+                        className={cx("input", validationErrors.annualCTC && "border-red-300 focus:border-red-500 focus:ring-red-200")}
+                        inputMode="numeric"
+                        value={annualCTC}
+                        onChange={(e) => setAnnualCTC(e.target.value)}
+                        placeholder="0"
+                      />
                     </div>
                     <span className="text-sm text-slate-600 text-center">per year (CAD)</span>
                   </div>
@@ -1239,7 +1379,12 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="block text-sm text-slate-700">Date of Birth *</label>
-                    <input type="date" className="input mt-1" value={personal.dob} onChange={setP("dob")} />
+                    <input
+                      type="date"
+                      className={cx("input mt-1", validationErrors.dob && "border-red-300 focus:border-red-500 focus:ring-red-200")}
+                      value={personal.dob}
+                      onChange={setP("dob")}
+                    />
                     <div className="mt-1 text-xs text-slate-500">
                       {(() => {
                         if (!personal.dob) return null;
@@ -1258,7 +1403,10 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                   <div className="md:col-span-2">
                     <label className="block text-sm text-slate-700">SIN (Social Insurance Number)</label>
                     <input
-                      className={cx("input mt-1", (personal.sinDigits && (isObviousInvalidSIN(personal.sinDigits) || !luhnCheck(personal.sinDigits))) ? "border-red-300" : "")}
+                      className={cx(
+                        "input mt-1",
+                        (validationErrors.sin || (personal.sinDigits && (isObviousInvalidSIN(personal.sinDigits) || !luhnCheck(personal.sinDigits)))) && "border-red-300 focus:border-red-500 focus:ring-red-200"
+                      )}
                       inputMode="numeric"
                       placeholder="### ### ###"
                       value={personal.sinMasked ? maskSin(personal.sinDigits) : formatSin(personal.sinDigits)}
@@ -1277,7 +1425,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                     />
                     <div className="mt-1 text-xs text-slate-500">Digits only; formats to 123 456 789. Stored encrypted; only last 3 digits are shown after entry.</div>
                     {(personal.sinDigits && isObviousInvalidSIN(personal.sinDigits)) && (
-                      <div className="text-xs text-red-600 mt-1">Please enter a 9-digit SIN that isn’t a repeated digit.</div>
+                      <div className="text-xs text-red-600 mt-1">Please enter a 9-digit SIN that isn't a repeated digit.</div>
                     )}
                   </div>
 
@@ -1458,7 +1606,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                                   <span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                  className="input mt-1"
+                                  className={cx("input mt-1", validationErrors["bank.holder"] && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                                   value={bank.holder}
                                   onChange={setBankField("holder")}
                                 />
@@ -1468,7 +1616,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                                   Bank Name<span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                  className="input mt-1"
+                                  className={cx("input mt-1", validationErrors["bank.bankName"] && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                                   value={bank.bankName}
                                   onChange={setBankField("bankName")}
                                 />
@@ -1479,7 +1627,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                                   <span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                  className="input mt-1"
+                                  className={cx("input mt-1", validationErrors["bank.acc"] && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                                   inputMode="numeric"
                                   value={bank.acc}
                                   onChange={setBankField("acc")}
@@ -1493,9 +1641,8 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                                 <input
                                   className={cx(
                                     "input mt-1",
-                                    bank.acc2 &&
-                                      bank.acc !== bank.acc2 &&
-                                      "border-red-300 focus:ring-red-200 focus:border-red-400"
+                                    (validationErrors["bank.acc2"] || (bank.acc2 && bank.acc !== bank.acc2)) &&
+                                      "border-red-300 focus:ring-red-200 focus:border-red-500"
                                   )}
                                   inputMode="numeric"
                                   value={bank.acc2}
@@ -1507,7 +1654,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                                   IFSC<span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                  className="input mt-1"
+                                  className={cx("input mt-1", validationErrors["bank.ifsc"] && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                                   placeholder="AAAA0000000"
                                   value={bank.ifsc}
                                   onChange={setBankField("ifsc")}
