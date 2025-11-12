@@ -469,7 +469,10 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 												{emp.initials}
 											</div>
 											<div>
-												<div className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 hover:underline">
+												<div
+													className="cursor-pointer text-sm font-semibold text-slate-700 hover:text-blue-600 hover:underline"
+													onClick={() => (window.location.hash = `employees/${emp.id}`)}
+												>
 													{emp.name}
 												</div>
 												<div className="text-xs text-slate-500">{emp.title}</div>
