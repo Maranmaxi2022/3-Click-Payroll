@@ -1,5 +1,6 @@
 // src/pages/SettingsView.jsx
 import React, { useMemo, useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
 import SalaryComponents from "./SalaryComponents";
 import PaySchedule from "./PaySchedule";
@@ -1090,6 +1091,9 @@ function DepartmentsView() {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingDepartment, setEditingDepartment] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   // Open from header action (subheader button dispatches this event)
   React.useEffect(() => {
@@ -1103,6 +1107,13 @@ function DepartmentsView() {
     fetchDepartments();
   }, []);
 
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
   const fetchDepartments = async () => {
     try {
       setLoading(true);
@@ -1114,6 +1125,44 @@ function DepartmentsView() {
       setError(err.message || "Failed to load departments");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (dept) => {
+    setEditingDepartment(dept);
+    setIsFormOpen(true);
+    setOpenMenuId(null);
+  };
+
+  const handleDelete = async (dept) => {
+    if (!confirm(`Are you sure you want to delete "${dept.name}"?`)) {
+      return;
+    }
+
+    try {
+      await departmentAPI.delete(dept.id);
+      await fetchDepartments();
+    } catch (err) {
+      console.error("Error deleting department:", err);
+      alert("Failed to delete department: " + (err.message || "Unknown error"));
+    }
+    setOpenMenuId(null);
+  };
+
+  const toggleMenu = (e, deptId) => {
+    e.stopPropagation();
+
+    if (openMenuId === deptId) {
+      setOpenMenuId(null);
+    } else {
+      const button = e.currentTarget;
+      const rect = button.getBoundingClientRect();
+
+      setMenuPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.right - 176 // 176px = width of dropdown (w-44 = 11rem = 176px)
+      });
+      setOpenMenuId(deptId);
     }
   };
 
@@ -1138,13 +1187,13 @@ function DepartmentsView() {
       {!loading && !error && departments.length > 0 && (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 sticky top-0 z-10">
               <tr>
-                <th className="pl-0 pr-6 py-3 text-left">Department Name</th>
-                <th className="px-6 py-3 text-left">Department Code</th>
-                <th className="px-6 py-3 text-left">Description</th>
-                <th className="px-6 py-3 text-right">Total Employees</th>
-                <th className="py-3 pr-0 w-[48px]" />
+                <th className="pl-0 pr-6 py-3 text-left bg-slate-50">Department Name</th>
+                <th className="px-6 py-3 text-left bg-slate-50">Department Code</th>
+                <th className="px-6 py-3 text-left bg-slate-50">Description</th>
+                <th className="px-6 py-3 text-right bg-slate-50">Total Employees</th>
+                <th className="py-3 pr-0 w-[48px] bg-slate-50" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-slate-700">
@@ -1163,6 +1212,7 @@ function DepartmentsView() {
                   <td className="py-4 pr-0 text-right w-[48px]">
                     <button
                       type="button"
+                      onClick={(e) => toggleMenu(e, dept.id)}
                       aria-label="Department actions"
                       className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
                     >
@@ -1176,15 +1226,64 @@ function DepartmentsView() {
         </div>
       )}
 
-      {isFormOpen && <DepartmentDialog onClose={() => setIsFormOpen(false)} onSuccess={fetchDepartments} />}
+      {openMenuId && ReactDOM.createPortal(
+        <div
+          className="fixed w-44 rounded-lg border border-slate-200 bg-white shadow-[0_8px_24px_-8px_rgba(15,23,42,0.15)] z-50 overflow-hidden"
+          style={{
+            top: `${menuPosition.top}px`,
+            left: `${menuPosition.left}px`
+          }}
+        >
+          <div className="py-1">
+            <button
+              type="button"
+              onClick={() => {
+                const dept = departments.find(d => d.id === openMenuId);
+                if (dept) handleEdit(dept);
+              }}
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <Pencil className="h-4 w-4 text-slate-500" />
+              <span className="font-medium">Edit</span>
+            </button>
+            <div className="border-t border-slate-100"></div>
+            <button
+              type="button"
+              onClick={() => {
+                const dept = departments.find(d => d.id === openMenuId);
+                if (dept) handleDelete(dept);
+              }}
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span className="font-medium">Delete</span>
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {isFormOpen && (
+        <DepartmentDialog
+          department={editingDepartment}
+          onClose={() => {
+            setIsFormOpen(false);
+            setEditingDepartment(null);
+          }}
+          onSuccess={fetchDepartments}
+        />
+      )}
     </>
   );
 }
 
-function DepartmentDialog({ onClose, onSuccess }) {
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const [description, setDescription] = useState("");
+function DepartmentDialog({ department, onClose, onSuccess }) {
+  const isEditing = !!department;
+  const [name, setName] = useState(department?.name || "");
+  const [code, setCode] = useState(department?.code || "");
+  const [description, setDescription] = useState(department?.description || "");
   const [saving, setSaving] = useState(false);
 
   const handleOverlayClick = (event) => {
@@ -1209,7 +1308,11 @@ function DepartmentDialog({ onClose, onSuccess }) {
         description: description.trim() || null,
       };
 
-      await departmentAPI.create(departmentData);
+      if (isEditing) {
+        await departmentAPI.update(department.id, departmentData);
+      } else {
+        await departmentAPI.create(departmentData);
+      }
 
       // Refresh departments list
       if (typeof onSuccess === "function") {
@@ -1218,8 +1321,8 @@ function DepartmentDialog({ onClose, onSuccess }) {
 
       onClose();
     } catch (err) {
-      console.error("Error creating department:", err);
-      alert("Failed to save department: " + (err.message || "Unknown error"));
+      console.error(`Error ${isEditing ? "updating" : "creating"} department:`, err);
+      alert(`Failed to ${isEditing ? "update" : "save"} department: ` + (err.message || "Unknown error"));
     } finally {
       setSaving(false);
     }
@@ -1237,7 +1340,9 @@ function DepartmentDialog({ onClose, onSuccess }) {
         className="w-full max-w-[540px] overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
         <div className="flex items-start justify-between border-b border-slate-200 px-6 pb-4 pt-5">
-          <h2 className="text-xl font-semibold text-slate-900">New Department</h2>
+          <h2 className="text-xl font-semibold text-slate-900">
+            {isEditing ? "Edit Department" : "New Department"}
+          </h2>
           <button
             type="button"
             aria-label="Close"
