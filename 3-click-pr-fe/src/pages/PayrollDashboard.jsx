@@ -155,7 +155,7 @@ export default function PayrollDashboard() {
       : "bg-slate-900 text-slate-200"
   );
   const desktopNavClass = cls(
-    "h-full overflow-y-auto p-4 text-sm",
+    "h-full overflow-y-auto hide-scrollbar p-4 text-sm",
     isLightPane ? "bg-transparent text-slate-700" : "bg-slate-900 text-slate-200"
   );
   const mobileAsideClass = cls(
