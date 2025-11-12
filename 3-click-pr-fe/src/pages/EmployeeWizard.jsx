@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import SearchSelect from "../components/SearchSelect";
 import SuccessArt from "../assets/Pay Roll_03.svg"; // completion SVG
 import { loadPayrollSettings, subscribePayrollSettings } from "../utils/payrollStore";
-import { employeeAPI, APIError } from "../utils/api";
+import { employeeAPI, departmentAPI, APIError } from "../utils/api";
 import { mapWizardDataToTwoStepPayload } from "../utils/employeeMapper";
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
@@ -237,6 +237,20 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
   // Load salary components from shared store
   const [settingsAll, setSettingsAll] = useState(() => loadPayrollSettings());
   useEffect(() => subscribePayrollSettings((next) => setSettingsAll(next)), []);
+
+  // Fetch departments for dropdown
+  const [departments, setDepartments] = useState([]);
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const data = await departmentAPI.getAll({ is_active: true });
+        setDepartments(data);
+      } catch (err) {
+        console.error("Error fetching departments:", err);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   // Fetch employee data in edit mode
   useEffect(() => {
@@ -1143,11 +1157,18 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                     <label className="block text-sm text-slate-600">
                       Department *
                     </label>
-                    <input
-                      className={cx("input mt-1", validationErrors.department && "border-red-300 focus:border-red-500 focus:ring-red-200")}
+                    <SearchSelect
+                      className="mt-1"
                       value={form.department}
-                      onChange={set("department")}
-                      placeholder="Department"
+                      onChange={(opt) => setForm((s) => ({ ...s, department: opt?.label || "" }))}
+                      placeholder="Select Department"
+                      options={departments.map(dept => ({
+                        value: dept.id,
+                        label: dept.name,
+                        icon: "🏢"
+                      }))}
+                      floatingLabel={false}
+                      inputClassName={cx("h-9", validationErrors.department && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                     />
                   </div>
 
