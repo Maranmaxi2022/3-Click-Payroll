@@ -214,4 +214,62 @@ export const workLocationAPI = {
     }),
 };
 
+// Department API endpoints
+export const departmentAPI = {
+  /**
+   * Get all departments
+   * @param {Object} params - Query parameters (e.g., { is_active: true })
+   * @returns {Promise<Array>} List of departments
+   */
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v != null)
+    ).toString();
+    const endpoint = queryString
+      ? `/api/v1/departments/?${queryString}`
+      : '/api/v1/departments/';
+    return request(endpoint);
+  },
+
+  /**
+   * Get a single department by ID
+   * @param {string} departmentId - MongoDB ObjectId as string
+   * @returns {Promise<Object>} Department details
+   */
+  getById: (departmentId) => request(`/api/v1/departments/${departmentId}`),
+
+  /**
+   * Create a new department
+   * @param {Object} departmentData - Department data
+   * @returns {Promise<Object>} Created department
+   */
+  create: (departmentData) =>
+    request('/api/v1/departments/', {
+      method: 'POST',
+      body: JSON.stringify(departmentData),
+    }),
+
+  /**
+   * Update a department
+   * @param {string} departmentId - Department ID
+   * @param {Object} updateData - Partial department data to update
+   * @returns {Promise<Object>} Updated department
+   */
+  update: (departmentId, updateData) =>
+    request(`/api/v1/departments/${departmentId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    }),
+
+  /**
+   * Delete a department
+   * @param {string} departmentId - Department ID
+   * @returns {Promise<null>} No content on success
+   */
+  delete: (departmentId) =>
+    request(`/api/v1/departments/${departmentId}`, {
+      method: 'DELETE',
+    }),
+};
+
 export { APIError };

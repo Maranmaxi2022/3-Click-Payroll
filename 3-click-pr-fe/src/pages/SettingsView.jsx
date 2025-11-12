@@ -6,7 +6,7 @@ import PaySchedule from "./PaySchedule";
 import SearchSelect from "../components/SearchSelect";
 import Modal from "../components/Modal";
 import { loadPayrollSettings, savePayrollSettings } from "../utils/payrollStore";
-import { workLocationAPI } from "../utils/api";
+import { workLocationAPI, departmentAPI } from "../utils/api";
 
 import {
   ACCENT_LIST,
@@ -1087,6 +1087,9 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
 
 function DepartmentsView() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Open from header action (subheader button dispatches this event)
   React.useEffect(() => {
@@ -1094,74 +1097,132 @@ function DepartmentsView() {
     window.addEventListener("department:new", open);
     return () => window.removeEventListener("department:new", open);
   }, []);
-  const departments = [
-    {
-      id: "dept-eng",
-      name: "Engineering",
-      code: "001",
-      description: "-",
-      employees: 2,
-      link: "#",
-    },
-  ];
+
+  // Fetch departments on mount
+  React.useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await departmentAPI.getAll();
+      setDepartments(data);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+      setError(err.message || "Failed to load departments");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
       {/* Title and actions are shown in the fixed subheader; no in-body header here. */}
 
-      {/* Table aligned to content gutter (no extra negative margins) */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="pl-0 pr-6 py-3 text-left">Department Name</th>
-              <th className="px-6 py-3 text-left">Department Code</th>
-              <th className="px-6 py-3 text-left">Description</th>
-              <th className="px-6 py-3 text-right">Total Employees</th>
-              <th className="py-3 pr-0 w-[48px]" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 text-slate-700">
-            {departments.map((dept) => (
-              <tr key={dept.id} className="hover:bg-slate-50/80">
-                <td className="pl-0 pr-6 py-3 text-sm font-medium">
-                  <a href={dept.link} className="text-blue-600 hover:underline">
-                    {dept.name}
-                  </a>
-                </td>
-                <td className="px-6 py-3 text-sm">{dept.code}</td>
-                <td className="px-6 py-3 text-sm text-slate-500">{dept.description}</td>
-                <td className="px-6 py-3 text-right text-sm font-semibold text-slate-800">
-                  {dept.employees}
-                </td>
-                <td className="py-4 pr-0 text-right w-[48px]">
-                  <button
-                    type="button"
-                    aria-label="Department actions"
-                    className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {loading && (
+        <div className="text-center py-8 text-slate-500">Loading departments...</div>
+      )}
 
-      {isFormOpen && <DepartmentDialog onClose={() => setIsFormOpen(false)} />}
+      {error && (
+        <div className="text-center py-8 text-red-500">Error: {error}</div>
+      )}
+
+      {!loading && !error && departments.length === 0 && (
+        <div className="text-center py-8 text-slate-500">
+          No departments yet. Click "New Department" to create one.
+        </div>
+      )}
+
+      {!loading && !error && departments.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="pl-0 pr-6 py-3 text-left">Department Name</th>
+                <th className="px-6 py-3 text-left">Department Code</th>
+                <th className="px-6 py-3 text-left">Description</th>
+                <th className="px-6 py-3 text-right">Total Employees</th>
+                <th className="py-3 pr-0 w-[48px]" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 text-slate-700">
+              {departments.map((dept) => (
+                <tr key={dept.id} className="hover:bg-slate-50/80">
+                  <td className="pl-0 pr-6 py-3 text-sm font-medium">
+                    <a href="#" className="text-blue-600 hover:underline">
+                      {dept.name}
+                    </a>
+                  </td>
+                  <td className="px-6 py-3 text-sm">{dept.code || "-"}</td>
+                  <td className="px-6 py-3 text-sm text-slate-500">{dept.description || "-"}</td>
+                  <td className="px-6 py-3 text-right text-sm font-semibold text-slate-800">
+                    {dept.total_employees}
+                  </td>
+                  <td className="py-4 pr-0 text-right w-[48px]">
+                    <button
+                      type="button"
+                      aria-label="Department actions"
+                      className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {isFormOpen && <DepartmentDialog onClose={() => setIsFormOpen(false)} onSuccess={fetchDepartments} />}
     </>
   );
 }
 
-function DepartmentDialog({ onClose }) {
+function DepartmentDialog({ onClose, onSuccess }) {
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+
   const handleOverlayClick = (event) => {
     if (event.target === event.currentTarget) onClose();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onClose();
+
+    // Validation
+    if (!name.trim()) {
+      alert("Please enter a department name");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const departmentData = {
+        name: name.trim(),
+        code: code.trim() || null,
+        description: description.trim() || null,
+      };
+
+      await departmentAPI.create(departmentData);
+
+      // Refresh departments list
+      if (typeof onSuccess === "function") {
+        await onSuccess();
+      }
+
+      onClose();
+    } catch (err) {
+      console.error("Error creating department:", err);
+      alert("Failed to save department: " + (err.message || "Unknown error"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -1193,13 +1254,24 @@ function DepartmentDialog({ onClose }) {
               <label className="block text-sm font-medium text-slate-700">
                 Department Name<span className="text-red-500">*</span>
               </label>
-              <input className="input" placeholder="e.g., Engineering" autoFocus />
+              <input
+                className="input"
+                placeholder="e.g., Engineering"
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <label className="block text-sm font-medium text-slate-700">
                 Department Code
               </label>
-              <input className="input" placeholder="Optional" />
+              <input
+                className="input"
+                placeholder="Optional"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+              />
             </div>
           </div>
 
@@ -1210,6 +1282,9 @@ function DepartmentDialog({ onClose }) {
             <textarea
               className="input h-24 resize-none"
               placeholder="Max 250 characters"
+              maxLength={250}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
         </div>
@@ -1219,10 +1294,11 @@ function DepartmentDialog({ onClose }) {
             <div className="flex items-center gap-3">
               <button
                 type="submit"
-                className="inline-flex h-9 items-center rounded-lg px-5 text-sm font-medium text-white hover:opacity-90"
+                disabled={saving}
+                className="inline-flex h-9 items-center rounded-lg px-5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: '#408dfb' }}
               >
-                Save
+                {saving ? "Saving..." : "Save"}
               </button>
               <button
                 type="button"
