@@ -1524,48 +1524,47 @@ function DesignationsView() {
 
   return (
     <>
-      {/* Title and actions live in the subheader; no in-body header. */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 sticky top-0 z-10">
-            <tr>
-              <th className="pl-0 pr-6 py-3 text-left bg-slate-50">Designation Name</th>
-              <th className="px-6 py-3 text-right bg-slate-50">Total Employees</th>
-              <th className="px-4 py-3 bg-slate-50" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200 text-slate-700">
-            {designations.length === 0 ? (
+      {!loading && !error && designations.length === 0 && (
+        <div className="text-center py-8 text-slate-500">
+          No designations yet. Click "New Designation" to create one.
+        </div>
+      )}
+
+      {!loading && !error && designations.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 sticky top-0 z-10">
               <tr>
-                <td colSpan="3" className="py-8 text-center text-slate-500">
-                  No designations found. Click "New Designation" to create one.
-                </td>
+                <th className="pl-0 pr-6 py-3 text-left bg-slate-50">Designation Name</th>
+                <th className="px-6 py-3 text-right bg-slate-50">Total Employees</th>
+                <th className="py-3 pr-0 w-[48px] bg-slate-50" />
               </tr>
-            ) : (
-              designations.map((desig) => (
+            </thead>
+            <tbody className="divide-y divide-slate-200 text-slate-700">
+              {designations.map((desig) => (
                 <tr key={desig.id} className="hover:bg-slate-50/80">
                   <td className="pl-0 pr-6 py-3 text-sm font-medium">
-                    <span className="text-slate-900">{desig.title}</span>
+                    <span className="text-blue-600">{desig.title}</span>
                   </td>
                   <td className="px-6 py-3 text-right text-sm font-semibold text-slate-800">
                     {desig.total_employees}
                   </td>
-                  <td className="px-4 py-4 text-right">
+                  <td className="py-4 pr-0 text-right w-[48px]">
                     <button
                       type="button"
-                      aria-label="Designation actions"
                       onClick={(e) => toggleMenu(e, desig.id)}
+                      aria-label="Designation actions"
                       className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </button>
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Dropdown menu using Portal */}
       {openMenuId && ReactDOM.createPortal(
@@ -1576,24 +1575,33 @@ function DesignationsView() {
             left: `${menuPosition.left}px`
           }}
         >
-          <button
-            type="button"
-            onClick={() => handleEdit(designations.find(d => d.id === openMenuId))}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
-          >
-            <Pencil className="h-4 w-4 text-slate-400" />
-            <span>Edit</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDelete(designations.find(d => d.id === openMenuId))}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-            </svg>
-            <span>Delete</span>
-          </button>
+          <div className="py-1">
+            <button
+              type="button"
+              onClick={() => {
+                const desig = designations.find(d => d.id === openMenuId);
+                if (desig) handleEdit(desig);
+              }}
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <Pencil className="h-4 w-4 text-slate-500" />
+              <span className="font-medium">Edit</span>
+            </button>
+            <div className="border-t border-slate-100"></div>
+            <button
+              type="button"
+              onClick={() => {
+                const desig = designations.find(d => d.id === openMenuId);
+                if (desig) handleDelete(desig);
+              }}
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span className="font-medium">Delete</span>
+            </button>
+          </div>
         </div>,
         document.body
       )}
