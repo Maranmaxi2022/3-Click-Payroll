@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import SearchSelect from "../components/SearchSelect";
 import SuccessArt from "../assets/Pay Roll_03.svg"; // completion SVG
 import { loadPayrollSettings, subscribePayrollSettings } from "../utils/payrollStore";
-import { employeeAPI, departmentAPI, APIError } from "../utils/api";
+import { employeeAPI, departmentAPI, designationAPI, APIError } from "../utils/api";
 import { mapWizardDataToTwoStepPayload } from "../utils/employeeMapper";
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
@@ -162,7 +162,7 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
     locationPostal: "",
     // legacy text field replaced by city/province/postal
     location: "Head Office",
-    designation: "",
+    designation: "", // designation title (for display and storage)
     department: "", // department ID
     departmentName: "", // department name for display
     division: "",
@@ -251,6 +251,20 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
       }
     };
     fetchDepartments();
+  }, []);
+
+  // Fetch designations for dropdown
+  const [designations, setDesignations] = useState([]);
+  useEffect(() => {
+    const fetchDesignations = async () => {
+      try {
+        const data = await designationAPI.getAll({ is_active: true });
+        setDesignations(data);
+      } catch (err) {
+        console.error("Error fetching designations:", err);
+      }
+    };
+    fetchDesignations();
   }, []);
 
   // Fetch employee data in edit mode
@@ -1148,11 +1162,23 @@ export default function EmployeeWizard({ onCancel, onFinish, mode = "create", em
                     <label className="block text-sm text-slate-600">
                       Designation *
                     </label>
-                    <input
-                      className={cx("input mt-1", validationErrors.designation && "border-red-300 focus:border-red-500 focus:ring-red-200")}
+                    <SearchSelect
+                      className="mt-1"
                       value={form.designation}
-                      onChange={set("designation")}
-                      placeholder="e.g. Frontend Developer"
+                      onChange={(opt) => {
+                        setForm((s) => ({
+                          ...s,
+                          designation: opt?.label || ""
+                        }));
+                      }}
+                      placeholder="Select Designation"
+                      options={designations.map(desig => ({
+                        value: desig.title,
+                        label: desig.title,
+                        icon: "💼"
+                      }))}
+                      floatingLabel={false}
+                      inputClassName={cx("h-9", validationErrors.designation && "border-red-300 focus:border-red-500 focus:ring-red-200")}
                     />
                   </div>
                   <div>
