@@ -7,7 +7,7 @@ import PaySchedule from "./PaySchedule";
 import SearchSelect from "../components/SearchSelect";
 import Modal from "../components/Modal";
 import { loadPayrollSettings, savePayrollSettings } from "../utils/payrollStore";
-import { workLocationAPI, departmentAPI } from "../utils/api";
+import { workLocationAPI, departmentAPI, designationAPI } from "../utils/api";
 
 import {
   ACCENT_LIST,
@@ -1425,6 +1425,12 @@ function DepartmentDialog({ department, onClose, onSuccess }) {
 
 function DesignationsView() {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [designations, setDesignations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [editingDesignation, setEditingDesignation] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
   // Allow opening the dialog from the fixed subheader action
   React.useEffect(() => {
@@ -1433,68 +1439,216 @@ function DesignationsView() {
     return () => window.removeEventListener("designation:new", open);
   }, []);
 
-  const designations = [
-    { id: "desg-hr", name: "Junior HR", employees: 0, link: "#" },
-    { id: "desg-fed", name: "Front End Developer", employees: 1, link: "#" },
-    {
-      id: "desg-intern",
-      name: "Software Engineer Intern",
-      employees: 1,
-      link: "#",
-    },
-  ];
+  React.useEffect(() => {
+    fetchDesignations();
+  }, []);
+
+  // Close menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => setOpenMenuId(null);
+    if (openMenuId) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [openMenuId]);
+
+  const fetchDesignations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await designationAPI.getAll();
+      setDesignations(data);
+    } catch (err) {
+      console.error("Error fetching designations:", err);
+      setError(err.message || "Failed to load designations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (desig) => {
+    setEditingDesignation(desig);
+    setIsFormOpen(true);
+    setOpenMenuId(null);
+  };
+
+  const handleDelete = async (desig) => {
+    if (!confirm(`Are you sure you want to delete "${desig.title}"?`)) {
+      return;
+    }
+    try {
+      await designationAPI.delete(desig.id);
+      await fetchDesignations();
+    } catch (err) {
+      console.error("Error deleting designation:", err);
+      alert("Failed to delete designation: " + (err.message || "Unknown error"));
+    }
+    setOpenMenuId(null);
+  };
+
+  const toggleMenu = (e, desigId) => {
+    e.stopPropagation();
+    if (openMenuId === desigId) {
+      setOpenMenuId(null);
+    } else {
+      const button = e.currentTarget;
+      const rect = button.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.right - 176
+      });
+      setOpenMenuId(desigId);
+    }
+  };
+
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    setEditingDesignation(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-slate-600">Loading designations...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <>
       {/* Title and actions live in the subheader; no in-body header. */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 sticky top-0 z-10">
             <tr>
-              <th className="pl-0 pr-6 py-3 text-left">Designation Name</th>
-              <th className="px-6 py-3 text-right">Total Employees</th>
-              <th className="px-4 py-3" />
+              <th className="pl-0 pr-6 py-3 text-left bg-slate-50">Designation Name</th>
+              <th className="px-6 py-3 text-right bg-slate-50">Total Employees</th>
+              <th className="px-4 py-3 bg-slate-50" />
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 text-slate-700">
-            {designations.map((role) => (
-              <tr key={role.id} className="hover:bg-slate-50/80">
-                <td className="pl-0 pr-6 py-3 text-sm font-medium">
-                  <a href={role.link} className="text-blue-600 hover:underline">
-                    {role.name}
-                  </a>
-                </td>
-                <td className="px-6 py-3 text-right text-sm font-semibold text-slate-800">
-                  {role.employees}
-                </td>
-                <td className="px-4 py-4 text-right">
-                  <button
-                    type="button"
-                    aria-label="Designation actions"
-                    className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
+            {designations.length === 0 ? (
+              <tr>
+                <td colSpan="3" className="py-8 text-center text-slate-500">
+                  No designations found. Click "New Designation" to create one.
                 </td>
               </tr>
-            ))}
+            ) : (
+              designations.map((desig) => (
+                <tr key={desig.id} className="hover:bg-slate-50/80">
+                  <td className="pl-0 pr-6 py-3 text-sm font-medium">
+                    <span className="text-slate-900">{desig.title}</span>
+                  </td>
+                  <td className="px-6 py-3 text-right text-sm font-semibold text-slate-800">
+                    {desig.total_employees}
+                  </td>
+                  <td className="px-4 py-4 text-right">
+                    <button
+                      type="button"
+                      aria-label="Designation actions"
+                      onClick={(e) => toggleMenu(e, desig.id)}
+                      className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {isFormOpen && <DesignationDialog onClose={() => setIsFormOpen(false)} />}
+      {/* Dropdown menu using Portal */}
+      {openMenuId && ReactDOM.createPortal(
+        <div
+          className="fixed w-44 rounded-lg border border-slate-200 bg-white shadow-[0_8px_24px_-8px_rgba(15,23,42,0.15)] z-50 overflow-hidden"
+          style={{
+            top: `${menuPosition.top}px`,
+            left: `${menuPosition.left}px`
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => handleEdit(designations.find(d => d.id === openMenuId))}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50"
+          >
+            <Pencil className="h-4 w-4 text-slate-400" />
+            <span>Edit</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleDelete(designations.find(d => d.id === openMenuId))}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+            </svg>
+            <span>Delete</span>
+          </button>
+        </div>,
+        document.body
+      )}
+
+      {isFormOpen && (
+        <DesignationDialog
+          onClose={handleFormClose}
+          onSave={fetchDesignations}
+          designation={editingDesignation}
+        />
+      )}
     </>
   );
 }
 
-function DesignationDialog({ onClose }) {
+function DesignationDialog({ onClose, onSave, designation }) {
+  const [title, setTitle] = useState(designation?.title || "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
   const handleOverlayClick = (event) => {
     if (event.target === event.currentTarget) onClose();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onClose();
+
+    if (!title.trim()) {
+      setError("Designation name is required");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+
+      const designationData = {
+        title: title.trim(),
+      };
+
+      if (designation) {
+        // Edit mode
+        await designationAPI.update(designation.id, designationData);
+      } else {
+        // Create mode
+        await designationAPI.create(designationData);
+      }
+
+      await onSave();
+      onClose();
+    } catch (err) {
+      console.error("Error saving designation:", err);
+      setError(err.message || "Failed to save designation");
+      setSaving(false);
+    }
   };
 
   return (
@@ -1509,7 +1663,9 @@ function DesignationDialog({ onClose }) {
         className="w-full max-w-[440px] overflow-hidden rounded-2xl bg-white shadow-2xl"
       >
         <div className="flex items-start justify-between border-b border-slate-200 px-6 pb-3 pt-5">
-          <h2 className="text-xl font-semibold text-slate-900">New Designation</h2>
+          <h2 className="text-xl font-semibold text-slate-900">
+            {designation ? "Edit Designation" : "New Designation"}
+          </h2>
           <button
             type="button"
             aria-label="Close"
@@ -1521,11 +1677,24 @@ function DesignationDialog({ onClose }) {
         </div>
 
         <div className="space-y-6 px-6 py-6">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <label className="block text-sm font-medium text-slate-700">
               Designation Name<span className="text-red-500">*</span>
             </label>
-            <input className="input" placeholder="e.g., Front End Developer" autoFocus />
+            <input
+              className="input"
+              placeholder="e.g., Front End Developer"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              autoFocus
+              disabled={saving}
+            />
           </div>
         </div>
 
@@ -1534,15 +1703,17 @@ function DesignationDialog({ onClose }) {
             <div className="flex items-center gap-3">
               <button
                 type="submit"
-                className="inline-flex h-9 items-center rounded-lg px-5 text-sm font-medium text-white hover:opacity-90"
+                disabled={saving}
+                className="inline-flex h-9 items-center rounded-lg px-5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: '#408dfb' }}
               >
-                Save
+                {saving ? "Saving..." : "Save"}
               </button>
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                disabled={saving}
+                className="inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

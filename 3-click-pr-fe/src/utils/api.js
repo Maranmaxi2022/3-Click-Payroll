@@ -272,4 +272,62 @@ export const departmentAPI = {
     }),
 };
 
+// Designation API endpoints
+export const designationAPI = {
+  /**
+   * Get all designations
+   * @param {Object} params - Query parameters (e.g., { is_active: true })
+   * @returns {Promise<Array>} List of designations
+   */
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v != null)
+    ).toString();
+    const endpoint = queryString
+      ? `/api/v1/designations/?${queryString}`
+      : '/api/v1/designations/';
+    return request(endpoint);
+  },
+
+  /**
+   * Get a single designation by ID
+   * @param {string} designationId - MongoDB ObjectId as string
+   * @returns {Promise<Object>} Designation details
+   */
+  getById: (designationId) => request(`/api/v1/designations/${designationId}`),
+
+  /**
+   * Create a new designation
+   * @param {Object} designationData - Designation data
+   * @returns {Promise<Object>} Created designation
+   */
+  create: (designationData) =>
+    request('/api/v1/designations/', {
+      method: 'POST',
+      body: JSON.stringify(designationData),
+    }),
+
+  /**
+   * Update a designation
+   * @param {string} designationId - Designation ID
+   * @param {Object} updateData - Partial designation data to update
+   * @returns {Promise<Object>} Updated designation
+   */
+  update: (designationId, updateData) =>
+    request(`/api/v1/designations/${designationId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    }),
+
+  /**
+   * Delete a designation
+   * @param {string} designationId - Designation ID
+   * @returns {Promise<null>} No content on success
+   */
+  delete: (designationId) =>
+    request(`/api/v1/designations/${designationId}`, {
+      method: 'DELETE',
+    }),
+};
+
 export { APIError };
