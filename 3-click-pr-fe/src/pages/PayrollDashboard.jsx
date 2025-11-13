@@ -1,5 +1,5 @@
 // /src/pages/PayrollDashboard.jsx
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Home, Users, Wallet, Settings, Clock, Upload, Plus } from "lucide-react";
 
 import HeaderBar from "../components/HeaderBar";
@@ -8,7 +8,6 @@ import SettingsSidebar, { SETTINGS_SECTIONS } from "../components/SettingsSideba
 import {
   BRANDING_DEFAULT,
   BRANDING_STORAGE_KEY,
-  getAccentPreset,
   loadBrandingPreferences,
   persistBrandingPreferences,
 } from "../utils/branding";
@@ -28,16 +27,6 @@ const BRAND = {
 };
 
 const cls = (...parts) => parts.filter(Boolean).join(" ");
-
-const stepData = [
-  { id: 1, state: "completed" },
-  { id: 2, state: "cta" },
-  { id: 3, state: "cta" },
-  { id: 4, state: "open" },
-  { id: 5, state: "cta" },
-  { id: 6, state: "completed" },
-  { id: 7, state: "completed" },
-];
 
 export default function PayrollDashboard() {
   const TABS = ["dashboard", "employees", "work-calendar", "payruns", "settings"];
@@ -144,10 +133,7 @@ export default function PayrollDashboard() {
     setSidebarOpen(false);
   };
 
-  const completed = stepData.filter((s) => s.state === "completed").length;
   const isLightPane = branding.appearance === "light";
-  const accentPreset = getAccentPreset(branding.accent);
-  const dividerClass = isLightPane ? "bg-slate-200" : "bg-white/10";
   const desktopSidebarClass = cls(
     "hidden md:block fixed left-0 top-16 bottom-0",
     isLightPane
@@ -162,16 +148,6 @@ export default function PayrollDashboard() {
     "absolute inset-0 p-3 shadow-xl overflow-y-auto",
     isLightPane ? "bg-white text-slate-800" : "bg-slate-900 text-slate-200"
   );
-  const mobileBrandHeading = cls(
-    "flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold",
-    isLightPane ? "bg-white text-slate-800" : "bg-slate-800 text-white"
-  );
-  const supportLinkHover = isLightPane ? "hover:bg-slate-100" : "hover:bg-white/5";
-  const gettingStartedCard = isLightPane
-    ? "mb-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 p-3 text-white shadow-lg ring-1 ring-blue-300/60"
-    : "mb-3 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-3 ring-1 ring-white/10";
-  const progressTrack = isLightPane ? "bg-white/40" : "bg-white/10";
-  const progressFill = isLightPane ? accentPreset.activeClass : "bg-amber-400";
 
   // Clear any title override when leaving Settings entirely
   useEffect(() => {
@@ -413,11 +389,7 @@ export default function PayrollDashboard() {
       <div className={cls("fixed inset-0 z-[60] md:hidden", sidebarOpen ? "block" : "hidden")}>
         <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
         <aside className={mobileAsideClass} role="dialog" aria-modal="true">
-          <div className="mb-2 mt-1 flex items-center justify-between">
-            <div className={mobileBrandHeading}>
-              <img src={BRAND.logo} alt="Logo" className="h-5 w-5" />
-              <span>{BRAND.name}</span>
-            </div>
+          <div className="mb-4 flex items-center justify-end">
             <button
               className={cls(
                 "rounded-lg p-2",
@@ -432,31 +404,7 @@ export default function PayrollDashboard() {
             </button>
           </div>
 
-          <nav className="mt-2 space-y-1">
-            {/* quick “Getting Started” card */}
-            <div className={gettingStartedCard}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <svg
-                    viewBox="0 0 24 24"
-                    className={cls(
-                      "h-5 w-5",
-                      isLightPane ? "text-white" : "text-amber-300"
-                    )}
-                    fill="currentColor"
-                  >
-                    <path d="M12 2a1 1 0 01.894.553l2.382 4.764 5.257.764a1 1 0 01.554 1.705l-3.8 3.704.897 5.228a1 1 0 01-1.451 1.054L12 18.347l-4.683 2.465a1 1 0 01-1.451-1.054l.897-5.228-3.8-3.704a1 1 0 01.554-1.705l5.257-.764L11.106 2.553A1 1 0 0112 2z" />
-                  </svg>
-                  <span className="font-semibold">Getting Started</span>
-                </div>
-                <svg viewBox="0 0 24 24" className="h-4 w-4 text-white/80"><path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>
-              </div>
-              <div className={cls("mt-3 h-1.5 w-full rounded-full", progressTrack)}>
-                <div className={cls("h-1.5 rounded-full", progressFill)} style={{ width: "60%" }} />
-              </div>
-            </div>
-
-            {/* nav items */}
+          <nav className="space-y-1">
             <SidebarLink
               icon={Home}
               label="Dashboard"
@@ -481,7 +429,6 @@ export default function PayrollDashboard() {
               appearance={branding.appearance}
               accent={branding.accent}
             />
-            <div className={cls("my-1 h-px", dividerClass)} />
             <SidebarLink
               icon={Wallet}
               label="Pay Runs"
@@ -490,7 +437,6 @@ export default function PayrollDashboard() {
               appearance={branding.appearance}
               accent={branding.accent}
             />
-            <div className={cls("my-1 h-px", dividerClass)} />
             <SidebarLink
               icon={Settings}
               label="Settings"
@@ -499,20 +445,6 @@ export default function PayrollDashboard() {
               appearance={branding.appearance}
               accent={branding.accent}
             />
-
-            <div
-              className={cls(
-                "mt-4 border-t pt-3 text-xs",
-                isLightPane ? "border-slate-200 text-slate-500" : "border-white/10 text-slate-300"
-              )}
-            >
-              <a
-                href="#"
-                className={cls("rounded-md px-2 py-1", supportLinkHover)}
-              >
-                Contact Support
-              </a>
-            </div>
           </nav>
         </aside>
       </div>
