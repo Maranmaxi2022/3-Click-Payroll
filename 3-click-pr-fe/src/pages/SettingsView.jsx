@@ -79,9 +79,6 @@ export default function SettingsView({
     setup: false,
     custom: false,
     automations: false,
-    mod_general: false,
-    mod_payments: false,
-    mod_custom: false,
     ext: false,
   });
 
@@ -140,32 +137,6 @@ export default function SettingsView({
               { id: "auto.schedules", label: "Schedules" },
               { id: "auto.logs", label: "Workflow Logs" },
             ],
-          },
-        ],
-      },
-      {
-        caption: "MODULE SETTINGS",
-        groups: [
-          {
-            id: "mod_general",
-            title: "General",
-            items: [
-              { id: "mod.emp", label: "Employees" },
-              { id: "mod.payruns", label: "Pay Runs" },
-              { id: "mod.revisions", label: "Salary revisions" },
-              { id: "mod.leave", label: "Leave" },
-              { id: "mod.loans", label: "Loans" },
-            ],
-          },
-          {
-            id: "mod_payments",
-            title: "Payments",
-            items: [{ id: "mod.directDeposits", label: "Direct Deposits" }],
-          },
-          {
-            id: "mod_custom",
-            title: "Custom Modules",
-            items: [{ id: "mod.custom.overview", label: "Overview" }],
           },
         ],
       },
