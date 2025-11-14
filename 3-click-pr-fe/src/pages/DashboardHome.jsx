@@ -9,17 +9,17 @@ const cx = (...xs) => xs.filter(Boolean).join(" ");
 function Card({ className = "", children, title, headerRight }) {
   return (
     <section
-      className={cx("rounded-2xl border border-slate-200 bg-white", className)}
+      className={cx("rounded-xl border border-slate-200 bg-white md:rounded-2xl", className)}
     >
       {(title || headerRight) && (
-        <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-          <h3 className="text-[13px] font-semibold uppercase tracking-[0.28em] text-slate-500">
+        <header className="flex flex-col gap-2 border-b border-slate-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between md:px-5 md:py-4">
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500 md:text-[13px]">
             {title}
           </h3>
           {headerRight}
         </header>
       )}
-      <div className="p-5">{children}</div>
+      <div className="p-4 md:p-5">{children}</div>
     </section>
   );
 }
@@ -122,7 +122,7 @@ function niceScale(min, max, desiredTicks = 7) {
 
 function LegendRow({ color, label, value }) {
   return (
-    <div className="flex items-center justify-between text-[13px] text-slate-700">
+    <div className="flex items-center justify-between text-xs text-slate-700 md:text-[13px]">
       <div className="flex items-center gap-2">
         <Dot className={color} />
         <span>{label}</span>
@@ -183,10 +183,10 @@ function DropdownFilter({ value, onChange, accent }) {
   const label = options.find((o) => o.id === value)?.label ?? "This Year";
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative w-full sm:w-auto" ref={ref}>
       <button
         type="button"
-        className={`inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current focus:border-current ${accent ? `focus:${accent.textClass}` : "focus:text-blue-600"}`}
+        className={`inline-flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current focus:border-current md:h-9 md:w-auto md:justify-start md:px-3 ${accent ? `focus:${accent.textClass}` : "focus:text-blue-600"}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
@@ -199,7 +199,7 @@ function DropdownFilter({ value, onChange, accent }) {
       {open && (
         <div
           role="listbox"
-          className="absolute right-0 z-20 mt-2 w-48 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-slate-100"
+          className="absolute right-0 z-20 mt-2 w-full rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-slate-100 sm:w-48 md:rounded-2xl"
         >
           {options.map((opt, i) => {
             const active = opt.id === value;
@@ -209,7 +209,7 @@ function DropdownFilter({ value, onChange, accent }) {
                 key={opt.id}
                 role="option"
                 aria-selected={active}
-                className={`flex cursor-pointer items-center justify-between rounded-xl px-3 py-2 text-sm ${hovered ? "bg-slate-50" : ""}`}
+                className={`flex cursor-pointer items-center justify-between rounded-lg px-3.5 py-2.5 text-sm md:rounded-xl md:px-3 md:py-2 ${hovered ? "bg-slate-50" : ""}`}
                 onMouseEnter={() => setHover(i)}
                 onClick={() => select(opt.id)}
               >
@@ -243,14 +243,17 @@ function StackedBarChartCA({ data = [] }) {
 
   const MonthYearTick = ({ x, y, payload }) => {
     const row = payload?.payload;
+    const isMobile = window.innerWidth < 768;
     return (
       <g transform={`translate(${x},${y})`}>
-        <text dy={14} textAnchor="middle" fill="#475569" fontSize="12">
+        <text dy={14} textAnchor="middle" fill="#475569" fontSize={isMobile ? "10" : "12"}>
           {payload.value}
         </text>
-        <text dy={28} textAnchor="middle" fill="#94a3b8" fontSize="11">
-          {row?.y}
-        </text>
+        {!isMobile && (
+          <text dy={28} textAnchor="middle" fill="#94a3b8" fontSize="11">
+            {row?.y}
+          </text>
+        )}
       </g>
     );
   };
@@ -285,13 +288,15 @@ function StackedBarChartCA({ data = [] }) {
     </g>
   );
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
-    <div className="relative h-64">
+    <div className="relative h-56 md:h-64">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}
-          margin={{ top: 8, right: 8, left: 8, bottom: 34 }}
-          barCategoryGap={24}
+          margin={{ top: 8, right: isMobile ? 4 : 8, left: isMobile ? 4 : 8, bottom: isMobile ? 24 : 34 }}
+          barCategoryGap={isMobile ? 12 : 24}
         >
           <CartesianGrid vertical={false} stroke="rgba(203,213,225,0.35)" />
           <XAxis
@@ -303,17 +308,17 @@ function StackedBarChartCA({ data = [] }) {
             tickMargin={8}
           />
           <YAxis
-            width={56}
+            width={isMobile ? 44 : 56}
             tick={<YTick />}
             tickLine={false}
             axisLine={false}
             padding={{ top: 8, bottom: 8 }}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
-          <Bar dataKey="net" stackId="a" fill={HEX.net} barSize={14} />
-          <Bar dataKey="taxes" stackId="a" fill={HEX.taxes} barSize={14} />
-          <Bar dataKey="statutory" stackId="a" fill={HEX.statutory} barSize={14} />
-          <Bar dataKey="deductions" stackId="a" fill={HEX.deductions} barSize={14} />
+          <Bar dataKey="net" stackId="a" fill={HEX.net} barSize={isMobile ? 10 : 14} />
+          <Bar dataKey="taxes" stackId="a" fill={HEX.taxes} barSize={isMobile ? 10 : 14} />
+          <Bar dataKey="statutory" stackId="a" fill={HEX.statutory} barSize={isMobile ? 10 : 14} />
+          <Bar dataKey="deductions" stackId="a" fill={HEX.deductions} barSize={isMobile ? 10 : 14} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -416,54 +421,54 @@ export default function DashboardHome() {
   }, [period, buildMonthly]);
 
   return (
-    <div className="pb-8">
+    <div className="pb-6 md:pb-8">
       {/* Mobile-only welcome (desktop uses fixed subheader) */}
-      <div className="mb-4 text-[22px] font-semibold tracking-[-0.01em] text-slate-900 lg:hidden">
+      <div className="mb-4 text-xl font-semibold tracking-[-0.01em] text-slate-900 md:text-[22px] lg:hidden">
         Welcome Maran!
       </div>
 
       {/* Main dashboard layout */}
-      <div className="space-y-6">
-          <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6">
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-2 rounded-l-2xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-300">
+      <div className="space-y-4 md:space-y-6">
+          <section className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-4 md:rounded-2xl md:p-6">
+            <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-2 rounded-l-2xl bg-gradient-to-b from-amber-300 via-amber-400 to-amber-300 md:block">
               <div className="absolute inset-y-1 right-0 w-[1px] rounded-full bg-white/60" />
             </div>
-            <div className="pl-6 sm:pl-8">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-[13px] font-medium text-slate-600">
+            <div className="md:pl-8">
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between md:gap-3">
+                <div className="text-xs font-medium text-slate-600 md:text-[13px]">
                   Process Pay Run for{" "}
                   <span className="font-semibold text-slate-900">
                     {payRun.period}
                   </span>
                 </div>
-                <span className="inline-flex h-7 items-center rounded-full bg-emerald-50 px-3 text-[12px] font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200">
+                <span className="inline-flex h-6 w-fit items-center rounded-full bg-emerald-50 px-2.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-200 md:h-7 md:px-3 md:text-[12px]">
                   {payRun.status}
                 </span>
               </div>
 
-              <div className="mt-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-3 sm:divide-x sm:divide-slate-200 md:mr-6">
-                  <div className="sm:px-6">
-                    <div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">
+              <div className="mt-4 flex flex-col gap-3 md:mt-5 md:flex-row md:items-center md:justify-between md:gap-4">
+                <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3 sm:divide-x sm:divide-slate-200 md:mr-6 md:gap-6">
+                  <div className="sm:px-6 sm:first:pl-0">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 md:text-[12px]">
                       Employees' Net Pay
                     </div>
-                    <div className="mt-1 text-base font-semibold text-slate-900">
+                    <div className="mt-1 text-lg font-semibold text-slate-900 md:text-base">
                       {payRun.netPay}
                     </div>
                   </div>
                   <div className="sm:px-6">
-                    <div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 md:text-[12px]">
                       Payment Date
                     </div>
-                    <div className="mt-1 text-base font-semibold text-slate-900">
+                    <div className="mt-1 text-lg font-semibold text-slate-900 md:text-base">
                       {formatLong(payRun.dateISO)}
                     </div>
                   </div>
                   <div className="sm:px-6">
-                    <div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 md:text-[12px]">
                       No. of Employees
                     </div>
-                    <div className="mt-1 text-base font-semibold text-slate-900">
+                    <div className="mt-1 text-lg font-semibold text-slate-900 md:text-base">
                       {payRun.employees}
                     </div>
                   </div>
@@ -472,21 +477,21 @@ export default function DashboardHome() {
                 <div className="self-start md:self-center">
                   <button
                     type="button"
-                    className="btn-ghost h-9 rounded-xl bg-black px-4 text-white hover:bg-black"
+                    className="btn-ghost h-11 w-full rounded-xl bg-black px-5 text-sm font-medium text-white hover:bg-black md:h-9 md:w-auto md:px-4"
                   >
                     View Details
                   </button>
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-[auto_1fr] items-center gap-2 text-[13px] text-slate-500">
+              <div className="mt-4 grid grid-cols-[auto_1fr] items-start gap-2 text-xs text-slate-500 md:mt-5 md:items-center md:text-[13px]">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1.5"
                   stroke="currentColor"
-                  className="h-4 w-4"
+                  className="h-4 w-4 flex-shrink-0"
                 >
                   <path
                     strokeLinecap="round"
@@ -503,18 +508,18 @@ export default function DashboardHome() {
             </div>
           </section>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2" title="Summary of Liabilities">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 {liabilities.map((li) => (
                   <section
                     key={li.name}
-                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4"
+                    className="flex flex-col gap-2.5 rounded-xl border border-slate-200 bg-white p-3.5 md:gap-3 md:rounded-2xl md:p-4"
                   >
-                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 md:text-sm">
                       <svg
                         viewBox="0 0 24 24"
-                        className="h-4 w-4 text-slate-500"
+                        className="h-3.5 w-3.5 text-slate-500 md:h-4 md:w-4"
                       >
                         <path
                           d="M12 1l9 4v6c0 6-4 10-9 12-5-2-9-6-9-12V5l9-4z"
@@ -523,16 +528,16 @@ export default function DashboardHome() {
                       </svg>
                       {li.name}
                     </div>
-                    <div className="flex items-start gap-3">
-                      <span className="h-12 w-[3px] rounded-full bg-orange-600" />
-                      <div className="space-y-3">
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                    <div className="flex items-start gap-2.5 md:gap-3">
+                      <span className="h-10 w-[3px] rounded-full bg-orange-600 md:h-12" />
+                      <div className="space-y-2 md:space-y-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400 md:text-[11px]">
                           Total Outstanding
                         </div>
-                        <div className="text-[22px] font-semibold text-slate-700">
+                        <div className="text-xl font-semibold text-slate-700 md:text-[22px]">
                           {li.outstanding}
                         </div>
-                        <div className="text-[12px] text-slate-500">
+                        <div className="text-[11px] text-slate-500 md:text-[12px]">
                           Funded Amount:{" "}
                           <span className="font-semibold text-slate-600">
                             {li.funded}
@@ -573,15 +578,14 @@ export default function DashboardHome() {
           </div>
 
           <Card
-            className="rounded-2xl"
             title="Payroll Cost Summary"
             headerRight={<DropdownFilter value={period} onChange={setPeriod} accent={accent} />}
           >
             {/* Box 02 — content area */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px]">
+            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-[1fr_260px]">
               <StackedBarChartCA data={monthlyCA} />
               {/* Legend panel (right on large, stacked on mobile) */}
-              <div className="space-y-2">
+              <div className="space-y-2 md:space-y-2.5">
                 <LegendRow label="Net Pay" color="bg-emerald-500" value={toCAD(monthlyCA.reduce((s, d) => s + (d.net || 0), 0))} />
                 <LegendRow label="Taxes" color="bg-amber-400" value={toCAD(monthlyCA.reduce((s, d) => s + (d.taxes || 0), 0))} />
                 <LegendRow label="Statutories" color="bg-blue-500" value={toCAD(monthlyCA.reduce((s, d) => s + (d.statutory || 0), 0))} />
