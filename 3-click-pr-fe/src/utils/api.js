@@ -330,4 +330,24 @@ export const designationAPI = {
     }),
 };
 
+// Organization API endpoints
+export const organizationAPI = {
+  /**
+   * Get organization settings
+   * @returns {Promise<Object>} Organization settings
+   */
+  get: () => request('/api/v1/settings/organization'),
+
+  /**
+   * Update organization settings
+   * @param {Object} orgData - Organization data to update
+   * @returns {Promise<Object>} Updated organization
+   */
+  update: (orgData) =>
+    request('/api/v1/settings/organization', {
+      method: 'PUT',
+      body: JSON.stringify(orgData),
+    }),
+};
+
 export { APIError };

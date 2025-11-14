@@ -41,6 +41,13 @@ class Organization(Document):
     accent_color: str = "blue"
     appearance: str = "light"  # light or dark
 
+    # Profile Settings
+    business_location: Optional[str] = None  # Reference to WorkLocation ID
+    industry: Optional[str] = None
+    date_format: Optional[str] = None
+    field_separator: Optional[str] = None
+    filing_location_id: Optional[str] = None  # Reference to WorkLocation for filing
+
     # Metadata
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

@@ -10,7 +10,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-from src.schemas.organization import WorkLocation
+from src.schemas.organization import WorkLocation, Organization
 
 router = APIRouter()
 
@@ -60,6 +60,62 @@ class WorkLocationResponse(BaseModel):
         from_attributes = True
 
 
+# Organization Schemas
+class OrganizationUpdate(BaseModel):
+    """Schema for updating organization settings"""
+    company_name: Optional[str] = None
+    legal_name: Optional[str] = None
+    business_number: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    logo_url: Optional[str] = None
+    primary_color: Optional[str] = None
+    accent_color: Optional[str] = None
+    appearance: Optional[str] = None
+    # Additional fields for Profile settings
+    business_location: Optional[str] = None  # Reference to WorkLocation ID
+    industry: Optional[str] = None
+    date_format: Optional[str] = None
+    field_separator: Optional[str] = None
+    filing_location_id: Optional[str] = None  # Reference to WorkLocation for filing
+
+
+class OrganizationResponse(BaseModel):
+    """Schema for organization response"""
+    id: str
+    company_name: str
+    legal_name: Optional[str] = None
+    business_number: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    website: Optional[str] = None
+    street: Optional[str] = None
+    city: Optional[str] = None
+    province: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: str
+    logo_url: Optional[str] = None
+    primary_color: str
+    accent_color: str
+    appearance: str
+    business_location: Optional[str] = None
+    industry: Optional[str] = None
+    date_format: Optional[str] = None
+    field_separator: Optional[str] = None
+    filing_location_id: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 @router.get("/salary-components")
 async def get_salary_components():
     """Get all salary components"""
@@ -93,20 +149,98 @@ async def update_statutory_settings():
     }
 
 
-@router.get("/organization")
+@router.get("/organization", response_model=OrganizationResponse)
 async def get_organization():
     """Get organization settings"""
-    return {
-        "message": "Organization settings endpoint - coming soon"
-    }
+    # Get the first (and should be only) organization
+    org = await Organization.find_one()
+
+    if not org:
+        # Create a default organization if none exists
+        org = Organization(
+            company_name="My Company",
+            country="Canada",
+            primary_color="#3B82F6",
+            accent_color="blue",
+            appearance="light",
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
+        )
+        await org.insert()
+
+    return OrganizationResponse(
+        id=str(org.id),
+        company_name=org.company_name,
+        legal_name=org.legal_name,
+        business_number=org.business_number,
+        email=org.email,
+        phone=org.phone,
+        website=org.website,
+        street=org.street,
+        city=org.city,
+        province=org.province,
+        postal_code=org.postal_code,
+        country=org.country,
+        logo_url=org.logo_url,
+        primary_color=org.primary_color,
+        accent_color=org.accent_color,
+        appearance=org.appearance,
+        business_location=org.business_location,
+        industry=org.industry,
+        date_format=org.date_format,
+        field_separator=org.field_separator,
+        filing_location_id=org.filing_location_id,
+        created_at=org.created_at,
+        updated_at=org.updated_at
+    )
 
 
-@router.put("/organization")
-async def update_organization():
+@router.put("/organization", response_model=OrganizationResponse)
+async def update_organization(org_data: OrganizationUpdate):
     """Update organization settings"""
-    return {
-        "message": "Update organization settings - coming soon"
-    }
+    # Get the first (and should be only) organization
+    org = await Organization.find_one()
+
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found. Please create one first."
+        )
+
+    # Update only provided fields
+    update_dict = org_data.dict(exclude_unset=True)
+    update_dict["updated_at"] = datetime.utcnow()
+
+    for field, value in update_dict.items():
+        setattr(org, field, value)
+
+    await org.save()
+
+    return OrganizationResponse(
+        id=str(org.id),
+        company_name=org.company_name,
+        legal_name=org.legal_name,
+        business_number=org.business_number,
+        email=org.email,
+        phone=org.phone,
+        website=org.website,
+        street=org.street,
+        city=org.city,
+        province=org.province,
+        postal_code=org.postal_code,
+        country=org.country,
+        logo_url=org.logo_url,
+        primary_color=org.primary_color,
+        accent_color=org.accent_color,
+        appearance=org.appearance,
+        business_location=org.business_location,
+        industry=org.industry,
+        date_format=org.date_format,
+        field_separator=org.field_separator,
+        filing_location_id=org.filing_location_id,
+        created_at=org.created_at,
+        updated_at=org.updated_at
+    )
 
 
 # Work Location Endpoints

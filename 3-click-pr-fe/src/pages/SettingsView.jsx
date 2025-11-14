@@ -7,7 +7,7 @@ import PaySchedule from "./PaySchedule";
 import SearchSelect from "../components/SearchSelect";
 import Modal from "../components/Modal";
 import { loadPayrollSettings, savePayrollSettings } from "../utils/payrollStore";
-import { workLocationAPI, departmentAPI, designationAPI } from "../utils/api";
+import { workLocationAPI, departmentAPI, designationAPI, organizationAPI } from "../utils/api";
 
 import {
   ACCENT_LIST,
@@ -372,12 +372,20 @@ function OrgBranding({ branding, onUpdateBranding }) {
 }
 
 function OrgProfile() {
-  // Local UI state for selects (purely presentational)
+  // Organization data state
+  const [organizationId, setOrganizationId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [stateName, setStateName] = useState("");
+
+  // UI state for selects
   const [businessLocation, setBusinessLocation] = useState("");
   const [industry, setIndustry] = useState("");
   const [dateFormat, setDateFormat] = useState("");
   const [fieldSep, setFieldSep] = useState("");
-  const [stateName, setStateName] = useState("");
 
   // Filing address modal state
   const [isFilingModalOpen, setIsFilingModalOpen] = useState(false);
@@ -386,12 +394,55 @@ function OrgProfile() {
   const [selectedFilingLocation, setSelectedFilingLocation] = useState(null);
   const [filingLocationId, setFilingLocationId] = useState("");
 
+  // Loading and saving state
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch organization data on component mount
+  React.useEffect(() => {
+    fetchOrganizationData();
+  }, []);
+
   // Fetch work locations when modal opens
   React.useEffect(() => {
     if (isFilingModalOpen) {
       fetchWorkLocations();
     }
   }, [isFilingModalOpen]);
+
+  const fetchOrganizationData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await organizationAPI.get();
+
+      // Set organization data
+      setOrganizationId(data.id);
+      setCompanyName(data.company_name || "");
+      setAddressLine1(data.street || "");
+      setCity(data.city || "");
+      setStateName(data.province || "");
+      setPostalCode(data.postal_code || "");
+
+      // Set profile settings
+      setBusinessLocation(data.business_location || "");
+      setIndustry(data.industry || "");
+      setDateFormat(data.date_format || "");
+      setFieldSep(data.field_separator || "");
+
+      // Set filing location if exists
+      if (data.filing_location_id) {
+        setFilingLocationId(data.filing_location_id);
+        // Fetch the filing location details
+        const filingLoc = await workLocationAPI.getById(data.filing_location_id);
+        setSelectedFilingLocation(filingLoc);
+      }
+    } catch (err) {
+      console.error("Error fetching organization data:", err);
+      alert("Failed to load organization data: " + (err.message || "Unknown error"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchWorkLocations = async () => {
     try {
@@ -410,7 +461,33 @@ function OrgProfile() {
     const selected = workLocations.find(loc => loc.id === filingLocationId);
     setSelectedFilingLocation(selected);
     setIsFilingModalOpen(false);
-    // TODO: Save to backend/organization settings
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      const updateData = {
+        company_name: companyName,
+        street: addressLine1,
+        city: city,
+        province: stateName,
+        postal_code: postalCode,
+        business_location: businessLocation,
+        industry: industry,
+        date_format: dateFormat,
+        field_separator: fieldSep,
+        filing_location_id: filingLocationId || null,
+      };
+
+      await organizationAPI.update(updateData);
+      alert("Organization profile saved successfully!");
+    } catch (err) {
+      console.error("Error saving organization data:", err);
+      alert("Failed to save organization profile: " + (err.message || "Unknown error"));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const BUSINESS_LOCATIONS = [
@@ -519,7 +596,12 @@ function OrgProfile() {
             <div className="text-[13px] text-slate-500 mt-1">
               This is your registered business name which will appear in all the forms and payslips.
             </div>
-            <input className="input mt-2" placeholder="Enter organisation name" />
+            <input
+              className="input mt-2"
+              placeholder="Enter organisation name"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -577,8 +659,18 @@ function OrgProfile() {
             <div className="text-[13px] text-slate-500">
               This will be considered as the address of your primary work location.
             </div>
-            <input className="input" placeholder="Address Line 1" />
-            <input className="input" placeholder="Address Line 2" />
+            <input
+              className="input"
+              placeholder="Address Line 1"
+              value={addressLine1}
+              onChange={(e) => setAddressLine1(e.target.value)}
+            />
+            <input
+              className="input"
+              placeholder="Address Line 2"
+              value={addressLine2}
+              onChange={(e) => setAddressLine2(e.target.value)}
+            />
             <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
               <SearchSelect
                 value={stateName}
@@ -589,8 +681,18 @@ function OrgProfile() {
                 searchPlaceholder="Search province/territory"
                 floatingLabel={false}
               />
-              <input className="input" placeholder="City" />
-              <input className="input" placeholder="Postal Code" />
+              <input
+                className="input"
+                placeholder="City"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
+              <input
+                className="input"
+                placeholder="Postal Code"
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+              />
             </div>
 
             <div className="mt-2">
@@ -649,10 +751,12 @@ function OrgProfile() {
 
           <div className="mt-2 flex items-center justify-between pt-2">
             <button
-              className="h-9 rounded-md px-3 text-sm font-medium text-white hover:opacity-90"
+              onClick={handleSave}
+              disabled={isSaving || isLoading}
+              className="h-9 rounded-md px-3 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: '#408dfb' }}
             >
-              Save
+              {isSaving ? "Saving..." : "Save"}
             </button>
             <div className="text-xs font-medium text-red-500">* indicates mandatory fields</div>
           </div>
