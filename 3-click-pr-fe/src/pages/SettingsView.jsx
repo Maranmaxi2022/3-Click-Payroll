@@ -794,6 +794,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   // Form fields
   const [name, setName] = useState("");
@@ -807,6 +808,17 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
     // keep state in sync if route-driven open state changes
     setIsFormOpen(initialOpen);
   }, [initialOpen]);
+
+  // Close menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (openMenuId && !e.target.closest('.location-menu-container')) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
 
   const CANADIAN_PROVINCES = [
     { value: "AB", label: "Alberta", icon: "🗺️" },
@@ -850,6 +862,44 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
     setProvince("");
     setCity("");
     setPostalCode("");
+  };
+
+  const handleMarkAsInactive = async (locationId) => {
+    try {
+      // Update the location's status to inactive
+      await workLocationAPI.update(locationId, { is_active: false });
+
+      // Update local state to reflect the change
+      setLocations(prevLocations =>
+        prevLocations.map(loc =>
+          loc.id === locationId ? { ...loc, is_active: false } : loc
+        )
+      );
+
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error('Error marking location as inactive:', err);
+      alert('Failed to mark location as inactive. Please try again.');
+    }
+  };
+
+  const handleMarkAsActive = async (locationId) => {
+    try {
+      // Update the location's status to active
+      await workLocationAPI.update(locationId, { is_active: true });
+
+      // Update local state to reflect the change
+      setLocations(prevLocations =>
+        prevLocations.map(loc =>
+          loc.id === locationId ? { ...loc, is_active: true } : loc
+        )
+      );
+
+      setOpenMenuId(null);
+    } catch (err) {
+      console.error('Error marking location as active:', err);
+      alert('Failed to mark location as active. Please try again.');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -1037,13 +1087,15 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                   addressLines.push(cityProvince + (location.postal_code ? " " + location.postal_code : ""));
                 }
 
+                const isInactive = location.is_active === false;
+
                 return (
                   <article
                     key={location.id}
-                    className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                    className="relative rounded-2xl border border-slate-200 bg-white p-6"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div className="space-y-3">
+                      <div className="flex-1 space-y-3">
                         <header>
                           <h3 className="text-base font-semibold text-slate-900">
                             {location.name}
@@ -1053,6 +1105,16 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                           {addressLines.map((line, idx) => (
                             <p key={idx}>{line}</p>
                           ))}
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          <span>{location.employee_count || 0} Employees</span>
                         </div>
                       </div>
 
@@ -1064,15 +1126,48 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                         >
                           <Pencil className="h-4 w-4" />
                         </button>
-                        <button
-                          type="button"
-                          className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
-                          aria-label="More actions"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </button>
+                        <div className="relative location-menu-container">
+                          <button
+                            type="button"
+                            className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                            aria-label="More actions"
+                            onClick={() => setOpenMenuId(openMenuId === location.id ? null : location.id)}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button>
+
+                          {openMenuId === location.id && (
+                            <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl bg-white p-2.5 shadow-2xl ring-1 ring-black/5">
+                              <button
+                                type="button"
+                                className="flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                                style={{ backgroundColor: '#408dfb' }}
+                                onClick={() => {
+                                  console.log('Delete location:', location.id);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                Delete
+                              </button>
+                              <button
+                                type="button"
+                                className="mt-1 flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                                onClick={() => isInactive ? handleMarkAsActive(location.id) : handleMarkAsInactive(location.id)}
+                              >
+                                {isInactive ? 'Mark as Active' : 'Mark as Inactive'}
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
+
+                    {/* Inactive badge positioned absolutely in bottom-right corner */}
+                    {isInactive && (
+                      <div className="absolute bottom-0 right-0 rounded-tl-2xl rounded-br-2xl bg-slate-400 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white">
+                        Inactive
+                      </div>
+                    )}
                   </article>
                 );
               })}
