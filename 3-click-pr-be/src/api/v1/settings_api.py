@@ -170,9 +170,9 @@ async def get_organization():
     org = await Organization.find_one()
 
     if not org:
-        # Create a default organization if none exists
+        # Create an empty organization if none exists
         org = Organization(
-            company_name="My Company",
+            company_name="",
             country="Canada",
             primary_color="#3B82F6",
             accent_color="blue",
