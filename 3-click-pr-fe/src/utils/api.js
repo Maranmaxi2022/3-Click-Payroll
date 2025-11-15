@@ -348,6 +348,53 @@ export const organizationAPI = {
       method: 'PUT',
       body: JSON.stringify(orgData),
     }),
+
+  /**
+   * Upload organization logo
+   * @param {File} file - Logo file to upload
+   * @returns {Promise<Object>} Upload response with logo URL
+   */
+  uploadLogo: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/settings/organization/logo`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { detail: response.statusText };
+      }
+      throw new APIError(
+        errorData.detail || errorData.message || 'Upload failed',
+        response.status,
+        errorData
+      );
+    }
+
+    return await response.json();
+  },
+
+  /**
+   * Delete organization logo
+   * @returns {Promise<Object>} Delete confirmation
+   */
+  deleteLogo: () =>
+    request('/api/v1/settings/organization/logo', {
+      method: 'DELETE',
+    }),
+
+  /**
+   * Get logo URL
+   * @param {string} filename - Logo filename
+   * @returns {string} Full logo URL
+   */
+  getLogoUrl: (filename) => `${API_BASE_URL}/api/v1/settings/organization/logo/${filename}`,
 };
 
 export { APIError };

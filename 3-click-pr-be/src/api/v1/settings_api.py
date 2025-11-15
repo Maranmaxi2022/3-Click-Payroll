@@ -5,14 +5,26 @@ Endpoints for managing payroll settings, salary components,
 statutory settings, and organization configuration.
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, UploadFile, File
+from fastapi.responses import FileResponse
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
+import os
+import uuid
+from pathlib import Path
 
 from src.schemas.organization import WorkLocation, Organization
 
 router = APIRouter()
+
+# Base directory for file uploads
+UPLOAD_DIR = Path("uploads/logos")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg"}
+MAX_FILE_SIZE = 1 * 1024 * 1024  # 1MB
 
 
 # Work Location Schemas
@@ -241,6 +253,102 @@ async def update_organization(org_data: OrganizationUpdate):
         created_at=org.created_at,
         updated_at=org.updated_at
     )
+
+
+@router.post("/organization/logo")
+async def upload_organization_logo(file: UploadFile = File(...)):
+    """Upload organization logo"""
+    # Validate file extension
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid file type. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+
+    # Read file content to check size
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File size exceeds maximum allowed size of 1MB"
+        )
+
+    # Get organization
+    org = await Organization.find_one()
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+
+    # Delete old logo if exists
+    if org.logo_url:
+        old_logo_path = Path(org.logo_url)
+        if old_logo_path.exists():
+            old_logo_path.unlink()
+
+    # Generate unique filename
+    unique_filename = f"{uuid.uuid4()}{file_ext}"
+    file_path = UPLOAD_DIR / unique_filename
+
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    # Update organization with logo URL
+    org.logo_url = str(file_path)
+    org.updated_at = datetime.utcnow()
+    await org.save()
+
+    return {
+        "message": "Logo uploaded successfully",
+        "logo_url": f"/api/v1/settings/organization/logo/{unique_filename}"
+    }
+
+
+@router.get("/organization/logo/{filename}")
+async def get_organization_logo(filename: str):
+    """Get organization logo file"""
+    file_path = UPLOAD_DIR / filename
+
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Logo not found"
+        )
+
+    return FileResponse(file_path)
+
+
+@router.delete("/organization/logo")
+async def delete_organization_logo():
+    """Delete organization logo"""
+    org = await Organization.find_one()
+
+    if not org:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Organization not found"
+        )
+
+    if not org.logo_url:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No logo to delete"
+        )
+
+    # Delete file
+    logo_path = Path(org.logo_url)
+    if logo_path.exists():
+        logo_path.unlink()
+
+    # Update organization
+    org.logo_url = None
+    org.updated_at = datetime.utcnow()
+    await org.save()
+
+    return {"message": "Logo deleted successfully"}
 
 
 # Work Location Endpoints

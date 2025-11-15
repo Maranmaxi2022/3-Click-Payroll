@@ -381,6 +381,12 @@ function OrgProfile() {
   const [postalCode, setPostalCode] = useState("");
   const [stateName, setStateName] = useState("");
 
+  // Logo state
+  const [logoUrl, setLogoUrl] = useState("");
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const fileInputRef = React.useRef(null);
+
   // UI state for selects
   const [businessLocation, setBusinessLocation] = useState("");
   const [industry, setIndustry] = useState("");
@@ -429,6 +435,14 @@ function OrgProfile() {
       setDateFormat(data.date_format || "");
       setFieldSep(data.field_separator || "");
 
+      // Set logo if exists
+      if (data.logo_url) {
+        setLogoUrl(data.logo_url);
+        // Extract filename from path and build preview URL
+        const filename = data.logo_url.split('/').pop();
+        setLogoPreview(organizationAPI.getLogoUrl(filename));
+      }
+
       // Set filing location if exists
       if (data.filing_location_id) {
         setFilingLocationId(data.filing_location_id);
@@ -441,6 +455,77 @@ function OrgProfile() {
       alert("Failed to load organization data: " + (err.message || "Unknown error"));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleLogoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload PNG, JPG, or JPEG files only.');
+      return;
+    }
+
+    // Validate file size (1MB)
+    if (file.size > 1024 * 1024) {
+      alert('File size exceeds 1MB. Please upload a smaller file.');
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Upload to server
+      const response = await organizationAPI.uploadLogo(file);
+      setLogoUrl(response.logo_url);
+
+      alert('Logo uploaded successfully!');
+    } catch (err) {
+      console.error('Error uploading logo:', err);
+      alert('Failed to upload logo: ' + (err.message || 'Unknown error'));
+      // Reset preview on error
+      setLogoPreview(null);
+    } finally {
+      setIsUploadingLogo(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleLogoDelete = async () => {
+    if (!logoUrl) return;
+
+    if (!confirm('Are you sure you want to delete the logo?')) {
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+      await organizationAPI.deleteLogo();
+      setLogoUrl('');
+      setLogoPreview(null);
+      alert('Logo deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting logo:', err);
+      alert('Failed to delete logo: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsUploadingLogo(false);
     }
   };
 
@@ -577,8 +662,50 @@ function OrgProfile() {
           <section>
             <div className="text-sm font-medium text-slate-700">Organisation Logo</div>
             <div className="mt-2 grid grid-cols-[180px_1fr] gap-4">
-              <div className="grid h-[120px] w-[180px] place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-500">
-                UPLOAD LOGO
+              <div className="relative">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={handleLogoChange}
+                  className="hidden"
+                />
+                {logoPreview ? (
+                  <div className="relative h-[120px] w-[180px] rounded-lg border border-slate-300 bg-white overflow-hidden group">
+                    <img
+                      src={logoPreview}
+                      alt="Organization logo"
+                      className="h-full w-full object-contain"
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleLogoClick}
+                        disabled={isUploadingLogo}
+                        className="px-3 py-1 bg-white text-slate-700 text-xs font-medium rounded hover:bg-slate-100 disabled:opacity-50"
+                      >
+                        Change
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleLogoDelete}
+                        disabled={isUploadingLogo}
+                        className="px-3 py-1 bg-red-600 text-white text-xs font-medium rounded hover:bg-red-700 disabled:opacity-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleLogoClick}
+                    disabled={isUploadingLogo}
+                    className="grid h-[120px] w-[180px] place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUploadingLogo ? 'Uploading...' : 'UPLOAD LOGO'}
+                  </button>
+                )}
               </div>
               <div className="text-[13px] text-slate-600">
                 <p>
