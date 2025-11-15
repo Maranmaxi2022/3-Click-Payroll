@@ -1327,7 +1327,14 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
 
           {!loading && !error && locations.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {locations.map((location) => {
+              {locations.sort((a, b) => {
+                // Sort filing address first
+                const aIsFiling = a.id === filingLocationId;
+                const bIsFiling = b.id === filingLocationId;
+                if (aIsFiling && !bIsFiling) return -1;
+                if (!aIsFiling && bIsFiling) return 1;
+                return 0;
+              }).map((location) => {
                 // Format address lines
                 const addressLines = [];
                 if (location.street) {
