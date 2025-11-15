@@ -200,8 +200,8 @@ export default function SettingsView({
     <div className="pb-6">
 
       <div className="mt-2 flex flex-col gap-6 md:flex-row md:gap-10">
-        {/* LEFT SIDEBAR (hidden on desktop because main app sidebar shows it) */}
-        <aside className="block md:hidden md:w-[260px] shrink-0 rounded-2xl border border-[#E2E6F4] bg-[#F6F8FF] px-4 py-6 shadow-[0_24px_48px_-32px_rgba(15,23,42,0.35)]">
+        {/* LEFT SIDEBAR (hidden on all screens because main app sidebar shows it) */}
+        <aside className="hidden md:w-[260px] shrink-0 rounded-2xl border border-[#E2E6F4] bg-[#F6F8FF] px-4 py-6 shadow-[0_24px_48px_-32px_rgba(15,23,42,0.35)]">
           {sections.map((sec) => (
             <div key={sec.caption} className="mb-6 last:mb-0">
               <div className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">

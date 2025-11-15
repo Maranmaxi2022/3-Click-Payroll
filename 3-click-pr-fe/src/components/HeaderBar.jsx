@@ -78,9 +78,9 @@ export default function HeaderBar({
           </div>
         </div>
 
-        {/* Close Settings (search removed) */}
+        {/* Close Settings (desktop only) */}
         {inSettings ? (
-          <div className="px-4 md:px-8 lg:px-12 xl:px-16">
+          <div className="hidden md:block px-4 md:px-8 lg:px-12 xl:px-16">
             <button
               type="button"
               className="inline-flex h-9 items-center rounded-lg border border-[#DDE3F3] bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
