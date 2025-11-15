@@ -584,20 +584,37 @@ function OrgProfile() {
   ];
 
   const INDUSTRIES = [
-    { value: "technology", label: "Technology & IT Services", icon: "💻" },
-    { value: "healthcare", label: "Healthcare & Medical", icon: "🏥" },
-    { value: "finance", label: "Finance & Banking", icon: "🏦" },
-    { value: "manufacturing", label: "Manufacturing", icon: "🏭" },
-    { value: "retail", label: "Retail & E-commerce", icon: "🛍️" },
-    { value: "construction", label: "Construction & Real Estate", icon: "🏗️" },
-    { value: "education", label: "Education & Training", icon: "🎓" },
-    { value: "professional", label: "Professional Services", icon: "💼" },
-    { value: "hospitality", label: "Hospitality & Tourism", icon: "🏨" },
-    { value: "transportation", label: "Transportation & Logistics", icon: "🚚" },
-    { value: "energy", label: "Energy & Utilities", icon: "⚡" },
-    { value: "agriculture", label: "Agriculture & Food", icon: "🌾" },
-    { value: "nonprofit", label: "Non-Profit & Social Services", icon: "🤝" },
-    { value: "other", label: "Other", icon: "📋" },
+    // Services
+    { value: "automotive_repair", label: "Automotive/Machinery Repair", category: "Services" },
+    { value: "cleaning_services", label: "Cleaning Services", category: "Services" },
+    { value: "consulting_services", label: "Consulting Services", category: "Services" },
+    { value: "educational_services", label: "Educational Services", category: "Services" },
+    { value: "family_care", label: "Family Care Services", category: "Services" },
+    { value: "financial_services", label: "Financial Services", category: "Services" },
+    { value: "legal_services", label: "Legal Services", category: "Services" },
+    { value: "personal_care", label: "Personal Care Services", category: "Services" },
+    { value: "security_services", label: "Security Services", category: "Services" },
+    { value: "staffing_recruiting", label: "Staffing and Recruiting Services", category: "Services" },
+
+    // Accommodation and Food Service
+    { value: "hospitality", label: "Hospitality", category: "Accommodation and Food Service" },
+    { value: "restaurant", label: "Restaurant", category: "Accommodation and Food Service" },
+
+    // Entertainment
+    { value: "art_design", label: "Art and Design", category: "Entertainment" },
+    { value: "entertainment_recreation", label: "Entertainment and Recreation", category: "Entertainment" },
+
+    // Construction
+    { value: "construction", label: "Construction", category: "Construction" },
+    { value: "general_contractor", label: "General Contractor", category: "Construction" },
+    { value: "hvac_plumbing", label: "HVAC/Plumbing/Electrical Contractor", category: "Construction" },
+
+    // Miscellaneous
+    { value: "health_care", label: "Health Care", category: "Miscellaneous" },
+    { value: "real_estate", label: "Real Estate", category: "Miscellaneous" },
+    { value: "transportation", label: "Transportation", category: "Miscellaneous" },
+    { value: "science_technology", label: "Science and Technology", category: "Miscellaneous" },
+    { value: "others", label: "Others", category: "Miscellaneous" },
   ];
 
   // Build Date Format options with a live preview that respects the selected

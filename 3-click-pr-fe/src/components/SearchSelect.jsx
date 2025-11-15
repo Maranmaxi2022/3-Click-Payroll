@@ -42,8 +42,26 @@ export default function SearchSelect({
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return options;
-    return options.filter((o) => (o.label || "").toLowerCase().includes(q));
+    return options.filter((o) =>
+      (o.label || "").toLowerCase().includes(q) ||
+      (o.category || "").toLowerCase().includes(q)
+    );
   }, [options, query]);
+
+  // Group options by category
+  const groupedOptions = React.useMemo(() => {
+    const groups = {};
+    filtered.forEach((opt) => {
+      const cat = opt.category || "Uncategorized";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(opt);
+    });
+    return groups;
+  }, [filtered]);
+
+  const hasCategories = React.useMemo(() => {
+    return options.some((opt) => opt.category);
+  }, [options]);
 
   React.useEffect(() => {
     const onDocMouseDown = (e) => {
@@ -182,28 +200,63 @@ export default function SearchSelect({
           {filtered.length === 0 && (
             <div className="px-4 py-3 text-sm text-slate-500">No results</div>
           )}
-          {filtered.map((opt, idx) => {
-            const selected = opt.value === value;
-            const active = idx === activeIndex;
-            return (
-              <button
-                type="button"
-                key={opt.value}
-                onMouseEnter={() => setActiveIndex(idx)}
-                onClick={() => pick(opt)}
-                className={cx(
-                  "mx-2 my-1 flex w-[calc(100%-1rem)] items-center gap-3 rounded-xl px-4 py-2.5 text-left text-[14px]",
-                  selected ? "text-white" : active ? "bg-blue-50" : "",
-                )}
-                style={selected ? { backgroundColor: '#408dfb' } : undefined}
-                role="option"
-                aria-selected={selected}
-              >
-                <span className={cx("flex-1 font-medium", selected ? "text-white" : "text-slate-800")}>{opt.label}</span>
-                {selected && <Check className={cx("h-4 w-4", selected ? "text-white" : "")} style={selected ? undefined : { color: '#408dfb' }} />}
-              </button>
-            );
-          })}
+          {hasCategories ? (
+            // Render grouped options
+            Object.entries(groupedOptions).map(([category, opts]) => (
+              <div key={category}>
+                <div className="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-50">
+                  {category}
+                </div>
+                {opts.map((opt) => {
+                  const globalIdx = filtered.indexOf(opt);
+                  const selected = opt.value === value;
+                  const active = globalIdx === activeIndex;
+                  return (
+                    <button
+                      type="button"
+                      key={opt.value}
+                      onMouseEnter={() => setActiveIndex(globalIdx)}
+                      onClick={() => pick(opt)}
+                      className={cx(
+                        "mx-2 my-1 flex w-[calc(100%-1rem)] items-center gap-3 rounded-xl px-4 py-2.5 text-left text-[14px]",
+                        selected ? "text-white" : active ? "bg-blue-50" : "",
+                      )}
+                      style={selected ? { backgroundColor: '#408dfb' } : undefined}
+                      role="option"
+                      aria-selected={selected}
+                    >
+                      <span className={cx("flex-1 font-medium", selected ? "text-white" : "text-slate-800")}>{opt.label}</span>
+                      {selected && <Check className={cx("h-4 w-4", selected ? "text-white" : "")} style={selected ? undefined : { color: '#408dfb' }} />}
+                    </button>
+                  );
+                })}
+              </div>
+            ))
+          ) : (
+            // Render flat list
+            filtered.map((opt, idx) => {
+              const selected = opt.value === value;
+              const active = idx === activeIndex;
+              return (
+                <button
+                  type="button"
+                  key={opt.value}
+                  onMouseEnter={() => setActiveIndex(idx)}
+                  onClick={() => pick(opt)}
+                  className={cx(
+                    "mx-2 my-1 flex w-[calc(100%-1rem)] items-center gap-3 rounded-xl px-4 py-2.5 text-left text-[14px]",
+                    selected ? "text-white" : active ? "bg-blue-50" : "",
+                  )}
+                  style={selected ? { backgroundColor: '#408dfb' } : undefined}
+                  role="option"
+                  aria-selected={selected}
+                >
+                  <span className={cx("flex-1 font-medium", selected ? "text-white" : "text-slate-800")}>{opt.label}</span>
+                  {selected && <Check className={cx("h-4 w-4", selected ? "text-white" : "")} style={selected ? undefined : { color: '#408dfb' }} />}
+                </button>
+              );
+            })
+          )}
         </div>
       )}
     </div>
