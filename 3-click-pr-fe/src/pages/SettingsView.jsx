@@ -1389,7 +1389,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                           </button>
 
                           {openMenuId === location.id && (
-                            <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-lg bg-white p-2.5 shadow-2xl ring-1 ring-black/5">
+                            <div className="absolute right-0 top-full z-50 mt-2 w-40 rounded-lg bg-white p-2.5 shadow-2xl ring-1 ring-black/5">
                               <button
                                 type="button"
                                 className="flex w-full items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
