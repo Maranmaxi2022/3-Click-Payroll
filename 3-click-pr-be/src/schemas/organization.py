@@ -44,6 +44,7 @@ class Organization(Document):
     # Profile Settings
     business_location: Optional[str] = None  # Reference to WorkLocation ID
     industry: Optional[str] = None
+    legal_structure: Optional[str] = None
     date_format: Optional[str] = None
     field_separator: Optional[str] = None
     filing_location_id: Optional[str] = None  # Reference to WorkLocation for filing

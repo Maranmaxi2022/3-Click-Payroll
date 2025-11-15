@@ -93,6 +93,7 @@ class OrganizationUpdate(BaseModel):
     # Additional fields for Profile settings
     business_location: Optional[str] = None  # Reference to WorkLocation ID
     industry: Optional[str] = None
+    legal_structure: Optional[str] = None
     date_format: Optional[str] = None
     field_separator: Optional[str] = None
     filing_location_id: Optional[str] = None  # Reference to WorkLocation for filing
@@ -118,6 +119,7 @@ class OrganizationResponse(BaseModel):
     appearance: str
     business_location: Optional[str] = None
     industry: Optional[str] = None
+    legal_structure: Optional[str] = None
     date_format: Optional[str] = None
     field_separator: Optional[str] = None
     filing_location_id: Optional[str] = None
@@ -199,6 +201,7 @@ async def get_organization():
         appearance=org.appearance,
         business_location=org.business_location,
         industry=org.industry,
+        legal_structure=org.legal_structure,
         date_format=org.date_format,
         field_separator=org.field_separator,
         filing_location_id=org.filing_location_id,
@@ -247,6 +250,7 @@ async def update_organization(org_data: OrganizationUpdate):
         appearance=org.appearance,
         business_location=org.business_location,
         industry=org.industry,
+        legal_structure=org.legal_structure,
         date_format=org.date_format,
         field_separator=org.field_separator,
         filing_location_id=org.filing_location_id,

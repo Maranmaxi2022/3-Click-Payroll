@@ -388,8 +388,8 @@ function OrgProfile() {
   const fileInputRef = React.useRef(null);
 
   // UI state for selects
-  const [businessLocation, setBusinessLocation] = useState("");
   const [industry, setIndustry] = useState("");
+  const [legalStructure, setLegalStructure] = useState("");
   const [dateFormat, setDateFormat] = useState("");
   const [fieldSep, setFieldSep] = useState("");
 
@@ -430,8 +430,8 @@ function OrgProfile() {
       setPostalCode(data.postal_code || "");
 
       // Set profile settings
-      setBusinessLocation(data.business_location || "");
       setIndustry(data.industry || "");
+      setLegalStructure(data.legal_structure || "");
       setDateFormat(data.date_format || "");
       setFieldSep(data.field_separator || "");
 
@@ -558,8 +558,8 @@ function OrgProfile() {
         city: city,
         province: stateName,
         postal_code: postalCode,
-        business_location: businessLocation,
         industry: industry,
+        legal_structure: legalStructure,
         date_format: dateFormat,
         field_separator: fieldSep,
         filing_location_id: filingLocationId || null,
@@ -575,17 +575,29 @@ function OrgProfile() {
     }
   };
 
-  const BUSINESS_LOCATIONS = [
-    { value: "chennai", label: "Head Office – Chennai", icon: "🏢" },
-    { value: "blr", label: "Bengaluru", icon: "🏙️" },
-    { value: "remote", label: "Remote", icon: "🌐" },
+  const LEGAL_STRUCTURES = [
+    { value: "sole_proprietorship", label: "Sole Proprietorship", icon: "👤" },
+    { value: "partnership", label: "Partnership", icon: "🤝" },
+    { value: "llc", label: "LLC", icon: "🏢" },
+    { value: "corporation", label: "Corporation", icon: "🏛️" },
+    { value: "s_corporation", label: "S Corporation", icon: "📊" },
   ];
 
   const INDUSTRIES = [
-    { value: "it", label: "IT Services", icon: "💻" },
-    { value: "eng", label: "Engineering", icon: "🛠️" },
-    { value: "edu", label: "Education", icon: "🎓" },
-    { value: "health", label: "Health", icon: "🏥" },
+    { value: "technology", label: "Technology & IT Services", icon: "💻" },
+    { value: "healthcare", label: "Healthcare & Medical", icon: "🏥" },
+    { value: "finance", label: "Finance & Banking", icon: "🏦" },
+    { value: "manufacturing", label: "Manufacturing", icon: "🏭" },
+    { value: "retail", label: "Retail & E-commerce", icon: "🛍️" },
+    { value: "construction", label: "Construction & Real Estate", icon: "🏗️" },
+    { value: "education", label: "Education & Training", icon: "🎓" },
+    { value: "professional", label: "Professional Services", icon: "💼" },
+    { value: "hospitality", label: "Hospitality & Tourism", icon: "🏨" },
+    { value: "transportation", label: "Transportation & Logistics", icon: "🚚" },
+    { value: "energy", label: "Energy & Utilities", icon: "⚡" },
+    { value: "agriculture", label: "Agriculture & Food", icon: "🌾" },
+    { value: "nonprofit", label: "Non-Profit & Social Services", icon: "🤝" },
+    { value: "other", label: "Other", icon: "📋" },
   ];
 
   // Build Date Format options with a live preview that respects the selected
@@ -733,17 +745,6 @@ function OrgProfile() {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm text-slate-700">Business Location<span className="text-red-500">*</span></label>
-              <SearchSelect
-                className="mt-1"
-                value={businessLocation}
-                onChange={(opt) => setBusinessLocation(opt?.value || "")}
-                placeholder="Select business location"
-                options={BUSINESS_LOCATIONS}
-                floatingLabel={false}
-              />
-            </div>
-            <div>
               <label className="block text-sm text-slate-700">Industry<span className="text-red-500">*</span></label>
               <SearchSelect
                 className="mt-1"
@@ -751,6 +752,19 @@ function OrgProfile() {
                 onChange={(opt) => setIndustry(opt?.value || "")}
                 placeholder="Select industry"
                 options={INDUSTRIES}
+                floatingLabel={false}
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-700">Legal Structure<span className="text-red-500">*</span></label>
+              <SearchSelect
+                className="mt-1"
+                value={legalStructure}
+                onChange={(opt) => setLegalStructure(opt?.value || "")}
+                placeholder="Select legal structure"
+                options={LEGAL_STRUCTURES}
+                searchInMenu={true}
+                searchPlaceholder="Search legal structure"
                 floatingLabel={false}
               />
             </div>
