@@ -1028,6 +1028,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [filingLocationId, setFilingLocationId] = useState(null);
 
   // Form fields
   const [name, setName] = useState("");
@@ -1069,9 +1070,10 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
     { value: "YT", label: "Yukon", icon: "🗺️" },
   ];
 
-  // Fetch work locations on mount
+  // Fetch work locations and organization data on mount
   React.useEffect(() => {
     fetchWorkLocations();
+    fetchOrganizationData();
   }, []);
 
   const fetchWorkLocations = async () => {
@@ -1088,6 +1090,15 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
     }
   };
 
+  const fetchOrganizationData = async () => {
+    try {
+      const orgData = await organizationAPI.get();
+      setFilingLocationId(orgData.filing_location_id);
+    } catch (err) {
+      console.error("Error fetching organization data:", err);
+    }
+  };
+
   const resetForm = () => {
     setName("");
     setAddressLine1("");
@@ -1098,6 +1109,13 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
   };
 
   const handleMarkAsInactive = async (locationId) => {
+    // Prevent marking the filing address as inactive
+    if (locationId === filingLocationId) {
+      alert('Cannot mark the filing address as inactive. Please select a different filing address first.');
+      setOpenMenuId(null);
+      return;
+    }
+
     try {
       // Update the location's status to inactive
       await workLocationAPI.update(locationId, { is_active: false });
@@ -1321,6 +1339,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                 }
 
                 const isInactive = location.is_active === false;
+                const isFilingAddress = location.id === filingLocationId;
 
                 return (
                   <article
@@ -1382,18 +1401,35 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                               >
                                 Delete
                               </button>
-                              <button
-                                type="button"
-                                className="mt-1 flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
-                                onClick={() => isInactive ? handleMarkAsActive(location.id) : handleMarkAsInactive(location.id)}
-                              >
-                                {isInactive ? 'Mark as Active' : 'Mark as Inactive'}
-                              </button>
+                              {/* Only show Mark as Inactive/Active if not the filing address OR if already inactive */}
+                              {(!isFilingAddress || isInactive) && (
+                                <button
+                                  type="button"
+                                  className="mt-1 flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                                  onClick={() => isInactive ? handleMarkAsActive(location.id) : handleMarkAsInactive(location.id)}
+                                >
+                                  {isInactive ? 'Mark as Active' : 'Mark as Inactive'}
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
+
+                    {/* Filing address badge positioned absolutely in bottom-right corner */}
+                    {isFilingAddress && !isInactive && (
+                      <div className="absolute bottom-0 right-0 rounded-tl-2xl rounded-br-2xl bg-teal-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
+                        Filing Address
+                      </div>
+                    )}
+
+                    {/* Filing address badge positioned above Inactive badge when both are present */}
+                    {isFilingAddress && isInactive && (
+                      <div className="absolute bottom-12 right-0 rounded-tl-2xl rounded-tr-2xl bg-teal-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
+                        Filing Address
+                      </div>
+                    )}
 
                     {/* Inactive badge positioned absolutely in bottom-right corner */}
                     {isInactive && (
