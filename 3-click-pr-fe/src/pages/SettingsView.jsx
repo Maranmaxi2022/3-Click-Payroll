@@ -1392,7 +1392,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                             <div className="absolute right-0 top-full z-50 mt-2 w-40 rounded-lg bg-white p-2.5 shadow-2xl ring-1 ring-black/5">
                               <button
                                 type="button"
-                                className="flex w-full items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                                className="flex w-full items-center justify-center rounded-lg px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
                                 style={{ backgroundColor: '#408dfb' }}
                                 onClick={() => {
                                   console.log('Delete location:', location.id);
@@ -1405,7 +1405,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                               {(!isFilingAddress || isInactive) && (
                                 <button
                                   type="button"
-                                  className="mt-1 flex w-full items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                                  className="mt-1 flex w-full items-center justify-center rounded-lg px-4 py-2 text-xs font-semibold text-slate-900 transition-colors hover:bg-slate-50"
                                   onClick={() => isInactive ? handleMarkAsActive(location.id) : handleMarkAsInactive(location.id)}
                                 >
                                   {isInactive ? 'Mark as Active' : 'Mark as Inactive'}
