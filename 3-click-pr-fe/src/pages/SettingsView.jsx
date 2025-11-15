@@ -1344,7 +1344,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                 return (
                   <article
                     key={location.id}
-                    className="relative rounded-2xl border border-slate-200 bg-white p-6"
+                    className="relative rounded-lg border border-slate-200 bg-white p-6"
                   >
                     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                       <div className="flex-1 space-y-3">
@@ -1389,10 +1389,10 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                           </button>
 
                           {openMenuId === location.id && (
-                            <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl bg-white p-2.5 shadow-2xl ring-1 ring-black/5">
+                            <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-lg bg-white p-2.5 shadow-2xl ring-1 ring-black/5">
                               <button
                                 type="button"
-                                className="flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                                className="flex w-full items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                                 style={{ backgroundColor: '#408dfb' }}
                                 onClick={() => {
                                   console.log('Delete location:', location.id);
@@ -1405,7 +1405,7 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
                               {(!isFilingAddress || isInactive) && (
                                 <button
                                   type="button"
-                                  className="mt-1 flex w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                                  className="mt-1 flex w-full items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
                                   onClick={() => isInactive ? handleMarkAsActive(location.id) : handleMarkAsInactive(location.id)}
                                 >
                                   {isInactive ? 'Mark as Active' : 'Mark as Inactive'}
@@ -1419,21 +1419,21 @@ function WorkLocationsView({ onSetTitle, navigate, initialOpen = false }) {
 
                     {/* Filing address badge positioned absolutely in bottom-right corner */}
                     {isFilingAddress && !isInactive && (
-                      <div className="absolute bottom-0 right-0 rounded-tl-2xl rounded-br-2xl bg-teal-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
+                      <div className="absolute bottom-0 right-0 rounded-tl-lg rounded-br-lg bg-teal-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
                         Filing Address
                       </div>
                     )}
 
                     {/* Filing address badge positioned above Inactive badge when both are present */}
                     {isFilingAddress && isInactive && (
-                      <div className="absolute bottom-12 right-0 rounded-tl-2xl rounded-tr-2xl bg-teal-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
+                      <div className="absolute bottom-12 right-0 rounded-tl-lg rounded-tr-lg bg-teal-500 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white">
                         Filing Address
                       </div>
                     )}
 
                     {/* Inactive badge positioned absolutely in bottom-right corner */}
                     {isInactive && (
-                      <div className="absolute bottom-0 right-0 rounded-tl-2xl rounded-br-2xl bg-slate-400 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white">
+                      <div className="absolute bottom-0 right-0 rounded-tl-lg rounded-br-lg bg-slate-400 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white">
                         Inactive
                       </div>
                     )}
