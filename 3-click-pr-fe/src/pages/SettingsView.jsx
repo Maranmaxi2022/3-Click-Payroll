@@ -2259,6 +2259,7 @@ function TaxDetailsView() {
     tc: "",
     tcp: "",
     claimCode: "",
+    claimCodeProv: "",
     autoIndexing: false,
     extraTaxL: "",
     authDedF1: "",
@@ -2281,6 +2282,7 @@ function TaxDetailsView() {
     ytdQpip: "",
     ytdTax: "",
     ytdNonPeriodic: "",
+    ytdBonusTax: "",
     // Registered plans & other credits
     rrspCurrent: "",
     rrspYtd: "",
@@ -2455,7 +2457,7 @@ function TaxDetailsView() {
                   checked={emp.td1Mode === "totals"}
                   onChange={() => setEmpField("td1Mode")({ target: { value: "totals" } })}
                 />
-                <span>Use TD1 totals (TC/TCP)</span>
+                <span>Use indexing (automatically adjust for CPI)</span>
               </label>
               <label className="inline-flex items-center gap-2">
                 <input
@@ -2464,25 +2466,31 @@ function TaxDetailsView() {
                   checked={emp.td1Mode === "claim-code"}
                   onChange={() => setEmpField("td1Mode")({ target: { value: "claim-code" } })}
                 />
-                <span>Use claim code (0–10)</span>
+                <span>Use claim codes (fixed codes 0-10)</span>
               </label>
             </div>
 
             {emp.td1Mode === "totals" ? (
-              <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                  <label className="block text-sm text-slate-700">TD1 Federal total (TC)</label>
-                  <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.tc} onChange={setEmpField("tc")} />
+              <>
+                <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="block text-sm text-slate-700">TD1 Federal total (TC)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.tc} onChange={setEmpField("tc")} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-700">TD1 Provincial/Territorial total (TCP)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.tcp} onChange={setEmpField("tcp")} />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm text-slate-700">TD1 Provincial/Territorial total (TCP)</label>
-                  <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.tcp} onChange={setEmpField("tcp")} />
-                </div>
-              </div>
+                <label className="mt-3 inline-flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={emp.autoIndexing} onChange={setEmpField("autoIndexing")} />
+                  <span>Apply indexing when no TD1 on file (NS/MB/YT rules)</span>
+                </label>
+              </>
             ) : (
               <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-slate-700">Claim code</label>
+                  <label className="block text-sm text-slate-700">Federal claim code (0-10)</label>
                   <SearchSelect
                     className="mt-1"
                     value={emp.claimCode}
@@ -2491,77 +2499,100 @@ function TaxDetailsView() {
                     options={Array.from({ length: 11 }, (_, i) => ({ value: String(i), label: String(i) }))}
                     floatingLabel={false}
                   />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-700">Provincial claim code (0-10)</label>
+                  <SearchSelect
+                    className="mt-1"
+                    value={emp.claimCodeProv}
+                    onChange={setEmpField("claimCodeProv")}
+                    placeholder="Select code (0–10)"
+                    options={Array.from({ length: 11 }, (_, i) => ({ value: String(i), label: String(i) }))}
+                    floatingLabel={false}
+                  />
+                </div>
               </div>
-            </div>
             )}
-
-            <label className="mt-3 inline-flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={emp.autoIndexing} onChange={setEmpField("autoIndexing")} />
-              <span>Apply indexing when no TD1 on file (NS/MB/YT rules)</span>
-            </label>
           </div>
 
-          {/* C. Extra withholding & authorized deductions */}
+          {/* C. Additional withholding & deductions */}
           <div className="mt-6">
-            <div className="text-sm font-medium text-slate-800">C. Extra withholding & authorized deductions</div>
+            <div className="text-sm font-medium text-slate-800">C. Additional withholding & deductions</div>
             <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="block text-sm text-slate-700">Additional tax requested (L)</label>
                 <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.extraTaxL} onChange={setEmpField("extraTaxL")} />
-              </div>
-              <div>
-                <label className="block text-sm text-slate-700">Authorized annual deductions (F1)</label>
-                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.authDedF1} onChange={setEmpField("authDedF1")} />
+                <div className="mt-1 text-[12px] text-slate-500">Extra tax per pay period requested by employee on TD1</div>
               </div>
               <div>
                 <label className="block text-sm text-slate-700">Union dues (U1)</label>
                 <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.unionDuesU1} onChange={setEmpField("unionDuesU1")} />
+                <div className="mt-1 text-[12px] text-slate-500">Union dues per pay period</div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm text-slate-700">Authorized annual deductions (F1)</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.authDedF1} onChange={setEmpField("authDedF1")} />
+                <div className="mt-1 text-[12px] text-slate-500">Annual deductions (childcare, support payments) authorized by tax services office</div>
               </div>
             </div>
           </div>
 
           {/* D. Mid-year YTD carry-ins */}
           <div className="mt-6">
-            <div className="text-sm font-medium text-slate-800">D. Mid‑year YTD carry‑ins</div>
-            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3 field-grid-3">
+            <div className="text-sm font-medium text-slate-800">D. Mid-year YTD carry-ins</div>
+            <div className="mt-1 text-[13px] text-slate-500">For employees starting mid-year or transferring from another employer. Leave blank if employee started January 1.</div>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-3">
               {emp.province === "Quebec" ? (
                 <>
-                  <div className="field-float">
-                    <label className="floating-label">QPP YTD (employee)</label>
-                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp} onChange={setEmpField("ytdQpp")} />
+                  <div>
+                    <label className="block text-sm text-slate-700">QPP YTD (employee) [D]</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp} onChange={setEmpField("ytdQpp")} />
+                    <div className="mt-1 text-[12px] text-slate-500">Base QPP contributions from previous employer</div>
                   </div>
-                  <div className="field-float">
-                    <label className="floating-label">QPP2 YTD (employee)</label>
-                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp2} onChange={setEmpField("ytdQpp2")} />
+                  <div>
+                    <label className="block text-sm text-slate-700">QPP2 YTD (employee) [D2]</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpp2} onChange={setEmpField("ytdQpp2")} />
+                    <div className="mt-1 text-[12px] text-slate-500">Second additional QPP contributions</div>
                   </div>
-                  <div className="field-float">
-                    <label className="floating-label">QPIP YTD (employee)</label>
-                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdQpip} onChange={setEmpField("ytdQpip")} />
+                  <div>
+                    <label className="block text-sm text-slate-700">QPIP YTD (employee)</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdQpip} onChange={setEmpField("ytdQpip")} />
+                    <div className="mt-1 text-[12px] text-slate-500">Quebec Parental Insurance Plan premiums</div>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="field-float">
-                    <label className="floating-label">CPP YTD (employee)</label>
-                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp} onChange={setEmpField("ytdCpp")} />
+                  <div>
+                    <label className="block text-sm text-slate-700">CPP YTD (employee) [D]</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp} onChange={setEmpField("ytdCpp")} />
+                    <div className="mt-1 text-[12px] text-slate-500">Base CPP contributions from previous employer</div>
                   </div>
-                  <div className="field-float">
-                    <label className="floating-label">CPP2 YTD (employee)</label>
-                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp2} onChange={setEmpField("ytdCpp2")} />
+                  <div>
+                    <label className="block text-sm text-slate-700">CPP2 YTD (employee) [D2]</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdCpp2} onChange={setEmpField("ytdCpp2")} />
+                    <div className="mt-1 text-[12px] text-slate-500">Second additional CPP contributions (YAMPE)</div>
                   </div>
-                  <div className="field-float">
-                    <label className="floating-label">EI YTD (employee)</label>
-                    <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdEi} onChange={setEmpField("ytdEi")} />
+                  <div>
+                    <label className="block text-sm text-slate-700">EI YTD (employee) [D1]</label>
+                    <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdEi} onChange={setEmpField("ytdEi")} />
+                    <div className="mt-1 text-[12px] text-slate-500">Employment Insurance premiums</div>
                   </div>
                 </>
               )}
-              <div className="field-float">
-                <label className="floating-label">Tax YTD (federal + provincial)</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdTax} onChange={setEmpField("ytdTax")} />
+              <div>
+                <label className="block text-sm text-slate-700">Tax YTD (federal + provincial) [M]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdTax} onChange={setEmpField("ytdTax")} />
+                <div className="mt-1 text-[12px] text-slate-500">Total income tax deducted year-to-date</div>
               </div>
-              <div className="field-float md:col-span-2">
-                <label className="floating-label">Non‑periodic YTD (bonus method)</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.ytdNonPeriodic} onChange={setEmpField("ytdNonPeriodic")} />
+              <div className="md:col-span-2">
+                <label className="block text-sm text-slate-700">Bonuses/retroactive pay YTD [B1]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdNonPeriodic} onChange={setEmpField("ytdNonPeriodic")} />
+                <div className="mt-1 text-[12px] text-slate-500">Total non-periodic payments (bonuses, retroactive increases) before this pay period</div>
+              </div>
+              <div>
+                <label className="block text-sm text-slate-700">Tax on bonuses YTD [M1]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdBonusTax} onChange={setEmpField("ytdBonusTax")} />
+                <div className="mt-1 text-[12px] text-slate-500">Tax deducted on all bonuses/retroactive pay YTD</div>
               </div>
             </div>
           </div>
@@ -2569,38 +2600,46 @@ function TaxDetailsView() {
           {/* E. Registered plans & other credits */}
           <div className="mt-6">
             <div className="text-sm font-medium text-slate-800">E. Pre‑tax deductions & other credits</div>
-            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-6">
-              <div className="field-float md:col-span-2">
-                <label className="floating-label">RRSP employee (this pay)</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.rrspCurrent} onChange={setEmpField("rrspCurrent")} />
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="block text-sm text-slate-700">RRSP employee (this pay) [F]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rrspCurrent} onChange={setEmpField("rrspCurrent")} />
+                <div className="mt-1 text-[12px] text-slate-500">Registered Retirement Savings Plan contribution this pay period</div>
               </div>
-              <div className="field-float md:col-span-2">
-                <label className="floating-label">RRSP YTD</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.rrspYtd} onChange={setEmpField("rrspYtd")} />
+              <div>
+                <label className="block text-sm text-slate-700">RRSP YTD</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rrspYtd} onChange={setEmpField("rrspYtd")} />
+                <div className="mt-1 text-[12px] text-slate-500">Year-to-date RRSP contributions for mid-year employees</div>
               </div>
-              <div className="field-float md:col-span-2">
-                <label className="floating-label">RPP employee (this pay)</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.rppCurrent} onChange={setEmpField("rppCurrent")} />
+              <div>
+                <label className="block text-sm text-slate-700">RPP employee (this pay) [F]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rppCurrent} onChange={setEmpField("rppCurrent")} />
+                <div className="mt-1 text-[12px] text-slate-500">Registered Pension Plan contribution this pay period</div>
               </div>
-              <div className="field-float md:col-span-2">
-                <label className="floating-label">RPP YTD</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.rppYtd} onChange={setEmpField("rppYtd")} />
+              <div>
+                <label className="block text-sm text-slate-700">RPP YTD</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.rppYtd} onChange={setEmpField("rppYtd")} />
+                <div className="mt-1 text-[12px] text-slate-500">Year-to-date RPP contributions for mid-year employees</div>
               </div>
-              <div className="field-float md:col-span-4">
-                <label className="floating-label">Court‑ordered support/alimony (F2)</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.alimonyF2} onChange={setEmpField("alimonyF2")} />
+              <div className="md:col-span-2">
+                <label className="block text-sm text-slate-700">Court‑ordered support/alimony [F2]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.alimonyF2} onChange={setEmpField("alimonyF2")} />
+                <div className="mt-1 text-[12px] text-slate-500">Court-ordered support or alimony payments per pay period</div>
               </div>
-              <div className="field-float md:col-span-3">
-                <label className="floating-label">Northern residents deduction (HD)</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.northernHD} onChange={setEmpField("northernHD")} />
+              <div>
+                <label className="block text-sm text-slate-700">Northern residents deduction [HD]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.northernHD} onChange={setEmpField("northernHD")} />
+                <div className="mt-1 text-[12px] text-slate-500">Annual northern residents housing deduction</div>
               </div>
-              <div className="field-float md:col-span-3">
-                <label className="floating-label">Labour‑sponsored capital (Federal LCF)</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.lcf} onChange={setEmpField("lcf")} />
+              <div>
+                <label className="block text-sm text-slate-700">Labour‑sponsored capital - Federal [LCF]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.lcf} onChange={setEmpField("lcf")} />
+                <div className="mt-1 text-[12px] text-slate-500">Federal labour-sponsored funds tax credit</div>
               </div>
-              <div className="field-float md:col-span-6">
-                <label className="floating-label">Labour‑sponsored capital (Provincial LCP)</label>
-                <input className="input" inputMode="decimal" placeholder="0.00" value={emp.lcp} onChange={setEmpField("lcp")} />
+              <div className="md:col-span-2">
+                <label className="block text-sm text-slate-700">Labour‑sponsored capital - Provincial [LCP]</label>
+                <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.lcp} onChange={setEmpField("lcp")} />
+                <div className="mt-1 text-[12px] text-slate-500">Provincial labour-sponsored funds tax credit</div>
               </div>
             </div>
           </div>
