@@ -2585,7 +2585,7 @@ function TaxDetailsView() {
                 <div className="mt-1 text-[12px] text-slate-500">Total income tax deducted year-to-date</div>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm text-slate-700">Bonuses/retroactive pay YTD [B1]</label>
+                <label className="block text-sm text-slate-700">Bonuses/retroactive pay YTD <span className="md:block">[B1]</span></label>
                 <input className="input mt-1" inputMode="decimal" placeholder="0.00" value={emp.ytdNonPeriodic} onChange={setEmpField("ytdNonPeriodic")} />
                 <div className="mt-1 text-[12px] text-slate-500">Total non-periodic payments (bonuses, retroactive increases) before this pay period</div>
               </div>
