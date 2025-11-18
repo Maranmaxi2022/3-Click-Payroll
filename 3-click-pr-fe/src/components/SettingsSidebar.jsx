@@ -87,14 +87,14 @@ export const SETTINGS_SECTIONS = [
     ],
   },
   {
-    caption: "EXTENSIONS & DEVELOPER DATA",
+    caption: "INTEGRATIONS & APPS",
     groups: [
       {
         id: "ext",
-        title: "Integrations & Developer Data",
+        title: "Integrations & Apps",
         items: [
           { id: "ext.integrations", label: "Integrations" },
-          { id: "ext.dev", label: "Developer Data" },
+          { id: "ext.timesheet", label: "Timesheet" },
         ],
       },
     ],
