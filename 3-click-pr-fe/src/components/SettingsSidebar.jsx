@@ -84,16 +84,6 @@ export const SETTINGS_SECTIONS = [
           { id: "custom.reportingTags", label: "Reporting Tags" },
         ],
       },
-      {
-        id: "automations",
-        title: "Automations",
-        items: [
-          { id: "auto.rules", label: "Workflow Rules" },
-          { id: "auto.actions", label: "Actions" },
-          { id: "auto.schedules", label: "Schedules" },
-          { id: "auto.logs", label: "Workflow Logs" },
-        ],
-      },
     ],
   },
   {
@@ -118,7 +108,6 @@ export default function SettingsSidebar({ active, onSelect }) {
     taxes: false,
     setup: false,
     custom: false,
-    automations: false,
     ext: false,
   });
 

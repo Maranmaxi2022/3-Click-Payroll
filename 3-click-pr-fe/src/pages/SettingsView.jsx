@@ -128,16 +128,6 @@ export default function SettingsView({
               { id: "custom.reportingTags", label: "Reporting Tags" },
             ],
           },
-          {
-            id: "automations",
-            title: "Automations",
-            items: [
-              { id: "auto.rules", label: "Workflow Rules" },
-              { id: "auto.actions", label: "Actions" },
-              { id: "auto.schedules", label: "Schedules" },
-              { id: "auto.logs", label: "Workflow Logs" },
-            ],
-          },
         ],
       },
       {
