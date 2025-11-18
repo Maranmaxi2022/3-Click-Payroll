@@ -87,13 +87,12 @@ export const SETTINGS_SECTIONS = [
     ],
   },
   {
-    caption: "INTEGRATIONS & APPS",
+    caption: "INTEGRATIONS",
     groups: [
       {
         id: "ext",
-        title: "Integrations & Apps",
+        title: "Integrations",
         items: [
-          { id: "ext.integrations", label: "Integrations" },
           { id: "ext.timesheet", label: "Timesheet" },
         ],
       },
@@ -108,7 +107,7 @@ export default function SettingsSidebar({ active, onSelect }) {
     taxes: false,
     setup: false,
     custom: false,
-    ext: false,
+    ext: true,
   });
 
   const toggle = (k) => setOpen((o) => ({ ...o, [k]: !o[k] }));
