@@ -13,6 +13,7 @@ from beanie import PydanticObjectId
 from ...schemas.pay_run import PayRun, PayRunStatus, PayPeriodType
 from ...schemas.employee import Employee
 from ...services.payroll_calculation_service import PayrollCalculationService
+from ...services.timesheet_aggregation_service import TimesheetAggregationService
 
 router = APIRouter()
 
@@ -176,42 +177,39 @@ async def calculate_pay_run(
             detail="No active employees found"
         )
 
-    # Initialize payroll calculation service
+    # Initialize services
     payroll_service = PayrollCalculationService(tax_year=2025)
+    timesheet_service = TimesheetAggregationService()
+
+    # Aggregate timesheet data for all employees
+    employee_ids = [str(emp.id) for emp in employees]
+    pay_run_earnings = await timesheet_service.aggregate_pay_run_earnings(
+        employee_ids=employee_ids,
+        period_start_date=pay_run.period_start_date,
+        period_end_date=pay_run.period_end_date
+    )
 
     # Prepare employee data for calculation
-    # In a real implementation, you would fetch earnings, deductions, and benefits
-    # from the database or from a separate input
     employee_data = []
+    time_entry_tracking = {}  # Track which time entries are used
+
     for emp in employees:
-        employee_dict = emp.dict()
+        emp_id = str(emp.id)
 
-        # Get YTD carry-in if available
-        ytd_carry_in = emp.ytd_carry_in if emp.ytd_carry_in else {}
+        # Check if employee has timesheet data
+        if emp_id in pay_run_earnings:
+            # Use earnings from timesheets
+            employee_dict = pay_run_earnings[emp_id]["employee"]
+            employee_dict["earnings"] = pay_run_earnings[emp_id]["earnings"]
+            employee_dict["deductions"] = []
+            employee_dict["benefits"] = []
 
-        # For now, use sample earnings - in production, fetch from time sheets
-        # This is where you'd integrate with your time tracking system
-        employee_dict["earnings"] = [
-            {
-                "type": "regular",
-                "description": "Regular Pay",
-                "hours": 80,  # Example: 80 hours for biweekly
-                "rate": emp.hourly_rate if emp.hourly_rate else 0,
-                "amount": emp.hourly_rate * 80 if emp.hourly_rate else 0,
-                "taxable": True
-            }
-        ]
-
-        employee_dict["deductions"] = []
-        employee_dict["benefits"] = []
-        employee_dict["ytd_totals"] = {
-            "gross_earnings": ytd_carry_in.gross_earnings if hasattr(ytd_carry_in, 'gross_earnings') else 0,
-            "cpp_contributions": ytd_carry_in.cpp_contributions if hasattr(ytd_carry_in, 'cpp_contributions') else 0,
-            "cpp2_contributions": ytd_carry_in.cpp2_contributions if hasattr(ytd_carry_in, 'cpp2_contributions') else 0,
-            "ei_premiums": ytd_carry_in.ei_premiums if hasattr(ytd_carry_in, 'ei_premiums') else 0,
-            "federal_tax": ytd_carry_in.federal_tax if hasattr(ytd_carry_in, 'federal_tax') else 0,
-            "provincial_tax": ytd_carry_in.provincial_tax if hasattr(ytd_carry_in, 'provincial_tax') else 0,
-        }
+            # Track time entries for this employee
+            time_entry_tracking[emp_id] = pay_run_earnings[emp_id]["time_entry_ids"]
+        else:
+            # No timesheet data - skip this employee or use default
+            # For now, we'll skip employees without approved timesheets
+            continue
 
         employee_data.append(employee_dict)
 
@@ -243,6 +241,17 @@ async def calculate_pay_run(
     pay_run.updated_at = datetime.utcnow()
 
     await pay_run.save()
+
+    # Mark time entries as processed and link to pay run
+    all_time_entry_ids = []
+    for emp_id, entry_ids in time_entry_tracking.items():
+        all_time_entry_ids.extend(entry_ids)
+
+    if all_time_entry_ids:
+        processed_count = await timesheet_service.mark_entries_as_processed(
+            time_entry_ids=all_time_entry_ids,
+            pay_run_id=str(pay_run.id)
+        )
 
     return pay_run.dict()
 

@@ -10,7 +10,7 @@ import uvicorn
 
 from src.core.config import settings
 from src.database.connection import init_db, close_db
-from src.api.v1 import employees, payruns, settings_api, reports, dashboard, departments, designations
+from src.api.v1 import employees, payruns, settings_api, reports, dashboard, departments, designations, timesheets
 
 
 @asynccontextmanager
@@ -109,6 +109,12 @@ app.include_router(
     designations.router,
     prefix=f"{settings.API_V1_PREFIX}/designations",
     tags=["Designations"]
+)
+
+app.include_router(
+    timesheets.router,
+    prefix=f"{settings.API_V1_PREFIX}/timesheets",
+    tags=["Timesheets"]
 )
 
 
