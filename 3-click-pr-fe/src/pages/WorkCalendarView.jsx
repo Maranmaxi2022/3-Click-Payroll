@@ -454,12 +454,12 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 			style={{ maxHeight }}
 		>
 			<div className="bg-white">
-				<div className="sticky top-0 z-30 bg-white shadow-sm">
+				<div className="sticky top-0 z-30 bg-white">
 					<div className="flex items-stretch border-b border-slate-200">
 						<div
 							className={
 								"flex w-[276px] shrink-0 items-center bg-slate-50 px-3 text-sm font-semibold text-slate-600 " +
-								(isMonthView ? "h-14" : "h-16")
+								(isMonthView ? "h-14" : "")
 							}
 							style={{ borderRight: "3px double rgb(226, 232, 240)" }}
 						>
@@ -474,8 +474,8 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 											type="button"
 											className={
 												(isMonthView
-													? "relative flex h-14 w-[39px] flex-col items-center justify-center px-1 text-[11px] font-semibold transition "
-													: "relative flex min-w-[120px] flex-col items-center px-3 pb-4 pt-2 text-sm font-medium transition ") +
+													? "relative flex h-14 w-[39px] shrink-0 flex-col items-center justify-center px-1 text-[11px] font-semibold transition "
+													: "relative flex w-[200px] shrink-0 flex-col items-center px-3 pb-4 pt-2 text-sm font-medium transition ") +
 												(itemIndex < periodItems.length - 1 ? "border-r border-slate-200 " : "") +
 												(item.active ? "bg-blue-50 text-blue-600" : "text-slate-500 hover:bg-slate-100")
 											}
@@ -545,8 +545,8 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 									<div
 										key={item.id}
 										className={
-											(isMonthView ? "w-[39px]" : "min-w-[120px]") +
-											" flex flex-col"
+											(isMonthView ? "w-[39px]" : "w-[200px]") +
+											" flex flex-col shrink-0"
 										}
 									>
 										{employees.map((emp, empIndex) => {
