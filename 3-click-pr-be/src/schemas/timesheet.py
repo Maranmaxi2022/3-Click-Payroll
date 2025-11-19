@@ -9,7 +9,7 @@ Stores employee time entries for payroll calculation including:
 """
 
 from beanie import Document
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional, List
 from datetime import datetime, date, time
 from enum import Enum
@@ -37,8 +37,8 @@ class TimeEntryStatus(str, Enum):
 
 class ShiftDetails(BaseModel):
     """Details about the shift/work period"""
-    shift_start: Optional[time] = None
-    shift_end: Optional[time] = None
+    shift_start: Optional[str] = None  # Stored as HH:MM string (e.g., "09:00")
+    shift_end: Optional[str] = None    # Stored as HH:MM string (e.g., "17:00")
     break_duration_minutes: int = 0  # Unpaid break time
     notes: Optional[str] = None
 

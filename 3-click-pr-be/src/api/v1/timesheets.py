@@ -4,11 +4,13 @@ Timesheet API Endpoints
 Endpoints for managing employee time entries and timesheets.
 """
 
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status, Query, UploadFile, File
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import datetime, date, time
 from pydantic import BaseModel
 from beanie import PydanticObjectId
+import csv
+import io
 
 from ...schemas.timesheet import TimeEntry, TimesheetPeriod, TimeEntryType, TimeEntryStatus, ShiftDetails
 from ...schemas.employee import Employee
@@ -180,7 +182,15 @@ async def create_bulk_time_entries(request: BulkTimeEntryRequest):
             )
 
             await time_entry.insert()
-            created_entries.append(time_entry.dict())
+            created_entries.append({
+                "id": str(time_entry.id),
+                "employee_id": time_entry.employee_id,
+                "employee_number": time_entry.employee_number,
+                "employee_name": time_entry.employee_name,
+                "work_date": time_entry.work_date.isoformat(),
+                "entry_type": time_entry.entry_type.value,
+                "hours_worked": time_entry.hours_worked
+            })
 
         except Exception as e:
             errors.append({
@@ -243,7 +253,32 @@ async def get_time_entries(
 
     entries = await TimeEntry.find(query).skip(skip).limit(limit).sort("-work_date").to_list()
 
-    return [entry.dict() for entry in entries]
+    # Manually serialize to avoid PydanticObjectId serialization issues
+    return [{
+        "id": str(entry.id),
+        "employee_id": entry.employee_id,
+        "employee_number": entry.employee_number,
+        "employee_name": entry.employee_name,
+        "work_date": entry.work_date.isoformat(),
+        "entry_type": entry.entry_type.value,
+        "hours_worked": entry.hours_worked,
+        "regular_hours": entry.regular_hours,
+        "overtime_hours": entry.overtime_hours,
+        "double_time_hours": entry.double_time_hours,
+        "shift_details": {
+            "shift_start": entry.shift_details.shift_start,
+            "shift_end": entry.shift_details.shift_end,
+            "break_duration_minutes": entry.shift_details.break_duration_minutes,
+            "notes": entry.shift_details.notes
+        } if entry.shift_details else None,
+        "hourly_rate": entry.hourly_rate,
+        "overtime_rate": entry.overtime_rate,
+        "department_id": entry.department_id,
+        "department_name": entry.department_name,
+        "status": entry.status.value,
+        "created_at": entry.created_at.isoformat() if entry.created_at else None,
+        "updated_at": entry.updated_at.isoformat() if entry.updated_at else None
+    } for entry in entries]
 
 
 @router.get("/entries/{entry_id}", response_model=dict)
@@ -453,4 +488,199 @@ async def get_employee_timesheet_summary(
         "total_double_time_hours": round(total_double_time, 2),
         "status_breakdown": status_counts,
         "entries": [e.dict() for e in entries]
+    }
+
+
+# ============================================================================
+# CSV UPLOAD ENDPOINT
+# ============================================================================
+
+@router.post("/upload", response_model=dict, status_code=status.HTTP_201_CREATED)
+async def upload_timesheet_csv(file: UploadFile = File(...)):
+    """
+    Upload and process a CSV timesheet file
+
+    Expected CSV format:
+    employee_id,employee_number,employee_name,work_date,entry_type,hours_worked,
+    regular_hours,overtime_hours,shift_start,shift_end,break_minutes,department,
+    job_title,hourly_rate,notes
+
+    Args:
+        file: CSV file upload
+
+    Returns:
+        Summary of created entries and errors
+    """
+    # Validate file type
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only CSV files are allowed"
+        )
+
+    # Read file content
+    try:
+        content = await file.read()
+        decoded_content = content.decode('utf-8')
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to read CSV file: {str(e)}"
+        )
+
+    # Parse CSV
+    csv_reader = csv.DictReader(io.StringIO(decoded_content))
+
+    created_entries = []
+    errors = []
+    row_number = 1  # Start at 1 (header is row 0)
+
+    for row in csv_reader:
+        row_number += 1
+        try:
+            # Parse required fields
+            employee_id = row.get('employee_id', '').strip()
+            work_date_str = row.get('work_date', '').strip()
+
+            if not employee_id or not work_date_str:
+                errors.append({
+                    "row": row_number,
+                    "error": "Missing required field: employee_id or work_date",
+                    "data": row
+                })
+                continue
+
+            # Verify employee exists
+            try:
+                employee = await Employee.get(PydanticObjectId(employee_id))
+            except Exception as e:
+                print(f"DEBUG: Row {row_number} - Error getting employee {employee_id}: {str(e)}")
+                errors.append({
+                    "row": row_number,
+                    "error": f"Employee {employee_id} not found: {str(e)}",
+                    "data": row
+                })
+                continue
+
+            if not employee:
+                errors.append({
+                    "row": row_number,
+                    "error": f"Employee {employee_id} not found",
+                    "data": row
+                })
+                continue
+
+            # Parse date
+            try:
+                work_date = datetime.strptime(work_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                errors.append({
+                    "row": row_number,
+                    "error": f"Invalid date format: {work_date_str}. Expected YYYY-MM-DD",
+                    "data": row
+                })
+                continue
+
+            # Parse entry type
+            entry_type_str = row.get('entry_type', 'regular').strip().lower()
+            try:
+                entry_type = TimeEntryType(entry_type_str)
+            except ValueError:
+                entry_type = TimeEntryType.REGULAR
+
+            # Parse hours
+            try:
+                hours_worked = float(row.get('hours_worked', 0) or 0)
+                regular_hours = float(row.get('regular_hours', 0) or 0)
+                overtime_hours = float(row.get('overtime_hours', 0) or 0)
+            except ValueError:
+                errors.append({
+                    "row": row_number,
+                    "error": "Invalid hours format",
+                    "data": row
+                })
+                continue
+
+            # Parse shift details
+            shift_details = None
+            shift_start_str = row.get('shift_start', '').strip()
+            shift_end_str = row.get('shift_end', '').strip()
+
+            if shift_start_str and shift_end_str:
+                try:
+                    # Validate time format (HH:MM) but store as string
+                    datetime.strptime(shift_start_str, '%H:%M')
+                    datetime.strptime(shift_end_str, '%H:%M')
+                    break_minutes = int(row.get('break_minutes', 0) or 0)
+
+                    shift_details = ShiftDetails(
+                        shift_start=shift_start_str,  # Store as string
+                        shift_end=shift_end_str,      # Store as string
+                        break_duration_minutes=break_minutes,
+                        notes=row.get('notes', '').strip() or None
+                    )
+                except Exception:
+                    # If shift parsing fails, just skip shift details
+                    pass
+
+            # Parse hourly rate
+            hourly_rate = None
+            hourly_rate_str = row.get('hourly_rate', '').strip()
+            if hourly_rate_str:
+                try:
+                    hourly_rate = float(hourly_rate_str)
+                except ValueError:
+                    pass
+
+            # Use employee's hourly rate if not provided
+            if not hourly_rate:
+                hourly_rate = employee.hourly_rate or 0.0
+
+            # Create time entry
+            time_entry = TimeEntry(
+                employee_id=str(employee.id),
+                employee_number=row.get('employee_number', '').strip() or employee.employee_number,
+                employee_name=row.get('employee_name', '').strip() or f"{employee.first_name} {employee.last_name}",
+                work_date=work_date,
+                entry_type=entry_type,
+                hours_worked=hours_worked,
+                regular_hours=regular_hours,
+                overtime_hours=overtime_hours,
+                double_time_hours=0.0,
+                shift_details=shift_details,
+                hourly_rate=hourly_rate,
+                overtime_rate=hourly_rate * 1.5,
+                department_id=employee.department_id,
+                department_name=row.get('department', '').strip() or employee.department_name,
+                employee_notes=row.get('notes', '').strip() or None,
+                status=TimeEntryStatus.DRAFT,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+
+            await time_entry.insert()
+            created_entries.append({
+                "id": str(time_entry.id),
+                "employee_id": time_entry.employee_id,
+                "employee_number": time_entry.employee_number,
+                "employee_name": time_entry.employee_name,
+                "work_date": time_entry.work_date.isoformat(),
+                "entry_type": time_entry.entry_type.value,
+                "hours_worked": time_entry.hours_worked
+            })
+
+        except Exception as e:
+            errors.append({
+                "row": row_number,
+                "error": str(e),
+                "data": row
+            })
+
+    return {
+        "success": True,
+        "total_rows": row_number - 1,  # Exclude header
+        "created": len(created_entries),
+        "failed": len(errors),
+        "entries": created_entries,
+        "errors": errors
     }

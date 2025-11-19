@@ -397,4 +397,136 @@ export const organizationAPI = {
   getLogoUrl: (filename) => `${API_BASE_URL}/api/v1/settings/organization/logo/${filename}`,
 };
 
+// Timesheet API endpoints
+export const timesheetAPI = {
+  /**
+   * Upload CSV timesheet file
+   * @param {File} file - CSV file to upload
+   * @returns {Promise<Object>} Upload response with created entries summary
+   */
+  uploadCSV: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/timesheets/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { detail: response.statusText };
+      }
+      throw new APIError(
+        errorData.detail || errorData.message || 'Upload failed',
+        response.status,
+        errorData
+      );
+    }
+
+    return await response.json();
+  },
+
+  /**
+   * Create a new time entry
+   * @param {Object} entryData - Time entry data
+   * @returns {Promise<Object>} Created time entry
+   */
+  createEntry: (entryData) =>
+    request('/api/v1/timesheets/entries', {
+      method: 'POST',
+      body: JSON.stringify(entryData),
+    }),
+
+  /**
+   * Create multiple time entries at once
+   * @param {Array} entries - Array of time entry data
+   * @returns {Promise<Object>} Summary of created entries
+   */
+  bulkCreateEntries: (entries) =>
+    request('/api/v1/timesheets/entries/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ entries }),
+    }),
+
+  /**
+   * Get time entries with optional filtering
+   * @param {Object} params - Query parameters
+   * @returns {Promise<Array>} List of time entries
+   */
+  getEntries: (params = {}) => {
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v != null)
+    ).toString();
+    const endpoint = queryString
+      ? `/api/v1/timesheets/entries?${queryString}`
+      : '/api/v1/timesheets/entries';
+    return request(endpoint);
+  },
+
+  /**
+   * Get a single time entry by ID
+   * @param {string} entryId - Time entry ID
+   * @returns {Promise<Object>} Time entry details
+   */
+  getEntryById: (entryId) => request(`/api/v1/timesheets/entries/${entryId}`),
+
+  /**
+   * Update a time entry
+   * @param {string} entryId - Time entry ID
+   * @param {Object} updateData - Partial time entry data to update
+   * @returns {Promise<Object>} Updated time entry
+   */
+  updateEntry: (entryId, updateData) =>
+    request(`/api/v1/timesheets/entries/${entryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    }),
+
+  /**
+   * Delete a time entry
+   * @param {string} entryId - Time entry ID
+   * @returns {Promise<null>} No content on success
+   */
+  deleteEntry: (entryId) =>
+    request(`/api/v1/timesheets/entries/${entryId}`, {
+      method: 'DELETE',
+    }),
+
+  /**
+   * Get timesheet summary for an employee
+   * @param {string} employeeId - Employee ID
+   * @param {string} startDate - Period start date (YYYY-MM-DD)
+   * @param {string} endDate - Period end date (YYYY-MM-DD)
+   * @returns {Promise<Object>} Summary with hours and entries
+   */
+  getEmployeeSummary: (employeeId, startDate, endDate) => {
+    const params = new URLSearchParams({
+      start_date: startDate,
+      end_date: endDate,
+    }).toString();
+    return request(`/api/v1/timesheets/summary/${employeeId}?${params}`);
+  },
+
+  /**
+   * Approve multiple time entries
+   * @param {Array<string>} entryIds - Array of time entry IDs
+   * @param {string} approvedBy - Name/ID of approver
+   * @param {string} notes - Optional manager notes
+   * @returns {Promise<Object>} Approval summary
+   */
+  approveEntries: (entryIds, approvedBy, notes = null) =>
+    request('/api/v1/timesheets/entries/approve', {
+      method: 'POST',
+      body: JSON.stringify({
+        time_entry_ids: entryIds,
+        approved_by: approvedBy,
+        manager_notes: notes,
+      }),
+    }),
+};
+
 export { APIError };

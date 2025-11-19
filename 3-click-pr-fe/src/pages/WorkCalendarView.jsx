@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { employeeAPI } from "../utils/api";
+import { employeeAPI, timesheetAPI } from "../utils/api";
+import { WeekScheduleCell, MonthScheduleCell } from "../components/ScheduleCell";
 
 // Helper to format date as YYYY-MM-DD in local timezone
 const getLocalDateId = (date) => {
@@ -255,6 +256,7 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 	const [currentDateId, setCurrentDateId] = React.useState(() => getLocalDateId(new Date()));
 	const [employees, setEmployees] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [timesheetData, setTimesheetData] = useState({}); // Map of employee_id -> date -> timeEntry
 
 	const isMonthView = viewMode === "month";
 	const displayDate = currentDate || new Date();
@@ -284,6 +286,61 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 		fetchEmployees();
 	}, []);
 
+	// Fetch timesheet data when employees or date range changes
+	useEffect(() => {
+		const fetchTimesheetData = async () => {
+			if (employees.length === 0) return;
+
+			try {
+				// Calculate date range based on current view
+				const startDate = isMonthView
+					? new Date(displayDate.getFullYear(), displayDate.getMonth(), 1)
+					: (() => {
+							const dayOfWeek = displayDate.getDay();
+							const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+							const monday = new Date(displayDate);
+							monday.setDate(displayDate.getDate() - daysToMonday);
+							return monday;
+					  })();
+
+				const endDate = isMonthView
+					? new Date(displayDate.getFullYear(), displayDate.getMonth() + 1, 0)
+					: (() => {
+							const dayOfWeek = displayDate.getDay();
+							const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+							const sunday = new Date(displayDate);
+							sunday.setDate(displayDate.getDate() - daysToMonday + 6);
+							return sunday;
+					  })();
+
+				// Format dates as YYYY-MM-DD
+				const formatDate = (date) => getLocalDateId(date);
+
+				// Fetch timesheet entries for all employees in the date range
+				const entries = await timesheetAPI.getEntries({
+					start_date: formatDate(startDate),
+					end_date: formatDate(endDate),
+				});
+
+				// Organize data by employee_id and work_date
+				const dataMap = {};
+				entries.forEach((entry) => {
+					if (!dataMap[entry.employee_id]) {
+						dataMap[entry.employee_id] = {};
+					}
+					dataMap[entry.employee_id][entry.work_date] = entry;
+				});
+
+				setTimesheetData(dataMap);
+			} catch (err) {
+				console.error("Error fetching timesheet data:", err);
+				setTimesheetData({});
+			}
+		};
+
+		fetchTimesheetData();
+	}, [employees, displayDate, isMonthView]);
+
 	// Generate date items dynamically based on current date
 	const weekDays = React.useMemo(() => generateWeekDays(currentDateId, displayDate), [currentDateId, displayDate]);
 	const monthDays = React.useMemo(() => generateMonthDays(currentDateId, displayDate), [currentDateId, displayDate]);
@@ -312,8 +369,8 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 
 		return () => clearTimeout(midnightTimeout);
 	}, []);
-	// Mirror the Tailwind row heights (week: h-[104px], month: h-14) so scroll window aligns with cells.
-	const rowHeight = isMonthView ? 56 : 104;
+	// Mirror the Tailwind row heights (week: h-[140px], month: h-14) so scroll window aligns with cells.
+	const rowHeight = isMonthView ? 56 : 140;
 	const visibleRowLimit = isMonthView ? 10 : 5;
 	const totalEmployees = employees.length;
 	const visibleRowCount = Math.min(totalEmployees, visibleRowLimit);
@@ -402,7 +459,7 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 						<div
 							className={
 								"flex w-[276px] shrink-0 items-center bg-slate-50 px-3 text-sm font-semibold text-slate-600 " +
-								(isMonthView ? "h-14" : "h-[68px]")
+								(isMonthView ? "h-14" : "h-16")
 							}
 							style={{ borderRight: "3px double rgb(226, 232, 240)" }}
 						>
@@ -462,7 +519,7 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 											key={emp.id}
 											className={
 												"flex w-full items-center gap-3 px-3 text-left text-sm text-slate-600 transition hover:bg-slate-50 " +
-												(isMonthView ? "h-14" : "h-[104px]")
+												(isMonthView ? "h-14" : "h-[140px]")
 											}
 										>
 											<div className={`grid h-9 w-9 place-items-center rounded-full text-[13px] font-semibold ${emp.badgeClass}`}>
@@ -492,20 +549,30 @@ export function WorkCalendarNavBar({ viewMode, currentDate }) {
 											" flex flex-col"
 										}
 									>
-										{employees.map((emp, empIndex) => (
-											<div
-												key={`${item.id}-${emp.id}`}
-												className={
-													"flex items-center justify-center w-full bg-white text-xs font-medium text-slate-400 transition hover:bg-slate-50 cursor-pointer " +
-													(empIndex < employees.length - 1 ? "border-b " : "") +
-													(itemIndex < periodItems.length - 1 ? "border-r " : "") +
-													"border-slate-200 " +
-													(isMonthView ? "h-14" : "h-[104px]")
-												}
-											>
-												<span className="sr-only">Schedule slot for {emp.name} on {item.day}</span>
-											</div>
-										))}
+										{employees.map((emp, empIndex) => {
+											// Get timesheet entry for this employee and date
+											const timeEntry = timesheetData[emp.id]?.[item.id];
+											const isActiveDay = item.active;
+
+											return (
+												<div
+													key={`${item.id}-${emp.id}`}
+													className={
+														"flex items-center justify-center w-full transition hover:bg-slate-50 cursor-pointer " +
+														(empIndex < employees.length - 1 ? "border-b " : "") +
+														(itemIndex < periodItems.length - 1 ? "border-r " : "") +
+														"border-slate-200 " +
+														(isMonthView ? "h-14" : "h-[140px]")
+													}
+												>
+													{isMonthView ? (
+														<MonthScheduleCell timeEntry={timeEntry} isActive={isActiveDay} />
+													) : (
+														<WeekScheduleCell timeEntry={timeEntry} isActive={isActiveDay} />
+													)}
+												</div>
+											);
+										})}
 									</div>
 								))}
 							</div>

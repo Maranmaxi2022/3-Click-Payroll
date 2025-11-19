@@ -1,34 +1,15 @@
 // src/pages/TimesheetView.jsx
 import React, { useState, useRef } from "react";
-import { Upload, FileText, Trash2, Download, Calendar, User } from "lucide-react";
+import { Upload, FileText, Trash2, Download, Calendar, User, AlertCircle, CheckCircle } from "lucide-react";
+import { timesheetAPI } from "../utils/api";
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
 
 export default function TimesheetView() {
-  const [uploadHistory, setUploadHistory] = useState([
-    // Sample data - replace with API call
-    {
-      id: 1,
-      fileName: "Timesheet_Nov_2025.csv",
-      fileSize: "45 KB",
-      uploadedBy: "Admin User",
-      uploadDate: "Nov 15, 2025",
-      lastModified: "Nov 15, 2025",
-      status: "processed",
-    },
-    {
-      id: 2,
-      fileName: "Timesheet_Oct_2025.csv",
-      fileSize: "52 KB",
-      uploadedBy: "Admin User",
-      uploadDate: "Oct 30, 2025",
-      lastModified: "Oct 30, 2025",
-      status: "processed",
-    },
-  ]);
-
+  const [uploadHistory, setUploadHistory] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadResult, setUploadResult] = useState(null);
   const fileInputRef = useRef(null);
 
   const handleDrag = (e) => {
@@ -59,7 +40,7 @@ export default function TimesheetView() {
     }
   };
 
-  const handleFileUpload = (file) => {
+  const handleFileUpload = async (file) => {
     // Validate file type
     if (!file.name.endsWith('.csv')) {
       alert('Only CSV files are allowed');
@@ -67,9 +48,13 @@ export default function TimesheetView() {
     }
 
     setUploading(true);
+    setUploadResult(null);
 
-    // Simulate upload - replace with actual API call
-    setTimeout(() => {
+    try {
+      // Upload CSV file to backend
+      const result = await timesheetAPI.uploadCSV(file);
+
+      // Create upload history entry
       const newFile = {
         id: Date.now(),
         fileName: file.name,
@@ -77,12 +62,26 @@ export default function TimesheetView() {
         uploadedBy: "Current User",
         uploadDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         lastModified: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        status: "processing",
+        status: "processed",
+        entriesCreated: result.created,
+        entriesFailed: result.failed,
       };
 
       setUploadHistory([newFile, ...uploadHistory]);
+      setUploadResult(result);
+
+      // Show success message
+      if (result.created > 0) {
+        alert(`Successfully uploaded ${result.created} time entries!${result.failed > 0 ? ` (${result.failed} failed)` : ''}`);
+      } else {
+        alert('Upload completed but no entries were created. Please check the file format.');
+      }
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert(`Upload failed: ${error.message || 'Unknown error'}`);
+    } finally {
       setUploading(false);
-    }, 1500);
+    }
   };
 
   const handleDelete = (id) => {
@@ -158,6 +157,59 @@ export default function TimesheetView() {
           )}
         </div>
       </div>
+
+      {/* Upload Results */}
+      {uploadResult && (
+        <div className={cx(
+          "rounded-xl border p-4",
+          uploadResult.failed > 0 ? "border-amber-200 bg-amber-50" : "border-green-200 bg-green-50"
+        )}>
+          <div className="flex items-start gap-3">
+            {uploadResult.failed > 0 ? (
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            ) : (
+              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1">
+              <h3 className={cx(
+                "text-sm font-semibold",
+                uploadResult.failed > 0 ? "text-amber-900" : "text-green-900"
+              )}>
+                Upload {uploadResult.failed > 0 ? "Completed with Warnings" : "Successful"}
+              </h3>
+              <div className={cx(
+                "mt-1 text-sm",
+                uploadResult.failed > 0 ? "text-amber-700" : "text-green-700"
+              )}>
+                <p>Created {uploadResult.created} time entries from {uploadResult.total_rows} rows</p>
+                {uploadResult.failed > 0 && (
+                  <p className="mt-1 font-medium">{uploadResult.failed} entries failed to process</p>
+                )}
+              </div>
+              {uploadResult.errors && uploadResult.errors.length > 0 && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-medium text-amber-800 hover:text-amber-900">
+                    View errors ({uploadResult.errors.length})
+                  </summary>
+                  <div className="mt-2 max-h-48 overflow-y-auto rounded bg-white p-2 text-xs">
+                    {uploadResult.errors.map((error, idx) => (
+                      <div key={idx} className="border-b border-amber-100 py-1 last:border-0">
+                        <span className="font-medium">Row {error.row}:</span> {error.error}
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+              <button
+                onClick={() => setUploadResult(null)}
+                className="mt-2 text-xs font-medium underline hover:no-underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Upload History */}
       {uploadHistory.length > 0 && (
