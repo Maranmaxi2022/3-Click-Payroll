@@ -5,6 +5,7 @@ import { MoreHorizontal, Pencil, Plus, Users, Info, Check } from "lucide-react";
 import SalaryComponents from "./SalaryComponents";
 import PaySchedule from "./PaySchedule";
 import TimesheetView from "./TimesheetView";
+import PDFTemplatesView from "./PDFTemplatesView";
 import SearchSelect from "../components/SearchSelect";
 import Modal from "../components/Modal";
 import { loadPayrollSettings, savePayrollSettings } from "../utils/payrollStore";
@@ -179,6 +180,7 @@ export default function SettingsView({
     if (active === "setup.statutory") return <StatutoryComponentsView />;
     if (active === "setup.salaryComponents") return <SalaryComponents />;
     if (active === "taxes.details") return <TaxDetailsView />;
+    if (active === "custom.pdfTemplates") return <PDFTemplatesView />;
     if (active === "ext.timesheet") return <TimesheetView />;
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-700">
