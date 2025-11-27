@@ -1,6 +1,7 @@
 // src/pages/PDFTemplatesView.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, Pencil, X } from "lucide-react";
+import { organizationAPI } from "../utils/api";
 
 // Sample template data
 const TEMPLATES = {
@@ -16,8 +17,11 @@ const TEMPLATES = {
 };
 
 // Preview Modal Component
-function TemplatePreviewModal({ template, onClose }) {
+function TemplatePreviewModal({ template, onClose, organization }) {
   if (!template) return null;
+
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const logoUrl = organization?.logo_url ? `${API_BASE_URL}${organization.logo_url}` : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -39,11 +43,28 @@ function TemplatePreviewModal({ template, onClose }) {
             {/* Payslip Header */}
             <div className="border-b border-slate-200 px-8 py-6">
               <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-slate-900">Huex Canada Inc.</h1>
-                  <p className="mt-1 text-sm text-slate-600">
-                    123 Main Street, Suite 100, Toronto, ON M5H 2N2, Canada
-                  </p>
+                <div className="flex items-start gap-4">
+                  {/* Organization Logo */}
+                  {logoUrl && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={logoUrl}
+                        alt={organization?.company_name || "Company Logo"}
+                        className="h-16 w-16 rounded-full object-cover bg-green-50"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <h1 className="text-2xl font-bold text-slate-900">
+                      {organization?.company_name || "Huex Canada Inc."}
+                    </h1>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {organization?.address || "123 Main Street, Suite 100, Toronto, ON M5H 2N2, Canada"}
+                    </p>
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-medium text-slate-500">Payslip For the Month</p>
@@ -318,6 +339,24 @@ function TemplateCard({ template, onPreview, onEdit }) {
 
 export default function PDFTemplatesView() {
   const [previewTemplate, setPreviewTemplate] = useState(null);
+  const [organization, setOrganization] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch organization data on component mount
+  useEffect(() => {
+    const fetchOrganization = async () => {
+      try {
+        const orgData = await organizationAPI.get();
+        setOrganization(orgData);
+      } catch (error) {
+        console.error('Failed to fetch organization data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrganization();
+  }, []);
 
   const handlePreview = (template) => {
     setPreviewTemplate(template);
@@ -356,6 +395,7 @@ export default function PDFTemplatesView() {
       {previewTemplate && (
         <TemplatePreviewModal
           template={previewTemplate}
+          organization={organization}
           onClose={() => setPreviewTemplate(null)}
         />
       )}
