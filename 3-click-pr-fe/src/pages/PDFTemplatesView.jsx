@@ -177,17 +177,12 @@ function TemplatePreviewModal({ template, onClose }) {
               <div className="grid grid-cols-2 gap-8">
                 {/* Earnings */}
                 <div>
-                  <div className="mb-4">
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Earnings
-                    </h3>
-                  </div>
                   <table className="w-full text-sm">
                     <thead className="border-b-2 border-slate-300">
                       <tr>
-                        <th className="pb-2 text-left font-semibold text-slate-700">Component</th>
-                        <th className="pb-2 text-right font-semibold text-slate-700">Amount</th>
-                        <th className="pb-2 text-right font-semibold text-slate-700">YTD</th>
+                        <th className="pb-2 text-left font-semibold text-slate-700 uppercase text-xs tracking-wide">Earnings</th>
+                        <th className="pb-2 text-right font-semibold text-slate-700 uppercase text-xs tracking-wide">Amount</th>
+                        <th className="pb-2 text-right font-semibold text-slate-700 uppercase text-xs tracking-wide">YTD</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -216,23 +211,33 @@ function TemplatePreviewModal({ template, onClose }) {
                         <td className="py-2 text-right font-medium text-slate-900">₹0.00</td>
                         <td className="py-2 text-right text-slate-600">₹0.00</td>
                       </tr>
+                      <tr>
+                        <td className="py-2 text-slate-900">Commission</td>
+                        <td className="py-2 text-right font-medium text-slate-900">₹0.00</td>
+                        <td className="py-2 text-right text-slate-600">₹0.00</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-slate-900">Leave Encashment</td>
+                        <td className="py-2 text-right font-medium text-slate-900">₹0.00</td>
+                        <td className="py-2 text-right text-slate-600">₹0.00</td>
+                      </tr>
+                      <tr className="border-t-2 border-slate-400">
+                        <td className="py-2 font-bold text-slate-900">Gross Earnings</td>
+                        <td className="py-2 text-right font-bold text-slate-900">₹1,20,000.00</td>
+                        <td className="py-2 text-right font-semibold text-slate-600"></td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
 
                 {/* Deductions */}
                 <div>
-                  <div className="mb-4">
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                      Deductions
-                    </h3>
-                  </div>
                   <table className="w-full text-sm">
                     <thead className="border-b-2 border-slate-300">
                       <tr>
-                        <th className="pb-2 text-left font-semibold text-slate-700">Component</th>
-                        <th className="pb-2 text-right font-semibold text-slate-700">Amount</th>
-                        <th className="pb-2 text-right font-semibold text-slate-700">YTD</th>
+                        <th className="pb-2 text-left font-semibold text-slate-700 uppercase text-xs tracking-wide">Deductions</th>
+                        <th className="pb-2 text-right font-semibold text-slate-700 uppercase text-xs tracking-wide">Amount</th>
+                        <th className="pb-2 text-right font-semibold text-slate-700 uppercase text-xs tracking-wide">YTD</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -241,10 +246,33 @@ function TemplatePreviewModal({ template, onClose }) {
                         <td className="py-2 text-right font-medium text-slate-900">₹22,130.00</td>
                         <td className="py-2 text-right text-slate-600">₹2,65,554.00</td>
                       </tr>
+                      <tr className="border-t-2 border-slate-400">
+                        <td className="py-2 font-bold text-slate-900">Total Deductions</td>
+                        <td className="py-2 text-right font-bold text-slate-900">₹22,130.00</td>
+                        <td className="py-2 text-right font-semibold text-slate-600"></td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
+            </div>
+
+            {/* Total Net Payable */}
+            <div className="mx-8 mb-6 rounded-lg border border-slate-200 bg-green-50/30 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Total Net Payable</p>
+                  <p className="mt-1 text-xs text-slate-600">Gross Earnings - Total Deductions</p>
+                </div>
+                <div className="text-2xl font-bold text-slate-900">₹97,870.00</div>
+              </div>
+            </div>
+
+            {/* Amount in Words */}
+            <div className="border-t border-slate-200 bg-slate-50 px-8 py-4">
+              <p className="text-center text-sm text-slate-600">
+                <span className="font-medium">Amount In Words :</span> Indian Rupee Ninety-Seven Thousand Eight Hundred Seventy Only
+              </p>
             </div>
           </div>
         </div>
