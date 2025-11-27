@@ -42,19 +42,21 @@ function TemplatePreviewModal({ template, onClose, organization }) {
           <div className="mx-auto max-w-4xl bg-white shadow-lg">
             {/* Payslip Header */}
             <div className="border-b border-slate-200 px-8 py-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
                   {/* Organization Logo */}
                   {logoUrl && (
                     <div className="flex-shrink-0">
-                      <img
-                        src={logoUrl}
-                        alt={organization?.company_name || "Company Logo"}
-                        className="h-16 w-16 rounded-full object-cover bg-green-50"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
+                      <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={logoUrl}
+                          alt={organization?.company_name || "Company Logo"}
+                          className="h-full w-full object-contain p-2"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
                     </div>
                   )}
                   <div>
