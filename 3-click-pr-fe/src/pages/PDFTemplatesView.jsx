@@ -1,8 +1,6 @@
 // src/pages/PDFTemplatesView.jsx
-import React, { useState } from "react";
+import { useState } from "react";
 import { Eye, Pencil, X } from "lucide-react";
-
-const cx = (...xs) => xs.filter(Boolean).join(" ");
 
 // Sample template data
 const TEMPLATES = {
@@ -88,9 +86,9 @@ function TemplatePreviewModal({ template, onClose }) {
             <div className="border-b border-slate-200 px-8 py-6">
               <div className="flex items-start justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-900">huex</h1>
+                  <h1 className="text-2xl font-bold text-slate-900">Huex Canada Inc.</h1>
                   <p className="mt-1 text-sm text-slate-600">
-                    123, Anna Salai Mount Road Chennai Tamil Nadu 600002 India
+                    123 Main Street, Suite 100, Toronto, ON M5H 2N2, Canada
                   </p>
                 </div>
                 <div className="text-right">
@@ -109,12 +107,12 @@ function TemplatePreviewModal({ template, onClose }) {
                 </h2>
                 <div className="space-y-3">
                   {[
-                    { label: "Employee Name", value: "Preet Setty" },
+                    { label: "Employee Name", value: "John Anderson" },
                     { label: "Designation", value: "Software Engineer" },
-                    { label: "Employee ID", value: "emp012" },
-                    { label: "Date of Joining", value: "21-09-2014" },
+                    { label: "Employee ID", value: "CA-EMP-2014" },
+                    { label: "Date of Joining", value: "September 21, 2014" },
                     { label: "Pay Period", value: "November 2025" },
-                    { label: "Pay Date", value: "30/11/2025" },
+                    { label: "Pay Date", value: "November 30, 2025" },
                   ].map((item, idx) => (
                     <div key={idx} className="flex text-sm">
                       <span className="w-40 text-slate-600">{item.label}</span>
@@ -129,17 +127,17 @@ function TemplatePreviewModal({ template, onClose }) {
               <div className="flex items-start justify-end">
                 <div className="w-full max-w-sm rounded-lg border-2 border-green-200 bg-green-50/50 p-6">
                   <div className="border-l-4 border-green-500 pl-4">
-                    <p className="text-3xl font-bold text-slate-900">₹97,870.00</p>
+                    <p className="text-3xl font-bold text-slate-900">$6,240.50</p>
                     <p className="mt-1 text-sm text-slate-600">Total Net Pay</p>
                   </div>
                   <div className="mt-4 space-y-2 border-t border-green-200 pt-4">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Paid Days</span>
-                      <span className="font-medium text-slate-900">: 28</span>
+                      <span className="text-slate-600">Hours Worked</span>
+                      <span className="font-medium text-slate-900">: 160</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">LOP Days</span>
-                      <span className="font-medium text-slate-900">: 3</span>
+                      <span className="text-slate-600">Overtime Hours</span>
+                      <span className="font-medium text-slate-900">: 8</span>
                     </div>
                   </div>
                 </div>
@@ -150,24 +148,24 @@ function TemplatePreviewModal({ template, onClose }) {
             <div className="border-y border-slate-200 bg-slate-50 px-8 py-4">
               <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                 <div className="flex">
-                  <span className="w-36 text-slate-600">PF A/C Number</span>
+                  <span className="w-36 text-slate-600">Social Insurance No</span>
                   <span className="mx-2 text-slate-400">:</span>
-                  <span className="font-medium text-slate-900">AA/AAA/0000000/000/0000000</span>
+                  <span className="font-medium text-slate-900">123-456-789</span>
                 </div>
                 <div className="flex">
-                  <span className="w-24 text-slate-600">UAN</span>
+                  <span className="w-32 text-slate-600">Employee Number</span>
                   <span className="mx-2 text-slate-400">:</span>
-                  <span className="font-medium text-slate-900">101010101010</span>
+                  <span className="font-medium text-slate-900">CA-EMP-2014</span>
                 </div>
                 <div className="flex">
                   <span className="w-36 text-slate-600">Bank Account No</span>
                   <span className="mx-2 text-slate-400">:</span>
-                  <span className="font-medium text-slate-900">101010101010101</span>
+                  <span className="font-medium text-slate-900">0123-45678-910</span>
                 </div>
                 <div className="flex">
-                  <span className="w-24 text-slate-600">ESI Number</span>
+                  <span className="w-32 text-slate-600">Transit Number</span>
                   <span className="mx-2 text-slate-400">:</span>
-                  <span className="font-medium text-slate-900">1234567890</span>
+                  <span className="font-medium text-slate-900">12345-001</span>
                 </div>
               </div>
             </div>
@@ -187,43 +185,43 @@ function TemplatePreviewModal({ template, onClose }) {
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       <tr>
-                        <td className="py-2 text-slate-900">Basic</td>
-                        <td className="py-2 text-right font-medium text-slate-900">₹60,000.00</td>
-                        <td className="py-2 text-right text-slate-600">₹4,80,000.00</td>
+                        <td className="py-2 text-slate-900">Regular Salary</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$7,200.00</td>
+                        <td className="py-2 text-right text-slate-600">$79,200.00</td>
                       </tr>
                       <tr>
-                        <td className="py-2 text-slate-900">House Rent Allowance</td>
-                        <td className="py-2 text-right font-medium text-slate-900">₹60,000.00</td>
-                        <td className="py-2 text-right text-slate-600">₹4,80,000.00</td>
+                        <td className="py-2 text-slate-900">Overtime Pay</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$720.00</td>
+                        <td className="py-2 text-right text-slate-600">$2,880.00</td>
                       </tr>
                       <tr>
-                        <td className="py-2 text-slate-900">Conveyance Allowance</td>
-                        <td className="py-2 text-right font-medium text-slate-900">₹0.00</td>
-                        <td className="py-2 text-right text-slate-600">₹0.00</td>
+                        <td className="py-2 text-slate-900">Housing Allowance</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$500.00</td>
+                        <td className="py-2 text-right text-slate-600">$5,500.00</td>
                       </tr>
                       <tr>
-                        <td className="py-2 text-slate-900">Fixed Allowance</td>
-                        <td className="py-2 text-right font-medium text-slate-900">₹0.00</td>
-                        <td className="py-2 text-right text-slate-600">₹0.00</td>
+                        <td className="py-2 text-slate-900">Travel Allowance</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$0.00</td>
+                        <td className="py-2 text-right text-slate-600">$0.00</td>
                       </tr>
                       <tr>
                         <td className="py-2 text-slate-900">Bonus</td>
-                        <td className="py-2 text-right font-medium text-slate-900">₹0.00</td>
-                        <td className="py-2 text-right text-slate-600">₹0.00</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$0.00</td>
+                        <td className="py-2 text-right text-slate-600">$0.00</td>
                       </tr>
                       <tr>
                         <td className="py-2 text-slate-900">Commission</td>
-                        <td className="py-2 text-right font-medium text-slate-900">₹0.00</td>
-                        <td className="py-2 text-right text-slate-600">₹0.00</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$0.00</td>
+                        <td className="py-2 text-right text-slate-600">$0.00</td>
                       </tr>
                       <tr>
-                        <td className="py-2 text-slate-900">Leave Encashment</td>
-                        <td className="py-2 text-right font-medium text-slate-900">₹0.00</td>
-                        <td className="py-2 text-right text-slate-600">₹0.00</td>
+                        <td className="py-2 text-slate-900">Vacation Pay</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$0.00</td>
+                        <td className="py-2 text-right text-slate-600">$0.00</td>
                       </tr>
                       <tr className="border-t-2 border-slate-400">
                         <td className="py-2 font-bold text-slate-900">Gross Earnings</td>
-                        <td className="py-2 text-right font-bold text-slate-900">₹1,20,000.00</td>
+                        <td className="py-2 text-right font-bold text-slate-900">$8,420.00</td>
                         <td className="py-2 text-right font-semibold text-slate-600"></td>
                       </tr>
                     </tbody>
@@ -242,13 +240,33 @@ function TemplatePreviewModal({ template, onClose }) {
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       <tr>
-                        <td className="py-2 text-slate-900">Income Tax</td>
-                        <td className="py-2 text-right font-medium text-slate-900">₹22,130.00</td>
-                        <td className="py-2 text-right text-slate-600">₹2,65,554.00</td>
+                        <td className="py-2 text-slate-900">Federal Tax</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$980.50</td>
+                        <td className="py-2 text-right text-slate-600">$10,785.50</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-slate-900">Provincial Tax (ON)</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$520.00</td>
+                        <td className="py-2 text-right text-slate-600">$5,720.00</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-slate-900">CPP Contribution</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$460.00</td>
+                        <td className="py-2 text-right text-slate-600">$5,060.00</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-slate-900">EI Premium</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$139.00</td>
+                        <td className="py-2 text-right text-slate-600">$1,529.00</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-slate-900">Health Benefits</td>
+                        <td className="py-2 text-right font-medium text-slate-900">$80.00</td>
+                        <td className="py-2 text-right text-slate-600">$880.00</td>
                       </tr>
                       <tr className="border-t-2 border-slate-400">
                         <td className="py-2 font-bold text-slate-900">Total Deductions</td>
-                        <td className="py-2 text-right font-bold text-slate-900">₹22,130.00</td>
+                        <td className="py-2 text-right font-bold text-slate-900">$2,179.50</td>
                         <td className="py-2 text-right font-semibold text-slate-600"></td>
                       </tr>
                     </tbody>
@@ -264,14 +282,14 @@ function TemplatePreviewModal({ template, onClose }) {
                   <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Total Net Payable</p>
                   <p className="mt-1 text-xs text-slate-600">Gross Earnings - Total Deductions</p>
                 </div>
-                <div className="text-2xl font-bold text-slate-900">₹97,870.00</div>
+                <div className="text-2xl font-bold text-slate-900">$6,240.50</div>
               </div>
             </div>
 
             {/* Amount in Words */}
             <div className="border-t border-slate-200 bg-slate-50 px-8 py-4">
               <p className="text-center text-sm text-slate-600">
-                <span className="font-medium">Amount In Words :</span> Indian Rupee Ninety-Seven Thousand Eight Hundred Seventy Only
+                <span className="font-medium">Amount In Words :</span> Six Thousand Two Hundred Forty Canadian Dollars and Fifty Cents Only
               </p>
             </div>
           </div>
