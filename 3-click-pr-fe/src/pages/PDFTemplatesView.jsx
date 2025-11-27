@@ -21,7 +21,7 @@ function TemplatePreviewModal({ template, onClose, organization }) {
   if (!template) return null;
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-  const logoUrl = organization?.logo_url ? `${API_BASE_URL}${organization.logo_url}` : null;
+  const logoUrl = organization?.logo_url ? `${API_BASE_URL}/${organization.logo_url}` : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -45,17 +45,25 @@ function TemplatePreviewModal({ template, onClose, organization }) {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   {/* Organization Logo */}
-                  {logoUrl && (
+                  {logoUrl ? (
                     <div className="flex-shrink-0">
-                      <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={logoUrl}
-                          alt={organization?.company_name || "Company Logo"}
-                          className="h-full w-full object-contain p-2"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
-                        />
+                      <img
+                        src={logoUrl}
+                        alt={organization?.company_name || "Company Logo"}
+                        className="h-16 w-16 rounded-full object-cover"
+                        onError={(e) => {
+                          console.error('Logo failed to load:', logoUrl);
+                          e.target.onerror = null;
+                          e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="30" fill="%236366f1"/><text x="32" y="40" text-anchor="middle" fill="white" font-size="24" font-weight="bold">' + (organization?.company_name?.[0] || 'C') + '</text></svg>';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex-shrink-0">
+                      <div className="h-16 w-16 rounded-full bg-indigo-500 flex items-center justify-center">
+                        <span className="text-2xl font-bold text-white">
+                          {organization?.company_name?.[0] || 'C'}
+                        </span>
                       </div>
                     </div>
                   )}

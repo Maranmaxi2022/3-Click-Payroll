@@ -5,8 +5,10 @@ tax compliance, and statutory deduction processing.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import uvicorn
+from pathlib import Path
 
 from src.core.config import settings
 from src.database.connection import init_db, close_db
@@ -116,6 +118,11 @@ app.include_router(
     prefix=f"{settings.API_V1_PREFIX}/timesheets",
     tags=["Timesheets"]
 )
+
+# Mount static files for uploads (logos, documents, etc.)
+uploads_dir = Path(__file__).parent / "uploads"
+uploads_dir.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 
 if __name__ == "__main__":
