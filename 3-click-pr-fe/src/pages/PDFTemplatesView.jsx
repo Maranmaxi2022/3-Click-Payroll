@@ -11,54 +11,8 @@ const TEMPLATES = {
       category: "payslip",
       isDefault: false,
     },
-    {
-      id: "standard",
-      name: "Standard Template",
-      category: "payslip",
-      isDefault: false,
-    },
-    {
-      id: "mini",
-      name: "Mini Template",
-      category: "payslip",
-      isDefault: false,
-    },
-    {
-      id: "simple",
-      name: "Simple Template",
-      category: "payslip",
-      isDefault: false,
-    },
-    {
-      id: "lite",
-      name: "Lite Template",
-      category: "payslip",
-      isDefault: false,
-    },
-    {
-      id: "spreadsheet",
-      name: "Simple Spreadsheet Template",
-      category: "payslip",
-      isDefault: false,
-    },
   ],
-  letter: [
-    {
-      id: "salary-certificate",
-      name: "Salary Certificate",
-      category: "letter",
-    },
-    {
-      id: "salary-revision",
-      name: "Salary Revision Letter",
-      category: "letter",
-    },
-    {
-      id: "bonus-letter",
-      name: "Bonus Letter",
-      category: "letter",
-    },
-  ],
+  letter: [],
 };
 
 // Preview Modal Component
@@ -396,31 +350,6 @@ export default function PDFTemplatesView() {
           </div>
         </div>
 
-        {/* Final Settlement could go here */}
-        <div className="mb-6">
-          <h3 className="mb-4 text-base font-semibold text-slate-900">Final Settlement Payslip</h3>
-          <div className="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-            <p className="text-sm text-slate-500">No templates available</p>
-          </div>
-        </div>
-      </section>
-
-      {/* LETTER TEMPLATES Section */}
-      <section>
-        <div className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Letter Templates</h2>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {TEMPLATES.letter.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              onPreview={() => handlePreview(template)}
-              onEdit={() => handleEdit(template)}
-            />
-          ))}
-        </div>
       </section>
 
       {/* Preview Modal */}
