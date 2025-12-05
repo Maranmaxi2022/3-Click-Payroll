@@ -43,7 +43,17 @@ export default function PayrollDashboard() {
     return "dashboard";
   });
   const [subroute, setSubroute] = useState(""); // e.g., 'employees/new'
-  const [settingsActive, setSettingsActive] = useState("org.profile");
+  const [settingsActive, setSettingsActive] = useState(() => {
+    // Initialize settingsActive from URL hash if present
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash.replace("#", "");
+      const parts = hash.split("/");
+      if (parts[0] === "settings" && parts[1]) {
+        return parts[1];
+      }
+    }
+    return "org.profile";
+  });
   const [branding, setBranding] = useState(() => {
     if (typeof window === "undefined") return { ...BRANDING_DEFAULT };
     return loadBrandingPreferences();
@@ -57,8 +67,15 @@ export default function PayrollDashboard() {
       const hash = window.location.hash.replace("#", "");
       console.log("PayrollDashboard - subroute:", hash);
       setSubroute(hash);
-      const [maybeTab] = hash.split("/");
-      if (TABS.includes(maybeTab)) setTab(maybeTab);
+      const parts = hash.split("/");
+      const [maybeTab] = parts;
+      if (TABS.includes(maybeTab)) {
+        setTab(maybeTab);
+        // If it's the settings tab and there's a subsection, restore it
+        if (maybeTab === "settings" && parts[1]) {
+          setSettingsActive(parts[1]);
+        }
+      }
     };
     syncFromHash();
     window.addEventListener("hashchange", syncFromHash);
@@ -114,11 +131,22 @@ export default function PayrollDashboard() {
   // Keep hash in sync when tab changes (if a subroute isn't already set)
   useEffect(() => {
     if (!subroute || !subroute.startsWith(tab)) {
-      window.location.hash = tab;
-      setSubroute(tab);
+      const newHash = tab === "settings" ? `${tab}/${settingsActive}` : tab;
+      window.location.hash = newHash;
+      setSubroute(newHash);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
+
+  // Keep hash in sync when settingsActive changes
+  useEffect(() => {
+    if (tab === "settings") {
+      const newHash = `settings/${settingsActive}`;
+      window.location.hash = newHash;
+      setSubroute(newHash);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settingsActive]);
 
   const applyBranding = useCallback(
     (partial) => {
