@@ -12,7 +12,11 @@ from typing import Optional
 from src.core.config import settings
 from src.schemas.employee import Employee
 from src.schemas.pay_run import PayRun
-from src.schemas.salary_component import SalaryComponent
+from src.schemas.salary_component import (
+    SalaryComponent,
+    EmployeeComponentOverride,
+    DesignationComponentMapping
+)
 from src.schemas.organization import Organization, Department, WorkLocation, Designation
 from src.schemas.statutory_setting import StatutorySetting
 from src.schemas.timesheet import TimeEntry, TimesheetPeriod
@@ -47,6 +51,8 @@ async def init_db():
                 Employee,
                 PayRun,
                 SalaryComponent,
+                EmployeeComponentOverride,
+                DesignationComponentMapping,
                 Organization,
                 Department,
                 WorkLocation,

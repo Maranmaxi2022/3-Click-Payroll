@@ -15,6 +15,14 @@ import uuid
 from pathlib import Path
 
 from src.schemas.organization import WorkLocation, Organization
+from src.schemas.salary_component import (
+    SalaryComponent,
+    ComponentType,
+    CalculationType,
+    DesignationComponentMapping,
+    EmployeeComponentOverride
+)
+from src.services.component_resolution_service import ComponentResolutionService
 
 router = APIRouter()
 
@@ -70,6 +78,105 @@ class WorkLocationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Salary Component Schemas
+class SalaryComponentCreate(BaseModel):
+    """Schema for creating a salary component"""
+    name: str
+    display_name: str
+    component_type: ComponentType
+    calculation_type: CalculationType = CalculationType.FIXED
+    default_value: Optional[float] = None
+    percentage: Optional[float] = None
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    taxable: bool = True
+    affects_cpp: bool = True
+    affects_ei: bool = True
+    is_statutory: bool = False
+    is_default: bool = False
+    display_order: int = 0
+    description: Optional[str] = None
+    applicable_designations: List[str] = []
+    applies_to_all_designations: bool = True
+
+
+class SalaryComponentUpdate(BaseModel):
+    """Schema for updating a salary component"""
+    name: Optional[str] = None
+    display_name: Optional[str] = None
+    calculation_type: Optional[CalculationType] = None
+    default_value: Optional[float] = None
+    percentage: Optional[float] = None
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    taxable: Optional[bool] = None
+    affects_cpp: Optional[bool] = None
+    affects_ei: Optional[bool] = None
+    is_active: Optional[bool] = None
+    is_default: Optional[bool] = None
+    display_order: Optional[int] = None
+    description: Optional[str] = None
+    applicable_designations: Optional[List[str]] = None
+    applies_to_all_designations: Optional[bool] = None
+
+
+class SalaryComponentResponse(BaseModel):
+    """Schema for salary component response"""
+    id: str
+    name: str
+    display_name: str
+    component_type: str
+    calculation_type: str
+    default_value: Optional[float] = None
+    percentage: Optional[float] = None
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
+    taxable: bool
+    affects_cpp: bool
+    affects_ei: bool
+    is_statutory: bool
+    is_active: bool
+    is_default: bool
+    display_order: int
+    description: Optional[str] = None
+    applicable_designations: List[str]
+    applies_to_all_designations: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DesignationComponentMappingCreate(BaseModel):
+    """Schema for creating designation-component mapping"""
+    designation_id: str
+    component_id: str
+    is_mandatory: bool = True
+    default_value: Optional[float] = None
+    percentage: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class DesignationComponentMappingUpdate(BaseModel):
+    """Schema for updating designation-component mapping"""
+    is_mandatory: Optional[bool] = None
+    default_value: Optional[float] = None
+    percentage: Optional[float] = None
+    is_active: Optional[bool] = None
+    notes: Optional[str] = None
+
+
+class EmployeeComponentOverrideCreate(BaseModel):
+    """Schema for creating employee component override"""
+    employee_id: str
+    component_id: str
+    is_enabled: bool = True
+    override_default_value: Optional[float] = None
+    override_percentage: Optional[float] = None
+    notes: Optional[str] = None
 
 
 # Organization Schemas
@@ -130,21 +237,334 @@ class OrganizationResponse(BaseModel):
         from_attributes = True
 
 
-@router.get("/salary-components")
-async def get_salary_components():
+@router.get("/salary-components", response_model=List[SalaryComponentResponse])
+async def get_salary_components(
+    component_type: Optional[ComponentType] = None,
+    is_active: Optional[bool] = None
+):
     """Get all salary components"""
-    return {
-        "message": "Salary components endpoint - coming soon",
-        "components": []
-    }
+    query = {}
+    if component_type:
+        query["component_type"] = component_type
+    if is_active is not None:
+        query["is_active"] = is_active
+
+    components = await SalaryComponent.find(query).sort("+display_order").to_list()
+
+    return [
+        SalaryComponentResponse(
+            id=str(comp.id),
+            name=comp.name,
+            display_name=comp.display_name,
+            component_type=comp.component_type.value,
+            calculation_type=comp.calculation_type.value,
+            default_value=comp.default_value,
+            percentage=comp.percentage,
+            min_value=comp.min_value,
+            max_value=comp.max_value,
+            taxable=comp.taxable,
+            affects_cpp=comp.affects_cpp,
+            affects_ei=comp.affects_ei,
+            is_statutory=comp.is_statutory,
+            is_active=comp.is_active,
+            is_default=comp.is_default,
+            display_order=comp.display_order,
+            description=comp.description,
+            applicable_designations=comp.applicable_designations,
+            applies_to_all_designations=comp.applies_to_all_designations,
+            created_at=comp.created_at,
+            updated_at=comp.updated_at
+        )
+        for comp in components
+    ]
 
 
-@router.post("/salary-components")
-async def create_salary_component():
+@router.get("/salary-components/{component_id}", response_model=SalaryComponentResponse)
+async def get_salary_component(component_id: str):
+    """Get a specific salary component"""
+    comp = await SalaryComponent.get(component_id)
+
+    if not comp:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Salary component with ID {component_id} not found"
+        )
+
+    return SalaryComponentResponse(
+        id=str(comp.id),
+        name=comp.name,
+        display_name=comp.display_name,
+        component_type=comp.component_type.value,
+        calculation_type=comp.calculation_type.value,
+        default_value=comp.default_value,
+        percentage=comp.percentage,
+        min_value=comp.min_value,
+        max_value=comp.max_value,
+        taxable=comp.taxable,
+        affects_cpp=comp.affects_cpp,
+        affects_ei=comp.affects_ei,
+        is_statutory=comp.is_statutory,
+        is_active=comp.is_active,
+        is_default=comp.is_default,
+        display_order=comp.display_order,
+        description=comp.description,
+        applicable_designations=comp.applicable_designations,
+        applies_to_all_designations=comp.applies_to_all_designations,
+        created_at=comp.created_at,
+        updated_at=comp.updated_at
+    )
+
+
+@router.post("/salary-components", response_model=SalaryComponentResponse, status_code=status.HTTP_201_CREATED)
+async def create_salary_component(component_data: SalaryComponentCreate):
     """Create a salary component"""
-    return {
-        "message": "Create salary component - coming soon"
-    }
+    # Check if component with same name already exists
+    existing = await SalaryComponent.find_one({"name": component_data.name})
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Component with name '{component_data.name}' already exists"
+        )
+
+    component = SalaryComponent(
+        name=component_data.name,
+        display_name=component_data.display_name,
+        component_type=component_data.component_type,
+        calculation_type=component_data.calculation_type,
+        default_value=component_data.default_value,
+        percentage=component_data.percentage,
+        min_value=component_data.min_value,
+        max_value=component_data.max_value,
+        taxable=component_data.taxable,
+        affects_cpp=component_data.affects_cpp,
+        affects_ei=component_data.affects_ei,
+        is_statutory=component_data.is_statutory,
+        is_default=component_data.is_default,
+        display_order=component_data.display_order,
+        description=component_data.description,
+        applicable_designations=component_data.applicable_designations,
+        applies_to_all_designations=component_data.applies_to_all_designations,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+
+    await component.insert()
+
+    return SalaryComponentResponse(
+        id=str(component.id),
+        name=component.name,
+        display_name=component.display_name,
+        component_type=component.component_type.value,
+        calculation_type=component.calculation_type.value,
+        default_value=component.default_value,
+        percentage=component.percentage,
+        min_value=component.min_value,
+        max_value=component.max_value,
+        taxable=component.taxable,
+        affects_cpp=component.affects_cpp,
+        affects_ei=component.affects_ei,
+        is_statutory=component.is_statutory,
+        is_active=component.is_active,
+        is_default=component.is_default,
+        display_order=component.display_order,
+        description=component.description,
+        applicable_designations=component.applicable_designations,
+        applies_to_all_designations=component.applies_to_all_designations,
+        created_at=component.created_at,
+        updated_at=component.updated_at
+    )
+
+
+@router.put("/salary-components/{component_id}", response_model=SalaryComponentResponse)
+async def update_salary_component(component_id: str, component_data: SalaryComponentUpdate):
+    """Update a salary component"""
+    component = await SalaryComponent.get(component_id)
+
+    if not component:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Salary component with ID {component_id} not found"
+        )
+
+    # Prevent updating statutory components
+    if component.is_statutory:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot modify statutory components"
+        )
+
+    # Update only provided fields
+    update_dict = component_data.dict(exclude_unset=True)
+    update_dict["updated_at"] = datetime.utcnow()
+
+    for field, value in update_dict.items():
+        setattr(component, field, value)
+
+    await component.save()
+
+    return SalaryComponentResponse(
+        id=str(component.id),
+        name=component.name,
+        display_name=component.display_name,
+        component_type=component.component_type.value,
+        calculation_type=component.calculation_type.value,
+        default_value=component.default_value,
+        percentage=component.percentage,
+        min_value=component.min_value,
+        max_value=component.max_value,
+        taxable=component.taxable,
+        affects_cpp=component.affects_cpp,
+        affects_ei=component.affects_ei,
+        is_statutory=component.is_statutory,
+        is_active=component.is_active,
+        is_default=component.is_default,
+        display_order=component.display_order,
+        description=component.description,
+        applicable_designations=component.applicable_designations,
+        applies_to_all_designations=component.applies_to_all_designations,
+        created_at=component.created_at,
+        updated_at=component.updated_at
+    )
+
+
+@router.delete("/salary-components/{component_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_salary_component(component_id: str):
+    """Delete a salary component"""
+    component = await SalaryComponent.get(component_id)
+
+    if not component:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Salary component with ID {component_id} not found"
+        )
+
+    # Prevent deleting statutory components
+    if component.is_statutory:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete statutory components"
+        )
+
+    await component.delete()
+    return None
+
+
+# Designation-Component Mapping Endpoints
+@router.get("/designations/{designation_id}/components")
+async def get_designation_components(designation_id: str):
+    """Get all components for a designation with resolved values"""
+    try:
+        resolved = await ComponentResolutionService.get_components_for_designation(designation_id)
+        return {"components": [rc.to_dict() for rc in resolved]}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+
+
+@router.post("/designations/{designation_id}/components")
+async def assign_component_to_designation(
+    designation_id: str,
+    mapping_data: DesignationComponentMappingCreate
+):
+    """Assign a component to a designation"""
+    try:
+        mapping = await ComponentResolutionService.assign_component_to_designation(
+            designation_id=mapping_data.designation_id,
+            component_id=mapping_data.component_id,
+            is_mandatory=mapping_data.is_mandatory,
+            default_value=mapping_data.default_value,
+            percentage=mapping_data.percentage
+        )
+        return {
+            "id": str(mapping.id),
+            "designation_id": mapping.designation_id,
+            "component_id": mapping.component_id,
+            "is_mandatory": mapping.is_mandatory,
+            "default_value": mapping.default_value,
+            "percentage": mapping.percentage
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+
+
+@router.delete("/designations/{designation_id}/components/{component_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_component_from_designation(designation_id: str, component_id: str):
+    """Remove a component from a designation"""
+    removed = await ComponentResolutionService.remove_component_from_designation(
+        designation_id, component_id
+    )
+
+    if not removed:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Mapping not found"
+        )
+
+    return None
+
+
+# Employee Component Override Endpoints
+@router.get("/employees/{employee_id}/components")
+async def get_employee_components(employee_id: str):
+    """Get all components for an employee with resolved values"""
+    try:
+        resolved = await ComponentResolutionService.get_components_for_employee(employee_id)
+        return {"components": [rc.to_dict() for rc in resolved]}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+
+
+@router.post("/employees/{employee_id}/component-overrides")
+async def create_employee_component_override(
+    employee_id: str,
+    override_data: EmployeeComponentOverrideCreate
+):
+    """Create or update an employee component override"""
+    try:
+        override = await ComponentResolutionService.set_employee_component_override(
+            employee_id=override_data.employee_id,
+            component_id=override_data.component_id,
+            is_enabled=override_data.is_enabled,
+            override_default_value=override_data.override_default_value,
+            override_percentage=override_data.override_percentage,
+            notes=override_data.notes
+        )
+        return {
+            "id": str(override.id),
+            "employee_id": override.employee_id,
+            "component_id": override.component_id,
+            "is_enabled": override.is_enabled,
+            "override_values": override.override_values
+        }
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+
+
+@router.delete("/employees/{employee_id}/component-overrides/{component_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_employee_component_override(employee_id: str, component_id: str):
+    """Delete an employee component override"""
+    removed = await ComponentResolutionService.remove_employee_component_override(
+        employee_id, component_id
+    )
+
+    if not removed:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Override not found"
+        )
+
+    return None
 
 
 @router.get("/statutory")
