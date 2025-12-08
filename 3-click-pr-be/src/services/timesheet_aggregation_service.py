@@ -288,13 +288,13 @@ class TimesheetAggregationService:
             "employee_number": employee.employee_number,
             "first_name": employee.first_name,
             "last_name": employee.last_name,
-            "workerCategory": employee.workerCategory,
-            "province": employee.province,
-            "dateOfBirth": str(employee.dateOfBirth) if employee.dateOfBirth else None,
+            "workerCategory": employee.worker_category,
+            "province": employee.province_of_employment,
+            "dateOfBirth": str(employee.date_of_birth) if employee.date_of_birth else None,
             "hourly_rate": hourly_rate,
             "td1_federal": employee.td1_federal.dict() if employee.td1_federal else None,
             "td1_provincial": employee.td1_provincial.dict() if employee.td1_provincial else None,
-            "ytd_totals": employee.ytd_totals.dict() if employee.ytd_totals else None
+            "ytd_totals": employee.ytd_carry_in.dict() if employee.ytd_carry_in else None
         }
 
         return employee_dict, earnings
@@ -367,15 +367,15 @@ class TimesheetAggregationService:
                 "employee_number": employee.employee_number,
                 "first_name": employee.first_name,
                 "last_name": employee.last_name,
-                "workerCategory": employee.workerCategory,
-                "province": employee.province,
-                "dateOfBirth": str(employee.dateOfBirth) if employee.dateOfBirth else None,
+                "workerCategory": employee.worker_category,
+                "province": employee.province_of_employment,
+                "dateOfBirth": str(employee.date_of_birth) if employee.date_of_birth else None,
                 "hourly_rate": hourly_rate,
                 "department_id": employee.department_id,
                 "department_name": employee.department_name,
                 "td1_federal": employee.td1_federal.dict() if employee.td1_federal else None,
                 "td1_provincial": employee.td1_provincial.dict() if employee.td1_provincial else None,
-                "ytd_totals": employee.ytd_totals.dict() if employee.ytd_totals else None
+                "ytd_totals": employee.ytd_carry_in.dict() if employee.ytd_carry_in else None
             }
 
             pay_run_data[employee_id] = {

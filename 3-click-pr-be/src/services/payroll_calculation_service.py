@@ -346,15 +346,15 @@ class PayrollCalculationService:
 
             # Accumulate totals
             totals["total_employees"] += 1
-            totals["total_gross_earnings"] += calculation["earnings"]["gross_earnings"]
-            totals["total_net_pay"] += calculation["summary"]["net_pay"]
-            totals["total_cpp"] += calculation["statutory_deductions"]["cpp_contribution"]
-            totals["total_cpp2"] += calculation["statutory_deductions"]["cpp2_contribution"]
-            totals["total_ei"] += calculation["statutory_deductions"]["ei_premium"]
-            totals["total_qpip"] += calculation["statutory_deductions"]["qpip_premium"]
-            totals["total_federal_tax"] += calculation["statutory_deductions"]["federal_tax"]
-            totals["total_provincial_tax"] += calculation["statutory_deductions"]["provincial_tax"]
-            totals["total_deductions"] += calculation["summary"]["total_deductions"]
+            totals["total_gross_earnings"] += calculation["earnings"]["gross_earnings"] or 0
+            totals["total_net_pay"] += calculation["summary"]["net_pay"] or 0
+            totals["total_cpp"] += calculation["statutory_deductions"]["cpp_contribution"] or 0
+            totals["total_cpp2"] += calculation["statutory_deductions"]["cpp2_contribution"] or 0
+            totals["total_ei"] += calculation["statutory_deductions"]["ei_premium"] or 0
+            totals["total_qpip"] += calculation["statutory_deductions"]["qpip_premium"] or 0
+            totals["total_federal_tax"] += calculation["statutory_deductions"]["federal_tax"] or 0
+            totals["total_provincial_tax"] += calculation["statutory_deductions"]["provincial_tax"] or 0
+            totals["total_deductions"] += calculation["summary"]["total_deductions"] or 0
 
         # Round totals
         for key in totals:

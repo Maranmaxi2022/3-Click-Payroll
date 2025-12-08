@@ -253,7 +253,7 @@ class IncomeTaxService:
         period_tax = annual_tax / periods_per_year
 
         # Add additional tax per period
-        period_tax += additional_tax
+        period_tax += additional_tax or 0
 
         # Round to 2 decimal places
         return round(period_tax, 2)
@@ -327,7 +327,7 @@ class IncomeTaxService:
         period_tax = annual_tax / periods_per_year
 
         # Add additional tax per period
-        period_tax += additional_tax
+        period_tax += additional_tax or 0
 
         # Round to 2 decimal places
         return round(period_tax, 2)

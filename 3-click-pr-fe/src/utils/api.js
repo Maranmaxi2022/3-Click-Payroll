@@ -529,4 +529,148 @@ export const timesheetAPI = {
     }),
 };
 
+// Pay Run API endpoints
+export const payRunAPI = {
+  /**
+   * Get all pay runs with optional filtering
+   * @param {Object} params - Query parameters (e.g., { status: 'calculated', limit: 50 })
+   * @returns {Promise<Array>} List of pay runs
+   */
+  getAll: (params = {}) => {
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v != null)
+    ).toString();
+    const endpoint = queryString
+      ? `/api/v1/payruns/?${queryString}`
+      : '/api/v1/payruns/';
+    return request(endpoint);
+  },
+
+  /**
+   * Get a single pay run by ID
+   * @param {string} payRunId - MongoDB ObjectId as string
+   * @returns {Promise<Object>} Pay run details with pay periods
+   */
+  getById: (payRunId) => request(`/api/v1/payruns/${payRunId}`),
+
+  /**
+   * Create a new pay run
+   * @param {Object} payRunData - Pay run creation data
+   * @returns {Promise<Object>} Created pay run
+   */
+  create: (payRunData) =>
+    request('/api/v1/payruns/', {
+      method: 'POST',
+      body: JSON.stringify(payRunData),
+    }),
+
+  /**
+   * Calculate a pay run
+   * @param {string} payRunId - Pay run ID
+   * @param {boolean} recalculate - Force recalculation
+   * @returns {Promise<Object>} Calculated pay run with all pay periods
+   */
+  calculate: (payRunId, recalculate = false) =>
+    request(`/api/v1/payruns/${payRunId}/calculate`, {
+      method: 'POST',
+      body: JSON.stringify({ recalculate }),
+    }),
+
+  /**
+   * Approve a pay run
+   * @param {string} payRunId - Pay run ID
+   * @param {string} approvedBy - Name of approver
+   * @param {string} notes - Optional approval notes
+   * @returns {Promise<Object>} Approved pay run
+   */
+  approve: (payRunId, approvedBy, notes = null) =>
+    request(`/api/v1/payruns/${payRunId}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ approved_by: approvedBy, notes }),
+    }),
+
+  /**
+   * Process a pay run (mark as completed)
+   * @param {string} payRunId - Pay run ID
+   * @returns {Promise<Object>} Processed pay run
+   */
+  process: (payRunId) =>
+    request(`/api/v1/payruns/${payRunId}/process`, {
+      method: 'POST',
+    }),
+
+  /**
+   * Delete a pay run (only if draft)
+   * @param {string} payRunId - Pay run ID
+   * @returns {Promise<null>} No content on success
+   */
+  delete: (payRunId) =>
+    request(`/api/v1/payruns/${payRunId}`, {
+      method: 'DELETE',
+    }),
+
+  /**
+   * Generate payslips for all employees in a pay run
+   * @param {string} payRunId - Pay run ID
+   * @returns {Promise<Object>} Generation status with payslip info
+   */
+  generatePayslips: (payRunId) =>
+    request(`/api/v1/payruns/${payRunId}/generate-payslips`, {
+      method: 'POST',
+    }),
+
+  /**
+   * Download a single payslip PDF
+   * @param {string} payRunId - Pay run ID
+   * @param {string} employeeId - Employee ID
+   * @returns {Promise<Blob>} PDF file blob
+   */
+  downloadPayslip: async (payRunId, employeeId) => {
+    const url = `${API_BASE_URL}/api/v1/payruns/${payRunId}/payslips/${employeeId}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { detail: response.statusText };
+      }
+      throw new APIError(
+        errorData.detail || errorData.message || 'Download failed',
+        response.status,
+        errorData
+      );
+    }
+
+    return await response.blob();
+  },
+
+  /**
+   * Download all payslips as ZIP
+   * @param {string} payRunId - Pay run ID
+   * @returns {Promise<Blob>} ZIP file blob
+   */
+  downloadAllPayslips: async (payRunId) => {
+    const url = `${API_BASE_URL}/api/v1/payruns/${payRunId}/payslips/download-all`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { detail: response.statusText };
+      }
+      throw new APIError(
+        errorData.detail || errorData.message || 'Download failed',
+        response.status,
+        errorData
+      );
+    }
+
+    return await response.blob();
+  },
+};
+
 export { APIError };
