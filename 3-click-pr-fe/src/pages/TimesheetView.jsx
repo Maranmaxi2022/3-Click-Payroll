@@ -1,5 +1,5 @@
 // src/pages/TimesheetView.jsx
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Upload, FileText, Trash2, Download, Calendar, User, AlertCircle, CheckCircle } from "lucide-react";
 import { timesheetAPI } from "../utils/api";
 
@@ -10,7 +10,37 @@ export default function TimesheetView() {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [uploadResult, setUploadResult] = useState(null);
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef(null);
+
+  // Fetch upload history on component mount
+  useEffect(() => {
+    fetchUploadHistory();
+  }, []);
+
+  const fetchUploadHistory = async () => {
+    setLoading(true);
+    try {
+      const uploads = await timesheetAPI.getUploads({ limit: 50 });
+      setUploadHistory(uploads.map(upload => ({
+        id: upload.id,
+        fileName: upload.file_name,
+        fileSize: `${(upload.file_size / 1024).toFixed(0)} KB`,
+        uploadedBy: "Current User",
+        uploadDate: new Date(upload.uploaded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        lastModified: new Date(upload.uploaded_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: upload.status,
+        entriesCreated: upload.entries_created,
+        entriesFailed: upload.entries_failed,
+        employeeCount: upload.employee_count,
+        dateRange: upload.date_range,
+      })));
+    } catch (error) {
+      console.error('Failed to fetch upload history:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -54,21 +84,10 @@ export default function TimesheetView() {
       // Upload CSV file to backend
       const result = await timesheetAPI.uploadCSV(file);
 
-      // Create upload history entry
-      const newFile = {
-        id: Date.now(),
-        fileName: file.name,
-        fileSize: `${(file.size / 1024).toFixed(0)} KB`,
-        uploadedBy: "Current User",
-        uploadDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        lastModified: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        status: "processed",
-        entriesCreated: result.created,
-        entriesFailed: result.failed,
-      };
-
-      setUploadHistory([newFile, ...uploadHistory]);
       setUploadResult(result);
+
+      // Refresh upload history from backend
+      await fetchUploadHistory();
 
       // Show success message
       if (result.created > 0) {
@@ -84,9 +103,19 @@ export default function TimesheetView() {
     }
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this timesheet?')) {
-      setUploadHistory(uploadHistory.filter(item => item.id !== id));
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this timesheet? This will remove the upload record and optionally delete all associated time entries.')) {
+      const deleteEntries = window.confirm('Do you also want to delete all time entries created by this upload?');
+
+      try {
+        await timesheetAPI.deleteUpload(id, deleteEntries);
+        // Refresh upload history
+        await fetchUploadHistory();
+        alert('Upload deleted successfully');
+      } catch (error) {
+        console.error('Delete failed:', error);
+        alert(`Delete failed: ${error.message || 'Unknown error'}`);
+      }
     }
   };
 

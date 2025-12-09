@@ -12,7 +12,7 @@ from beanie import PydanticObjectId
 import csv
 import io
 
-from ...schemas.timesheet import TimeEntry, TimesheetPeriod, TimeEntryType, TimeEntryStatus, ShiftDetails
+from ...schemas.timesheet import TimeEntry, TimesheetPeriod, TimeEntryType, TimeEntryStatus, ShiftDetails, TimesheetFileUpload, FileUploadStatus
 from ...schemas.employee import Employee
 
 router = APIRouter()
@@ -492,6 +492,128 @@ async def get_employee_timesheet_summary(
 
 
 # ============================================================================
+# FILE UPLOAD MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@router.get("/uploads", response_model=List[dict])
+async def get_file_uploads(
+    limit: int = 50,
+    skip: int = 0,
+    status: Optional[FileUploadStatus] = None
+):
+    """
+    Get list of uploaded timesheet files
+
+    Args:
+        limit: Maximum number of results
+        skip: Number of results to skip
+        status: Filter by upload status
+
+    Returns:
+        List of file upload records
+    """
+    query = {}
+    if status:
+        query["status"] = status
+
+    uploads = await TimesheetFileUpload.find(query).skip(skip).limit(limit).sort("-uploaded_at").to_list()
+
+    return [{
+        "id": str(upload.id),
+        "file_name": upload.file_name,
+        "file_size": upload.file_size,
+        "uploaded_at": upload.uploaded_at.isoformat(),
+        "status": upload.status.value,
+        "total_rows": upload.total_rows,
+        "entries_created": upload.entries_created,
+        "entries_failed": upload.entries_failed,
+        "employee_count": upload.employee_count,
+        "date_range": {
+            "start": upload.date_range_start.isoformat() if upload.date_range_start else None,
+            "end": upload.date_range_end.isoformat() if upload.date_range_end else None
+        }
+    } for upload in uploads]
+
+
+@router.get("/uploads/{upload_id}", response_model=dict)
+async def get_file_upload(upload_id: str):
+    """Get detailed information about a specific file upload"""
+    try:
+        upload = await TimesheetFileUpload.get(PydanticObjectId(upload_id))
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"File upload {upload_id} not found"
+        )
+
+    if not upload:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"File upload {upload_id} not found"
+        )
+
+    return {
+        "id": str(upload.id),
+        "file_name": upload.file_name,
+        "file_size": upload.file_size,
+        "uploaded_at": upload.uploaded_at.isoformat(),
+        "status": upload.status.value,
+        "total_rows": upload.total_rows,
+        "entries_created": upload.entries_created,
+        "entries_failed": upload.entries_failed,
+        "time_entry_ids": upload.time_entry_ids,
+        "employee_ids": upload.employee_ids,
+        "employee_count": upload.employee_count,
+        "date_range": {
+            "start": upload.date_range_start.isoformat() if upload.date_range_start else None,
+            "end": upload.date_range_end.isoformat() if upload.date_range_end else None
+        },
+        "errors": upload.errors,
+        "processing_notes": upload.processing_notes
+    }
+
+
+@router.delete("/uploads/{upload_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_file_upload(upload_id: str, delete_entries: bool = False):
+    """
+    Delete a file upload record
+
+    Args:
+        upload_id: File upload ID
+        delete_entries: If True, also delete all associated time entries
+    """
+    try:
+        upload = await TimesheetFileUpload.get(PydanticObjectId(upload_id))
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"File upload {upload_id} not found"
+        )
+
+    if not upload:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"File upload {upload_id} not found"
+        )
+
+    # Optionally delete associated time entries
+    if delete_entries and upload.time_entry_ids:
+        for entry_id in upload.time_entry_ids:
+            try:
+                entry = await TimeEntry.get(PydanticObjectId(entry_id))
+                if entry:
+                    await entry.delete()
+            except Exception:
+                # Continue even if some entries fail to delete
+                pass
+
+    # Delete the upload record
+    await upload.delete()
+
+    return None
+
+
+# ============================================================================
 # CSV UPLOAD ENDPOINT
 # ============================================================================
 
@@ -509,7 +631,7 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
         file: CSV file upload
 
     Returns:
-        Summary of created entries and errors
+        Summary of created entries and errors including file upload record
     """
     # Validate file type
     if not file.filename.endswith('.csv'):
@@ -522,11 +644,21 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
     try:
         content = await file.read()
         decoded_content = content.decode('utf-8')
+        file_size = len(content)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to read CSV file: {str(e)}"
         )
+
+    # Create file upload record
+    file_upload = TimesheetFileUpload(
+        file_name=file.filename,
+        file_size=file_size,
+        status=FileUploadStatus.PROCESSING,
+        uploaded_at=datetime.utcnow()
+    )
+    await file_upload.insert()
 
     # Parse CSV
     csv_reader = csv.DictReader(io.StringIO(decoded_content))
@@ -534,6 +666,10 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
     created_entries = []
     errors = []
     row_number = 1  # Start at 1 (header is row 0)
+
+    # Track metadata
+    employee_ids_set = set()
+    work_dates = []
 
     for row in csv_reader:
         row_number += 1
@@ -573,6 +709,7 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
             # Parse date
             try:
                 work_date = datetime.strptime(work_date_str, '%Y-%m-%d').date()
+                work_dates.append(work_date)
             except ValueError:
                 errors.append({
                     "row": row_number,
@@ -659,6 +796,10 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
             )
 
             await time_entry.insert()
+
+            # Track metadata
+            employee_ids_set.add(str(employee.id))
+
             created_entries.append({
                 "id": str(time_entry.id),
                 "employee_id": time_entry.employee_id,
@@ -676,11 +817,44 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
                 "data": row
             })
 
+    # Update file upload record with results
+    file_upload.total_rows = row_number - 1  # Exclude header
+    file_upload.entries_created = len(created_entries)
+    file_upload.entries_failed = len(errors)
+    file_upload.time_entry_ids = [entry["id"] for entry in created_entries]
+    file_upload.employee_ids = list(employee_ids_set)
+    file_upload.employee_count = len(employee_ids_set)
+    file_upload.errors = errors if errors else []
+
+    # Set date range if we have work dates
+    if work_dates:
+        file_upload.date_range_start = min(work_dates)
+        file_upload.date_range_end = max(work_dates)
+
+    # Determine final status
+    if len(errors) == 0:
+        file_upload.status = FileUploadStatus.COMPLETED
+    elif len(created_entries) == 0:
+        file_upload.status = FileUploadStatus.FAILED
+    else:
+        file_upload.status = FileUploadStatus.PARTIALLY_COMPLETED
+
+    file_upload.updated_at = datetime.utcnow()
+    await file_upload.save()
+
     return {
         "success": True,
-        "total_rows": row_number - 1,  # Exclude header
-        "created": len(created_entries),
-        "failed": len(errors),
+        "file_upload_id": str(file_upload.id),
+        "file_name": file_upload.file_name,
+        "total_rows": file_upload.total_rows,
+        "created": file_upload.entries_created,
+        "failed": file_upload.entries_failed,
+        "status": file_upload.status.value,
+        "date_range": {
+            "start": file_upload.date_range_start.isoformat() if file_upload.date_range_start else None,
+            "end": file_upload.date_range_end.isoformat() if file_upload.date_range_end else None
+        },
+        "employee_count": file_upload.employee_count,
         "entries": created_entries,
         "errors": errors
     }

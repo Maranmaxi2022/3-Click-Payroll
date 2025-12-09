@@ -19,7 +19,7 @@ from src.schemas.salary_component import (
 )
 from src.schemas.organization import Organization, Department, WorkLocation, Designation
 from src.schemas.statutory_setting import StatutorySetting
-from src.schemas.timesheet import TimeEntry, TimesheetPeriod
+from src.schemas.timesheet import TimeEntry, TimesheetPeriod, TimesheetFileUpload
 
 
 # Global database client
@@ -59,7 +59,8 @@ async def init_db():
                 Designation,
                 StatutorySetting,
                 TimeEntry,
-                TimesheetPeriod
+                TimesheetPeriod,
+                TimesheetFileUpload
             ]
         )
 

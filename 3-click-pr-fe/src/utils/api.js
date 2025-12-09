@@ -527,6 +527,41 @@ export const timesheetAPI = {
         manager_notes: notes,
       }),
     }),
+
+  /**
+   * Get list of uploaded timesheet files
+   * @param {Object} params - Query parameters (limit, skip, status)
+   * @returns {Promise<Array>} List of file uploads
+   */
+  getUploads: (params = {}) => {
+    const queryString = new URLSearchParams(
+      Object.entries(params).filter(([_, v]) => v != null)
+    ).toString();
+    const endpoint = queryString
+      ? `/api/v1/timesheets/uploads?${queryString}`
+      : '/api/v1/timesheets/uploads';
+    return request(endpoint);
+  },
+
+  /**
+   * Get detailed information about a specific file upload
+   * @param {string} uploadId - File upload ID
+   * @returns {Promise<Object>} File upload details
+   */
+  getUploadById: (uploadId) => request(`/api/v1/timesheets/uploads/${uploadId}`),
+
+  /**
+   * Delete a file upload record
+   * @param {string} uploadId - File upload ID
+   * @param {boolean} deleteEntries - If true, also delete associated time entries
+   * @returns {Promise<null>} No content on success
+   */
+  deleteUpload: (uploadId, deleteEntries = false) => {
+    const params = deleteEntries ? '?delete_entries=true' : '';
+    return request(`/api/v1/timesheets/uploads/${uploadId}${params}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // Pay Run API endpoints

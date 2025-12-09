@@ -198,3 +198,81 @@ class TimesheetPeriod(Document):
                 "status": "approved"
             }
         }
+
+
+class FileUploadStatus(str, Enum):
+    """Status of file upload"""
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    PARTIALLY_COMPLETED = "partially_completed"
+
+
+class TimesheetFileUpload(Document):
+    """
+    Timesheet File Upload Document
+
+    Tracks CSV file uploads and their processing status.
+    Allows users to view upload history and manage uploaded files.
+    """
+
+    # File information
+    file_name: str
+    file_size: int  # Size in bytes
+    file_path: Optional[str] = None  # Path if file is stored
+
+    # Upload information
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    uploaded_by: Optional[str] = None  # User ID or username
+
+    # Processing results
+    status: FileUploadStatus = FileUploadStatus.PROCESSING
+    total_rows: int = 0  # Total data rows (excluding header)
+    entries_created: int = 0  # Successfully created entries
+    entries_failed: int = 0  # Failed entries
+
+    # Time entry references
+    time_entry_ids: List[str] = []  # IDs of created time entries
+
+    # Error tracking
+    errors: Optional[List[dict]] = []  # List of errors with row numbers
+
+    # Date range of entries in file
+    date_range_start: Optional[date] = None
+    date_range_end: Optional[date] = None
+
+    # Employee coverage
+    employee_ids: List[str] = []  # Unique employee IDs in the upload
+    employee_count: int = 0  # Number of unique employees
+
+    # Metadata
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+    # Processing notes
+    processing_notes: Optional[str] = None
+
+    class Settings:
+        name = "timesheet_file_uploads"
+        indexes = [
+            "uploaded_at",
+            "status",
+            "uploaded_by",
+            ("uploaded_at", "status"),
+        ]
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "file_name": "timesheet_november_2025.csv",
+                "file_size": 15360,
+                "uploaded_at": "2025-11-30T10:30:00",
+                "status": "completed",
+                "total_rows": 144,
+                "entries_created": 144,
+                "entries_failed": 0,
+                "employee_count": 2,
+                "date_range_start": "2025-11-01",
+                "date_range_end": "2025-11-30"
+            }
+        }
