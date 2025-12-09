@@ -90,9 +90,21 @@ export default function TimesheetView() {
       await fetchUploadHistory();
 
       // Show success message
-      if (result.created > 0) {
-        alert(`Successfully uploaded ${result.created} time entries!${result.failed > 0 ? ` (${result.failed} failed)` : ''}`);
+      if (result.message) {
+        // Backend provided a custom message (e.g., all duplicates)
+        alert(result.message);
+      } else if (result.created > 0) {
+        // Some entries were created successfully
+        const msg = `Successfully uploaded ${result.created} time entries!`;
+        const warnings = [];
+        if (result.failed > 0) warnings.push(`${result.failed} failed`);
+        if (result.skipped_duplicates > 0) warnings.push(`${result.skipped_duplicates} duplicates skipped`);
+        alert(warnings.length > 0 ? `${msg} (${warnings.join(', ')})` : msg);
+      } else if (result.skipped_duplicates > 0) {
+        // All entries were duplicates
+        alert(`All ${result.skipped_duplicates} entries already exist. No new entries created.`);
       } else {
+        // Nothing was created and no clear reason
         alert('Upload completed but no entries were created. Please check the file format.');
       }
     } catch (error) {

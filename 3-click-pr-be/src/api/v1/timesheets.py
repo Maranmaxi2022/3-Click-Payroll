@@ -665,6 +665,7 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
 
     created_entries = []
     errors = []
+    skipped_duplicates = []
     row_number = 1  # Start at 1 (header is row 0)
 
     # Track metadata
@@ -706,6 +707,9 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
                 })
                 continue
 
+            # Get employee name early for error messages
+            employee_name = f"{employee.first_name} {employee.last_name}"
+
             # Parse date
             try:
                 work_date = datetime.strptime(work_date_str, '%Y-%m-%d').date()
@@ -715,6 +719,20 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
                     "row": row_number,
                     "error": f"Invalid date format: {work_date_str}. Expected YYYY-MM-DD",
                     "data": row
+                })
+                continue
+
+            # Check if entry already exists for this employee and date
+            existing_entry = await TimeEntry.find_one({
+                "employee_id": str(employee.id),
+                "work_date": work_date
+            })
+
+            if existing_entry:
+                skipped_duplicates.append({
+                    "row": row_number,
+                    "employee_name": employee_name,
+                    "work_date": work_date_str
                 })
                 continue
 
@@ -831,16 +849,29 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
         file_upload.date_range_start = min(work_dates)
         file_upload.date_range_end = max(work_dates)
 
-    # Determine final status
-    if len(errors) == 0:
+    # Determine final status and set processing notes
+    if len(skipped_duplicates) > 0 and len(created_entries) == 0 and len(errors) == 0:
+        file_upload.status = FileUploadStatus.FAILED
+        file_upload.processing_notes = f"All {len(skipped_duplicates)} entries already exist in the database. No new entries were created."
+    elif len(errors) == 0 and len(skipped_duplicates) == 0:
         file_upload.status = FileUploadStatus.COMPLETED
     elif len(created_entries) == 0:
         file_upload.status = FileUploadStatus.FAILED
     else:
         file_upload.status = FileUploadStatus.PARTIALLY_COMPLETED
+        if len(skipped_duplicates) > 0:
+            file_upload.processing_notes = f"Skipped {len(skipped_duplicates)} duplicate entries."
 
     file_upload.updated_at = datetime.utcnow()
     await file_upload.save()
+
+    # Build response message
+    if len(skipped_duplicates) > 0 and len(created_entries) == 0 and len(errors) == 0:
+        response_message = f"This file has already been uploaded. All {len(skipped_duplicates)} entries already exist in the database."
+    elif len(skipped_duplicates) > 0:
+        response_message = f"Upload partially completed. {len(created_entries)} new entries created, {len(skipped_duplicates)} duplicates skipped."
+    else:
+        response_message = None
 
     return {
         "success": True,
@@ -849,12 +880,15 @@ async def upload_timesheet_csv(file: UploadFile = File(...)):
         "total_rows": file_upload.total_rows,
         "created": file_upload.entries_created,
         "failed": file_upload.entries_failed,
+        "skipped_duplicates": len(skipped_duplicates),
         "status": file_upload.status.value,
+        "message": response_message,
         "date_range": {
             "start": file_upload.date_range_start.isoformat() if file_upload.date_range_start else None,
             "end": file_upload.date_range_end.isoformat() if file_upload.date_range_end else None
         },
         "employee_count": file_upload.employee_count,
         "entries": created_entries,
-        "errors": errors
+        "errors": errors,
+        "duplicates": skipped_duplicates
     }
