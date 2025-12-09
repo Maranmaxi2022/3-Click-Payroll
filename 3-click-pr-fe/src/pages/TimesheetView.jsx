@@ -5,6 +5,47 @@ import { timesheetAPI } from "../utils/api";
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
 
+// Helper function to get status badge styling
+const getStatusBadge = (status) => {
+  switch (status) {
+    case 'completed':
+      return {
+        bg: 'bg-green-50',
+        text: 'text-green-700',
+        border: 'border-green-200',
+        label: 'Completed'
+      };
+    case 'failed':
+      return {
+        bg: 'bg-red-50',
+        text: 'text-red-700',
+        border: 'border-red-200',
+        label: 'Failed'
+      };
+    case 'partially_completed':
+      return {
+        bg: 'bg-amber-50',
+        text: 'text-amber-700',
+        border: 'border-amber-200',
+        label: 'Partial'
+      };
+    case 'processing':
+      return {
+        bg: 'bg-blue-50',
+        text: 'text-blue-700',
+        border: 'border-blue-200',
+        label: 'Processing'
+      };
+    default:
+      return {
+        bg: 'bg-slate-50',
+        text: 'text-slate-700',
+        border: 'border-slate-200',
+        label: status || 'Unknown'
+      };
+  }
+};
+
 export default function TimesheetView() {
   const [uploadHistory, setUploadHistory] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -264,24 +305,27 @@ export default function TimesheetView() {
 
           {/* Table Header */}
           <div className="hidden border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-600 sm:grid sm:grid-cols-12 gap-4">
-            <div className="col-span-4">File name</div>
+            <div className="col-span-3">File name</div>
+            <div className="col-span-2">Status</div>
             <div className="col-span-2">File size</div>
             <div className="col-span-2">Date uploaded</div>
-            <div className="col-span-2">Last updated</div>
+            <div className="col-span-1">Entries</div>
             <div className="col-span-2 text-right">Actions</div>
           </div>
 
           {/* File List */}
           <div className="divide-y divide-slate-200">
-            {uploadHistory.map((file) => (
+            {uploadHistory.map((file) => {
+              const statusBadge = getStatusBadge(file.status);
+              return (
               <div
                 key={file.id}
                 className="grid grid-cols-1 gap-3 p-4 hover:bg-slate-50 transition-colors sm:grid-cols-12 sm:gap-4 items-center"
               >
                 {/* File Name */}
-                <div className="col-span-1 sm:col-span-4 flex items-center gap-3">
-                  <div className="flex-shrink-0 rounded-lg bg-red-50 p-2">
-                    <FileText className="h-5 w-5 text-red-500" />
+                <div className="col-span-1 sm:col-span-3 flex items-center gap-3">
+                  <div className={cx("flex-shrink-0 rounded-lg p-2", statusBadge.bg)}>
+                    <FileText className={cx("h-5 w-5", statusBadge.text)} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-slate-900">
@@ -291,6 +335,22 @@ export default function TimesheetView() {
                       {file.fileSize} • {file.uploadDate}
                     </p>
                   </div>
+                </div>
+
+                {/* Status */}
+                <div className="col-span-1 sm:col-span-2">
+                  <span className={cx(
+                    "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                    statusBadge.bg,
+                    statusBadge.text,
+                    statusBadge.border
+                  )}>
+                    {statusBadge.label}
+                  </span>
+                  <p className="mt-1 text-xs text-slate-500 sm:hidden">
+                    {file.entriesCreated} created
+                    {file.entriesFailed > 0 && ` • ${file.entriesFailed} failed`}
+                  </p>
                 </div>
 
                 {/* File Size */}
@@ -303,9 +363,12 @@ export default function TimesheetView() {
                   <p className="text-sm text-slate-700">{file.uploadDate}</p>
                 </div>
 
-                {/* Last Modified */}
-                <div className="hidden sm:block sm:col-span-2">
-                  <p className="text-sm text-slate-700">{file.lastModified}</p>
+                {/* Entries Count */}
+                <div className="hidden sm:block sm:col-span-1">
+                  <p className="text-sm text-slate-700">{file.entriesCreated}</p>
+                  {file.entriesFailed > 0 && (
+                    <p className="text-xs text-red-600">{file.entriesFailed} failed</p>
+                  )}
                 </div>
 
                 {/* Actions */}
@@ -328,7 +391,8 @@ export default function TimesheetView() {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
