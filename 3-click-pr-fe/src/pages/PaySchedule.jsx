@@ -281,7 +281,6 @@ export default function PaySchedule() {
                         value={payDayOfMonth}
                         onChange={(opt) => setPayDayOfMonth(Number(opt.value))}
                         placeholder=""
-                        searchInMenu
                       />
                     </div>
                     of every month
@@ -300,7 +299,6 @@ export default function PaySchedule() {
                   value={payDayOfMonth}
                   onChange={(opt) => setPayDayOfMonth(Number(opt.value))}
                   placeholder=""
-                  searchInMenu
                 />
               </div>
             )}
@@ -328,7 +326,6 @@ export default function PaySchedule() {
                   setFirstMonth(new Date(y, m, 1));
                 }}
                 placeholder=""
-                searchInMenu
               />
             </div>
 
