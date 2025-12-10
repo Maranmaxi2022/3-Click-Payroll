@@ -47,7 +47,6 @@ export default function PaySchedule() {
   // State
   const [now, setNow] = React.useState(() => new Date());
   const [payFrequency, setPayFrequency] = React.useState("monthly"); // 'weekly' | 'biweekly' | 'monthly'
-  const [workWeek, setWorkWeek] = React.useState([true, true, true, true, true, true, false]);
   const [basis, setBasis] = React.useState("actual"); // 'actual' | 'org'
   const [orgDaysPerMonth, setOrgDaysPerMonth] = React.useState(26);
   const [payOn, setPayOn] = React.useState("day"); // 'lastWorking' | 'day'
@@ -56,6 +55,9 @@ export default function PaySchedule() {
     // Default to current month
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+
+  // Default work week (Mon-Fri) for calendar calculations
+  const workWeek = [false, true, true, true, true, true, false]; // Sun-Sat
 
   // Keep monthOptions rolling to always show next 12 months.
   React.useEffect(() => {
@@ -81,12 +83,6 @@ export default function PaySchedule() {
   }, [payOn, yyyy, mm, workWeek, payDayOfMonth]);
 
   const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-
-  const toggleDOW = (i) => setWorkWeek((wk) => {
-    const next = wk.slice();
-    next[i] = !next[i];
-    return next;
-  });
 
   const monthOptions = React.useMemo(() => {
     // Rolling next 12 months starting from current month
@@ -206,29 +202,6 @@ export default function PaySchedule() {
             >
               Monthly
             </button>
-          </div>
-      </section>
-
-      {/* Work week */}
-      <section>
-          <div className="text-sm font-semibold text-slate-900">Select your work week</div>
-          <div className="text-[13px] text-slate-500">The days worked in a calendar week</div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {daysOfWeek.map((d, i) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => toggleDOW(i)}
-                className={cx(
-                  "h-8 min-w-[54px] rounded-xl border px-3 text-sm",
-                  workWeek[i]
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                )}
-              >
-                {d.substring(0,3)}
-              </button>
-            ))}
           </div>
       </section>
 
