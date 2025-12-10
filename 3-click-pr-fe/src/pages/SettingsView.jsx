@@ -251,11 +251,6 @@ function OrgBranding({ branding, onUpdateBranding }) {
 
   const appearanceOptions = [
     {
-      id: "dark",
-      title: "Dark Pane",
-      description: "Sidebar stays dark with your accent on highlights.",
-    },
-    {
       id: "light",
       title: "Light Pane",
       description: "Sidebar switches to a light theme with accents.",
