@@ -46,6 +46,7 @@ function formatDDMMYYYY(date) {
 export default function PaySchedule() {
   // State
   const [now, setNow] = React.useState(() => new Date());
+  const [payFrequency, setPayFrequency] = React.useState("monthly"); // 'weekly' | 'biweekly' | 'monthly'
   const [workWeek, setWorkWeek] = React.useState([true, true, true, true, true, true, false]);
   const [basis, setBasis] = React.useState("actual"); // 'actual' | 'org'
   const [orgDaysPerMonth, setOrgDaysPerMonth] = React.useState(26);
@@ -100,6 +101,7 @@ export default function PaySchedule() {
 
   const handleSave = () => {
     const payload = {
+      payFrequency,
       workWeek,
       basis,
       orgDaysPerMonth,
@@ -158,9 +160,58 @@ export default function PaySchedule() {
 
   return (
     <div className="space-y-6 md:w-[60%]">
+      {/* Section heading (mobile only; desktop title is in the fixed subheader) */}
+      <div className="flex items-center lg:hidden">
+        <h2 className="text-lg font-semibold text-slate-900">Pay Schedule</h2>
+      </div>
+
+      {/* Pay Frequency */}
+      <section>
+          <div className="text-sm font-semibold text-slate-900">Pay frequency</div>
+          <div className="text-[13px] text-slate-500">How often employees will receive their payslips</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setPayFrequency("weekly")}
+              className={cx(
+                "h-9 min-w-[120px] rounded-xl border px-4 text-sm font-medium transition-colors",
+                payFrequency === "weekly"
+                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              )}
+            >
+              Weekly
+            </button>
+            <button
+              type="button"
+              onClick={() => setPayFrequency("biweekly")}
+              className={cx(
+                "h-9 min-w-[120px] rounded-xl border px-4 text-sm font-medium transition-colors",
+                payFrequency === "biweekly"
+                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              )}
+            >
+              Every 2 Weeks
+            </button>
+            <button
+              type="button"
+              onClick={() => setPayFrequency("monthly")}
+              className={cx(
+                "h-9 min-w-[120px] rounded-xl border px-4 text-sm font-medium transition-colors",
+                payFrequency === "monthly"
+                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              )}
+            >
+              Monthly
+            </button>
+          </div>
+      </section>
+
       {/* Work week */}
       <section>
-          <div className="text-sm font-semibold text-slate-900">Select your work week<span className="text-red-500">*</span></div>
+          <div className="text-sm font-semibold text-slate-900">Select your work week</div>
           <div className="text-[13px] text-slate-500">The days worked in a calendar week</div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {daysOfWeek.map((d, i) => (
@@ -181,84 +232,105 @@ export default function PaySchedule() {
           </div>
       </section>
 
-      {/* Salary basis */}
-      <section>
-          <div className="text-sm font-semibold text-slate-900">Calculate monthly salary based on<span className="text-red-500">*</span></div>
-          <div className="mt-2 space-y-2 text-sm text-slate-700">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="basis"
-                value="actual"
-                checked={basis === "actual"}
-                onChange={() => setBasis("actual")}
-              />
-              <span>Actual days in a month</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="basis"
-                value="org"
-                checked={basis === "org"}
-                onChange={() => setBasis("org")}
-              />
-              <span className="flex items-center gap-2">
-                Organisation working days -
+      {/* Salary basis - Only show for monthly */}
+      {payFrequency === "monthly" && (
+        <section>
+            <div className="text-sm font-semibold text-slate-900">Calculate monthly salary based on</div>
+            <div className="mt-2 space-y-2 text-sm text-slate-700">
+              <label className="flex items-center gap-2">
                 <input
-                  type="number"
-                  min={1}
-                  max={31}
-                  className="h-8 w-20 rounded-xl border border-slate-200 px-2 text-sm"
-                  value={orgDaysPerMonth}
-                  onChange={(e) => setOrgDaysPerMonth(Number(e.target.value) || 26)}
-                  disabled={basis !== "org"}
+                  type="radio"
+                  name="basis"
+                  value="actual"
+                  checked={basis === "actual"}
+                  onChange={() => setBasis("actual")}
                 />
-                <span>days per month</span>
-              </span>
-            </label>
-          </div>
-      </section>
-
-      {/* Pay on */}
-      <section>
-          <div className="text-sm font-semibold text-slate-900">Pay on<span className="text-red-500">*</span></div>
-          <div className="mt-2 space-y-3 text-sm text-slate-700">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="payon"
-                value="lastWorking"
-                checked={payOn === "lastWorking"}
-                onChange={() => setPayOn("lastWorking")}
-              />
-              <span>the last working day of every month</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="payon"
-                value="day"
-                checked={payOn === "day"}
-                onChange={() => setPayOn("day")}
-              />
-              <span className="flex items-center gap-2">
-                day
-                <div className={cx(payOn !== "day" ? "pointer-events-none opacity-60" : "")}>
-                  <SearchSelect
-                    className="w-[96px]"
-                    inputClassName="rounded-xl px-3 py-1.5 pr-8 text-left"
-                    menuSearchClassName="rounded-xl"
-                    options={Array.from({ length: 31 }, (_, i) => i + 1).map((n) => ({ value: n, label: String(n) }))}
-                    value={payDayOfMonth}
-                    onChange={(opt) => setPayDayOfMonth(Number(opt.value))}
-                    placeholder=""
-                    searchInMenu
+                <span>Actual days in a month</span>
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="basis"
+                  value="org"
+                  checked={basis === "org"}
+                  onChange={() => setBasis("org")}
+                />
+                <span className="flex items-center gap-2">
+                  Organisation working days -
+                  <input
+                    type="number"
+                    min={1}
+                    max={31}
+                    className="h-8 w-20 rounded-xl border border-slate-200 px-2 text-sm"
+                    value={orgDaysPerMonth}
+                    onChange={(e) => setOrgDaysPerMonth(Number(e.target.value) || 26)}
+                    disabled={basis !== "org"}
                   />
-                </div>
-                of every month
-              </span>
-            </label>
+                  <span>days per month</span>
+                </span>
+              </label>
+            </div>
+        </section>
+      )}
+
+      {/* Pay on - Different options based on frequency */}
+      <section>
+          <div className="text-sm font-semibold text-slate-900">Pay on</div>
+          <div className="mt-2 space-y-3 text-sm text-slate-700">
+            {payFrequency === "monthly" && (
+              <>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="payon"
+                    value="lastWorking"
+                    checked={payOn === "lastWorking"}
+                    onChange={() => setPayOn("lastWorking")}
+                  />
+                  <span>the last working day of every month</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="payon"
+                    value="day"
+                    checked={payOn === "day"}
+                    onChange={() => setPayOn("day")}
+                  />
+                  <span className="flex items-center gap-2">
+                    day
+                    <div className={cx(payOn !== "day" ? "pointer-events-none opacity-60" : "")}>
+                      <SearchSelect
+                        className="w-[96px]"
+                        inputClassName="rounded-xl px-3 py-1.5 pr-8 text-left"
+                        menuSearchClassName="rounded-xl"
+                        options={Array.from({ length: 31 }, (_, i) => i + 1).map((n) => ({ value: n, label: String(n) }))}
+                        value={payDayOfMonth}
+                        onChange={(opt) => setPayDayOfMonth(Number(opt.value))}
+                        placeholder=""
+                        searchInMenu
+                      />
+                    </div>
+                    of every month
+                  </span>
+                </label>
+              </>
+            )}
+            {(payFrequency === "weekly" || payFrequency === "biweekly") && (
+              <div className="flex items-center gap-2">
+                <span>Every</span>
+                <SearchSelect
+                  className="w-[120px]"
+                  inputClassName="rounded-xl px-3 py-1.5 pr-8 text-left"
+                  menuSearchClassName="rounded-xl"
+                  options={daysOfWeek.map((d, i) => ({ value: i, label: d }))}
+                  value={payDayOfMonth}
+                  onChange={(opt) => setPayDayOfMonth(Number(opt.value))}
+                  placeholder=""
+                  searchInMenu
+                />
+              </div>
+            )}
             <div className="text-[12px] text-slate-500">
               Note: When payday falls on a non-working day or a holiday, employees will get paid on the previous working day.
             </div>
@@ -266,9 +338,9 @@ export default function PaySchedule() {
       </section>
 
       {/* First payroll */}
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto]">
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,400px)_auto]">
           <div>
-            <div className="text-sm font-semibold text-slate-900">Start your first payroll from<span className="text-red-500">*</span></div>
+            <div className="text-sm font-semibold text-slate-900">Start your first payroll from</div>
             <div className="mt-2 max-w-xs">
               <SearchSelect
                 inputClassName="rounded-xl px-3 py-2 pr-8"
@@ -288,7 +360,7 @@ export default function PaySchedule() {
             </div>
 
             <div className="mt-4">
-              <div className="text-sm font-semibold text-slate-900">Select a pay date for your first payroll<span className="text-red-500">*</span></div>
+              <div className="text-sm font-semibold text-slate-900">Select a pay date for your first payroll</div>
               <div className="text-[13px] text-slate-500">Pay Period: {new Date(yyyy, mm, 1).toLocaleString(undefined, { month: "long", year: "numeric" })}</div>
               <div className="mt-2 max-w-xs">
                 <SearchSelect
@@ -299,7 +371,7 @@ export default function PaySchedule() {
                   placeholder=""
                 />
               </div>
-              </div>
+            </div>
           </div>
           <div className="hidden md:block">
             <Calendar />
@@ -309,7 +381,6 @@ export default function PaySchedule() {
       <div className="mt-2 flex items-center gap-3">
           <button type="button" className="btn-primary" onClick={handleSave}>Save</button>
           <button type="button" className="btn-ghost">Cancel</button>
-          <div className="ml-auto text-xs font-medium text-red-500">All fields are mandatory</div>
       </div>
     </div>
   );
