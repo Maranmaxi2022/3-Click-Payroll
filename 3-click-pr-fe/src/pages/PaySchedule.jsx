@@ -121,7 +121,7 @@ export default function PaySchedule() {
     for (let d = 1; d <= days; d++) cells.push(new Date(yyyy, mm, d));
 
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm w-[280px]">
+      <div className="rounded-xl border border-slate-200 bg-white p-3 w-[280px]">
         <div className="text-center text-sm font-semibold text-slate-700 mb-2">
           {new Date(yyyy, mm, 1).toLocaleString(undefined, { month: "long", year: "numeric" })}
         </div>
@@ -244,7 +244,7 @@ export default function PaySchedule() {
               />
               <span className="flex items-center gap-2">
                 day
-                <div className={cx(payOn !== "day" ? "pointer-events-none opacity-60" : "")}> 
+                <div className={cx(payOn !== "day" ? "pointer-events-none opacity-60" : "")}>
                   <SearchSelect
                     className="w-[96px]"
                     inputClassName="rounded-xl px-3 py-1.5 pr-8 text-left"
@@ -252,7 +252,7 @@ export default function PaySchedule() {
                     options={Array.from({ length: 31 }, (_, i) => i + 1).map((n) => ({ value: n, label: String(n) }))}
                     value={payDayOfMonth}
                     onChange={(opt) => setPayDayOfMonth(Number(opt.value))}
-                    placeholder="1"
+                    placeholder=""
                     searchInMenu
                   />
                 </div>
@@ -282,7 +282,7 @@ export default function PaySchedule() {
                   const [y, m] = String(opt.value).split("-").map(Number);
                   setFirstMonth(new Date(y, m, 1));
                 }}
-                placeholder="Select Month"
+                placeholder=""
                 searchInMenu
               />
             </div>
@@ -292,9 +292,11 @@ export default function PaySchedule() {
               <div className="text-[13px] text-slate-500">Pay Period: {new Date(yyyy, mm, 1).toLocaleString(undefined, { month: "long", year: "numeric" })}</div>
               <div className="mt-2 max-w-xs">
                 <SearchSelect
+                  inputClassName="rounded-xl px-3 py-2 pr-8"
                   options={[{ value: formatDDMMYYYY(computedPayDate), label: formatDDMMYYYY(computedPayDate), icon: "✅" }]}
                   value={formatDDMMYYYY(computedPayDate)}
                   onChange={() => {}}
+                  placeholder=""
                 />
               </div>
               </div>
