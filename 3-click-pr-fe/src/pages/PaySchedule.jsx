@@ -1,6 +1,7 @@
 // src/pages/PaySchedule.jsx
 import React from "react";
 import SearchSelect from "../components/SearchSelect";
+import { organizationAPI } from "../utils/api";
 
 const cx = (...xs) => xs.filter(Boolean).join(" ");
 
@@ -46,6 +47,8 @@ function formatDDMMYYYY(date) {
 export default function PaySchedule() {
   // State
   const [now, setNow] = React.useState(() => new Date());
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
   const [payFrequency, setPayFrequency] = React.useState("monthly"); // 'weekly' | 'biweekly' | 'monthly'
   const [basis, setBasis] = React.useState("actual"); // 'actual' | 'org'
   const [orgDaysPerMonth, setOrgDaysPerMonth] = React.useState(26);
@@ -58,6 +61,28 @@ export default function PaySchedule() {
 
   // Default work week (Mon-Fri) for calendar calculations
   const workWeek = [false, true, true, true, true, true, false]; // Sun-Sat
+
+  // Fetch organization settings on mount
+  React.useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const org = await organizationAPI.get();
+        if (org.default_pay_frequency) setPayFrequency(org.default_pay_frequency);
+        if (org.salary_basis) setBasis(org.salary_basis);
+        if (org.org_days_per_month) setOrgDaysPerMonth(org.org_days_per_month);
+        if (org.pay_rule_type) setPayOn(org.pay_rule_type === "lastWorking" ? "lastWorking" : "day");
+        if (org.pay_day_of_month) setPayDayOfMonth(org.pay_day_of_month);
+        if (org.first_payroll_year && org.first_payroll_month) {
+          setFirstMonth(new Date(org.first_payroll_year, org.first_payroll_month - 1, 1));
+        }
+      } catch (error) {
+        console.error("Failed to fetch organization settings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Keep monthOptions rolling to always show next 12 months.
   React.useEffect(() => {
@@ -95,19 +120,29 @@ export default function PaySchedule() {
     return arr;
   }, [now]);
 
-  const handleSave = () => {
-    const payload = {
-      payFrequency,
-      workWeek,
-      basis,
-      orgDaysPerMonth,
-      payRule: payOn === "lastWorking" ? { type: "lastWorking" } : { type: "day", day: Number(payDayOfMonth) || 1 },
-      firstPayrollMonth: { year: yyyy, month: mm + 1 },
-      firstPayDate: computedPayDate.toISOString(),
-    };
-    // For now, just log it. Wire to backend later.
-    console.log("Pay Schedule saved:", payload);
-    alert("Saved Pay Schedule (console)\n" + JSON.stringify(payload, null, 2));
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        default_pay_frequency: payFrequency,
+        work_week: workWeek,
+        salary_basis: basis,
+        org_days_per_month: orgDaysPerMonth,
+        pay_rule_type: payOn === "lastWorking" ? "lastWorking" : "day",
+        pay_day_of_month: Number(payDayOfMonth) || 1,
+        first_payroll_year: yyyy,
+        first_payroll_month: mm + 1,
+        first_pay_date: computedPayDate.toISOString(),
+      };
+
+      await organizationAPI.update(payload);
+      alert("Pay schedule saved successfully!");
+    } catch (error) {
+      console.error("Failed to save pay schedule:", error);
+      alert("Failed to save pay schedule. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Calendar grid for the selected month
@@ -154,6 +189,16 @@ export default function PaySchedule() {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6 md:w-[60%]">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-slate-500">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 md:w-[60%]">
       {/* Section heading (mobile only; desktop title is in the fixed subheader) */}
@@ -163,8 +208,8 @@ export default function PaySchedule() {
 
       {/* Pay Frequency */}
       <section>
-          <div className="text-sm font-semibold text-slate-900">Pay frequency</div>
-          <div className="text-[13px] text-slate-500">How often employees will receive their payslips</div>
+          <div className="text-sm font-semibold text-slate-900">Default pay frequency</div>
+          <div className="text-[13px] text-slate-500">This will be the default for new employees. Individual employees can have different pay frequencies set in their profile.</div>
           <div className="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
@@ -349,7 +394,9 @@ export default function PaySchedule() {
       </section>
 
       <div className="mt-2 flex items-center gap-3">
-          <button type="button" className="btn-primary" onClick={handleSave}>Save</button>
+          <button type="button" className="btn-primary" onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save"}
+          </button>
           <button type="button" className="btn-ghost">Cancel</button>
       </div>
     </div>

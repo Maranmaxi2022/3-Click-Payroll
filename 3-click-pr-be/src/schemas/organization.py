@@ -7,8 +7,28 @@ departments, work locations, designations, and company settings.
 
 from beanie import Document
 from pydantic import Field, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+from enum import Enum
+
+
+class PayFrequency(str, Enum):
+    """Pay frequency options"""
+    WEEKLY = "weekly"
+    BIWEEKLY = "biweekly"
+    MONTHLY = "monthly"
+
+
+class PayRuleType(str, Enum):
+    """Pay rule type options"""
+    LAST_WORKING = "lastWorking"
+    DAY = "day"
+
+
+class SalaryBasis(str, Enum):
+    """Salary calculation basis"""
+    ACTUAL = "actual"
+    ORG = "org"
 
 
 class Organization(Document):
@@ -48,6 +68,17 @@ class Organization(Document):
     date_format: Optional[str] = None
     field_separator: Optional[str] = None
     filing_location_id: Optional[str] = None  # Reference to WorkLocation for filing
+
+    # Pay Schedule Settings (Default for new employees)
+    default_pay_frequency: Optional[PayFrequency] = PayFrequency.MONTHLY
+    work_week: List[bool] = Field(default_factory=lambda: [False, True, True, True, True, True, False])  # Sun-Sat
+    salary_basis: Optional[SalaryBasis] = SalaryBasis.ACTUAL
+    org_days_per_month: int = 26
+    pay_rule_type: Optional[PayRuleType] = PayRuleType.DAY
+    pay_day_of_month: int = 1  # For monthly: day of month (1-31), For weekly/biweekly: day of week (0-6)
+    first_payroll_year: Optional[int] = None
+    first_payroll_month: Optional[int] = None  # 1-12
+    first_pay_date: Optional[datetime] = None
 
     # Metadata
     created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -14,7 +14,7 @@ import os
 import uuid
 from pathlib import Path
 
-from src.schemas.organization import WorkLocation, Organization
+from src.schemas.organization import WorkLocation, Organization, PayFrequency, PayRuleType, SalaryBasis
 from src.schemas.salary_component import (
     SalaryComponent,
     ComponentType,
@@ -204,6 +204,16 @@ class OrganizationUpdate(BaseModel):
     date_format: Optional[str] = None
     field_separator: Optional[str] = None
     filing_location_id: Optional[str] = None  # Reference to WorkLocation for filing
+    # Pay Schedule Settings
+    default_pay_frequency: Optional[PayFrequency] = None
+    work_week: Optional[List[bool]] = None
+    salary_basis: Optional[SalaryBasis] = None
+    org_days_per_month: Optional[int] = None
+    pay_rule_type: Optional[PayRuleType] = None
+    pay_day_of_month: Optional[int] = None
+    first_payroll_year: Optional[int] = None
+    first_payroll_month: Optional[int] = None
+    first_pay_date: Optional[datetime] = None
 
 
 class OrganizationResponse(BaseModel):
@@ -230,6 +240,16 @@ class OrganizationResponse(BaseModel):
     date_format: Optional[str] = None
     field_separator: Optional[str] = None
     filing_location_id: Optional[str] = None
+    # Pay Schedule Settings
+    default_pay_frequency: Optional[str] = None
+    work_week: Optional[List[bool]] = None
+    salary_basis: Optional[str] = None
+    org_days_per_month: Optional[int] = None
+    pay_rule_type: Optional[str] = None
+    pay_day_of_month: Optional[int] = None
+    first_payroll_year: Optional[int] = None
+    first_payroll_month: Optional[int] = None
+    first_pay_date: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
@@ -625,6 +645,15 @@ async def get_organization():
         date_format=org.date_format,
         field_separator=org.field_separator,
         filing_location_id=org.filing_location_id,
+        default_pay_frequency=org.default_pay_frequency.value if org.default_pay_frequency else None,
+        work_week=org.work_week,
+        salary_basis=org.salary_basis.value if org.salary_basis else None,
+        org_days_per_month=org.org_days_per_month,
+        pay_rule_type=org.pay_rule_type.value if org.pay_rule_type else None,
+        pay_day_of_month=org.pay_day_of_month,
+        first_payroll_year=org.first_payroll_year,
+        first_payroll_month=org.first_payroll_month,
+        first_pay_date=org.first_pay_date,
         created_at=org.created_at,
         updated_at=org.updated_at
     )
@@ -674,6 +703,15 @@ async def update_organization(org_data: OrganizationUpdate):
         date_format=org.date_format,
         field_separator=org.field_separator,
         filing_location_id=org.filing_location_id,
+        default_pay_frequency=org.default_pay_frequency.value if org.default_pay_frequency else None,
+        work_week=org.work_week,
+        salary_basis=org.salary_basis.value if org.salary_basis else None,
+        org_days_per_month=org.org_days_per_month,
+        pay_rule_type=org.pay_rule_type.value if org.pay_rule_type else None,
+        pay_day_of_month=org.pay_day_of_month,
+        first_payroll_year=org.first_payroll_year,
+        first_payroll_month=org.first_payroll_month,
+        first_pay_date=org.first_pay_date,
         created_at=org.created_at,
         updated_at=org.updated_at
     )
